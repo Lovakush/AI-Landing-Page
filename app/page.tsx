@@ -202,7 +202,15 @@ export default function OpseraLanding() {
   return (
     <div ref={containerRef} className="bg-[#0d0015] min-h-screen w-full overflow-x-hidden">
       {/* Header/Navbar */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-black">
+      <header
+        className="fixed top-0 left-0 right-0 z-50 px-6 py-4"
+        style={{
+          background: 'rgba(0, 0, 0, 0.7)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        }}
+      >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
           <a href="#" className="text-2xl font-bold text-white tracking-widest">
@@ -210,11 +218,11 @@ export default function OpseraLanding() {
           </a>
 
           {/* Nav Links */}
-          <nav className="flex items-center gap-8">
-            <a href="#products" className="text-white/70 hover:text-white transition-colors font-medium">
+          <nav className="flex items-center gap-4">
+            <a href="/products" className="text-white/70 hover:text-white transition-colors font-medium px-4 py-2 rounded-full border border-white/20 hover:border-white/40">
               Products
             </a>
-            <Link href="/about" className="text-white/70 hover:text-white transition-colors font-medium">
+            <Link href="/about" className="text-white/70 hover:text-white transition-colors font-medium px-4 py-2 rounded-full border border-white/20 hover:border-white/40">
               About Us
             </Link>
             <motion.button
