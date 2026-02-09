@@ -242,8 +242,8 @@ export default function AboutPage() {
         }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <a href="/" className="text-2xl font-bold text-white tracking-widest">
-            OPSERA
+          <a href="/" className="flex items-center">
+            <img src="/sia-logo.png" alt="SIA" className="h-14 w-auto brightness-0 invert" />
           </a>
           <nav className="flex items-center gap-4">
             <a href="/" className="text-white/70 hover:text-white transition-colors font-medium px-4 py-2 rounded-full border border-white/20 hover:border-white/40">
@@ -280,7 +280,7 @@ export default function AboutPage() {
             {/* Header Text */}
             <div className="text-center pt-12 pb-8 px-6 relative z-10">
               <h1 className="text-4xl md:text-5xl font-light text-[#2D1B4E] mb-4 tracking-tight">
-                Defining <span className="italic text-[#6366F1] font-normal">Sia</span>
+                Defining <span className="italic text-[#6366F1] font-normal">SIA</span>
               </h1>
               <p className="text-lg text-[#2D1B4E]/60 max-w-2xl mx-auto font-light">
                 The story, mission and value
@@ -584,9 +584,7 @@ export default function AboutPage() {
       <footer className="pt-20 pb-10 px-6 border-t border-[#6366F1]/10 bg-gradient-to-b from-white to-[#faf5ff]">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="text-center md:text-left">
-            <h4 className="text-2xl text-[#2D1B4E] tracking-widest mb-2 font-bold">
-              OPSERA
-            </h4>
+            <img src="/sia-logo.png" alt="SIA" className="h-12 w-auto mb-2" />
             <p className="text-[#2D1B4E]/60 text-sm tracking-wide font-light">
               Execution-first AI for the Enterprise.
             </p>
@@ -603,7 +601,7 @@ export default function AboutPage() {
         </div>
 
         <div className="mt-20 text-center text-[#2D1B4E]/20 text-xs tracking-widest">
-          © {new Date().getFullYear()} OPSERA INC. ALL RIGHTS RESERVED.
+          © {new Date().getFullYear()} SIA INC. ALL RIGHTS RESERVED.
         </div>
       </footer>
     </div>
