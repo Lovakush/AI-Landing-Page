@@ -6,6 +6,7 @@ import { ShaderAnimation } from "@/components/ui/shader-lines";
 import RadialOrbitalTimeline from "@/components/ui/radial-orbital-timeline";
 import { Users, Target, Box, Bot, Zap, ScanSearch, Rocket, Twitter, Linkedin, Github, MoveRight, Cpu, Brain, BookOpen, Lightbulb, Cog } from 'lucide-react';
 import Link from 'next/link';
+import Chatbot from '@/components/ui/chatbot';
 
 const CountUp = ({ to, duration = 2, suffix = "", prefix = "" }: { to: number, duration?: number, suffix?: string, prefix?: string }) => {
   const nodeRef = useRef<HTMLSpanElement>(null);
@@ -1424,6 +1425,8 @@ export default function OpseraLanding() {
           © {new Date().getFullYear()} OPSERA INC. ALL RIGHTS RESERVED.
         </div>
       </footer>
+      {/* Chatbot */}
+      <Chatbot />
     </div >
   );
 }
