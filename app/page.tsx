@@ -230,7 +230,7 @@ export default function OpseraLanding() {
       >
         <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
           {/* Logo */}
-          <a href="#" className="flex items-center h-full">
+          <a href="/" className="flex items-center h-full">
             <img src="/sia-logo.png" alt="SIA" className="h-full py-1 w-auto brightness-0 invert" />
           </a>
 
