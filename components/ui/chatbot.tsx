@@ -41,7 +41,7 @@ function TypingIndicator() {
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { id: 1, text: "Hi! I'm the Opsera assistant. How can I help you today?", sender: 'bot' },
+    { id: 1, text: "Hi! I'm the SIA assistant. How can I help you today?", sender: 'bot' },
   ]);
   const [input, setInput] = useState('');
   const [showQuickQuestions, setShowQuickQuestions] = useState(true);
@@ -189,7 +189,7 @@ export default function Chatbot() {
                 <MessageCircle className="w-5 h-5 text-[#2D1B4E]" />
               </div>
               <div>
-                <p className="text-white text-sm font-semibold">Opsera Assistant</p>
+                <p className="text-white text-sm font-semibold">SIA Assistant</p>
               </div>
             </div>
 

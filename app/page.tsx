@@ -216,8 +216,8 @@ export default function OpseraLanding() {
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
-          <a href="#" className="text-2xl font-bold text-white tracking-widest">
-            OPSERA
+          <a href="#" className="flex items-center">
+            <img src="/sia-logo.png" alt="SIA" className="h-32 w-auto" />
           </a>
 
           {/* Nav Links */}
@@ -892,7 +892,7 @@ export default function OpseraLanding() {
             <p className="text-xl text-[#2D1B4E]/60 max-w-3xl mx-auto font-light font-[family-name:var(--font-inter)] leading-relaxed">
               Too fast for enterprise suites. Too powerful for generic bots.
               <br className="hidden md:block" />
-              <span className="text-[#2D1B4E] font-medium"> Opsera exists in the sweet spot of execution.</span>
+              <span className="text-[#2D1B4E] font-medium"> SIA exists in the sweet spot of execution.</span>
             </p>
           </motion.div>
 
@@ -1041,7 +1041,7 @@ export default function OpseraLanding() {
                     </motion.div>
                   </div>
                   <div className="mt-4 text-sm text-white font-bold tracking-widest text-center flex flex-col items-center gap-1">
-                    OPSERA
+                    SIA
                     <span className="w-1 h-8 bg-gradient-to-b from-[#E8B84A] to-transparent opacity-50 absolute -bottom-10" />
                   </div>
                 </motion.div>
@@ -1293,7 +1293,7 @@ export default function OpseraLanding() {
                     </div>
                     <h4 className="text-2xl font-bold text-white mb-2">Request Access</h4>
                     <p className="text-white/60 text-sm">
-                      Enter your email to join the waitlist and be among the first to experience Opsera.
+                      Enter your email to join the waitlist and be among the first to experience SIA.
                     </p>
                   </div>
 
@@ -1387,9 +1387,7 @@ export default function OpseraLanding() {
 
           {/* Left: Logo & Tagline */}
           <div className="text-center md:text-left">
-            <h4 className="text-2xl text-white font-[family-name:var(--font-space-grotesk)] tracking-widest mb-2">
-              OPSERA
-            </h4>
+            <img src="/sia-logo.png" alt="SIA" className="h-25 w-auto brightness-0 invert mb-2" />
             <p className="text-white/40 text-sm tracking-wide font-[family-name:var(--font-inter)]">
               Execution-first AI for the Enterprise.
             </p>
@@ -1422,7 +1420,7 @@ export default function OpseraLanding() {
 
         {/* Copyright */}
         <div className="mt-20 text-center text-white/10 text-xs tracking-widest">
-          © {new Date().getFullYear()} OPSERA INC. ALL RIGHTS RESERVED.
+          © {new Date().getFullYear()} SIA INC. ALL RIGHTS RESERVED.
         </div>
       </footer>
       {/* Chatbot */}
