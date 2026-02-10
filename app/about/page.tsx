@@ -112,7 +112,7 @@ export default function AboutPage() {
                       The AI revolution is <em className="italic text-amber-700">already here.</em>
                     </h1>
                     <p className="text-base md:text-lg text-gray-600 font-light mb-6 leading-relaxed">
-                      The story, mission, and value behind OPSERA
+                      The story, mission, and value behind SIA
                     </p>
                     <span className="text-xs md:text-sm text-gray-400 font-normal tracking-wider">
                       Click the circle to explore our story →
@@ -362,7 +362,7 @@ export default function AboutPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            We started OPSERA because we believe that's wrong.
+            We started SIA because we believe that's wrong.
           </motion.div>
         </motion.div>
       </section>
@@ -816,11 +816,8 @@ export default function AboutPage() {
 
       {/* FOOTER */}
       <footer className="py-10 px-16 border-t border-gray-200 flex justify-between items-center text-sm text-gray-600">
-        <div>
-          <span className="text-lg font-bold text-gray-900">
-            OPS<span className="text-amber-700">ERA</span>
-          </span>
-          <span className="ml-4">Intelligence that levels the field.</span>
+        <div className="flex items-center">
+          <img src="/sia-logo.png" alt="SIA" className="h-10 w-auto" />
         </div>
         <div className="flex gap-8">
           <a href="#" className="hover:text-gray-900 transition-colors">
