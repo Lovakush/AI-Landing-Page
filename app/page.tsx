@@ -156,6 +156,23 @@ export default function OpseraLanding() {
   const [email, setEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [navVisible, setNavVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  // Auto-hide navbar on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY < lastScrollY.current || currentScrollY < 100) {
+        setNavVisible(true);
+      } else if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+        setNavVisible(false);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Single timer for all robot chat cycling - prevents multiple interval conflicts
   useEffect(() => {
@@ -205,32 +222,29 @@ export default function OpseraLanding() {
     <div ref={containerRef} className="bg-[#0d0015] min-h-screen w-full overflow-x-hidden">
       {/* Header/Navbar */}
       <header
-        className="fixed top-0 left-0 right-0 z-50 px-6 py-4"
+        className="fixed top-0 left-0 right-0 z-50 px-8 h-20"
         style={{
-          background: 'rgba(0, 0, 0, 0.7)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          background: 'rgba(13, 0, 21, 0.85)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+          transform: navVisible ? 'translateY(0)' : 'translateY(-100%)',
+          transition: 'transform 0.3s ease-in-out',
         }}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo */}
-          <a href="#" className="text-2xl font-bold text-white tracking-widest">
-            OPSERA
+        <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
+          <a href="/" className="flex items-center h-full">
+            <img src="/sia-logo.png" alt="SIA" className="h-full py-3 w-auto brightness-0 invert" />
           </a>
-
-          {/* Nav Links */}
-          <nav className="flex items-center gap-4">
-            <a href="/products" className="text-white/70 hover:text-white transition-colors font-medium px-4 py-2 rounded-full border border-white/20 hover:border-white/40">
-              Products
-            </a>
-            <Link href="/about" className="text-white/70 hover:text-white transition-colors font-medium px-4 py-2 rounded-full border border-white/20 hover:border-white/40">
-              About Us
-            </Link>
+          <nav className="flex items-center gap-8">
+            <a href="/" className="text-white hover:text-white transition-colors text-sm font-medium tracking-wide">Home</a>
+            <a href="/products" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">Products</a>
+            <a href="/about" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">About Us</a>
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-white text-black px-5 py-2 rounded-full text-sm font-medium"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => { document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' }); }}
+              className="text-[#2D1B4E] text-sm font-semibold px-4 py-2 rounded-lg bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] hover:shadow-[0_0_20px_rgba(232,184,74,0.3)] transition-all ml-4"
             >
               Get Started
             </motion.button>
