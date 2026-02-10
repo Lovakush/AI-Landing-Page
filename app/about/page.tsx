@@ -831,8 +831,12 @@ export default function AboutPage() {
           <a href="#" className="hover:text-gray-900 transition-colors">
             Cookies
           </a>
+
+        <div className="mt-20 text-center text-[#2D1B4E]/20 text-xs tracking-widest">
+          © {new Date().getFullYear()} SIA INC. ALL RIGHTS RESERVED.
         </div>
       </footer>
+      <Chatbot />
     </div>
   );
 }

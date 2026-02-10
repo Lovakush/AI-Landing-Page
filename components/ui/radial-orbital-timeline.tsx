@@ -21,11 +21,13 @@ export default function RadialOrbitalTimeline({
   isCompact = false,
 }: RadialOrbitalTimelineProps) {
   const [mounted, setMounted] = useState(false);
-  const [rotationAngle, setRotationAngle] = useState<number>(0);
-  const [autoRotate, setAutoRotate] = useState<boolean>(true);
+  const [, setRotationAngle] = useState<number>(0);
+  const rotationRef = useRef<number>(0);
+  const autoRotateRef = useRef<boolean>(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const orbitRef = useRef<HTMLDivElement>(null);
   const nodeRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const labelRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
   // Fix hydration mismatch
   useEffect(() => {
@@ -35,14 +37,14 @@ export default function RadialOrbitalTimeline({
   // Stop rotation when a node is selected
   useEffect(() => {
     if (selectedId !== null) {
-      setAutoRotate(false);
-      // Center view on selected node
+      autoRotateRef.current = false;
       const nodeIndex = timelineData.findIndex((item) => item.id === selectedId);
       const totalNodes = timelineData.length;
-      const targetAngle = (nodeIndex / totalNodes) * 360;
-      setRotationAngle(270 - targetAngle);
+      const targetAngle = (270 - (nodeIndex / totalNodes) * 360) % 360;
+      rotationRef.current = targetAngle;
+      setRotationAngle(targetAngle);
     } else {
-      setAutoRotate(true);
+      autoRotateRef.current = true;
     }
   }, [selectedId, timelineData]);
 
@@ -60,27 +62,46 @@ export default function RadialOrbitalTimeline({
     }
   };
 
+  // rAF-based rotation that updates DOM directly instead of causing React re-renders
   useEffect(() => {
-    let rotationTimer: NodeJS.Timeout;
+    let animId: number;
+    let lastTime = performance.now();
 
-    if (autoRotate) {
-      rotationTimer = setInterval(() => {
-        setRotationAngle((prev) => {
-          const newAngle = (prev + 0.3) % 360;
-          return Number(newAngle.toFixed(3));
+    const tick = (now: number) => {
+      if (autoRotateRef.current) {
+        const dt = now - lastTime;
+        // 0.3 degrees per 50ms = 6 degrees/sec
+        rotationRef.current = (rotationRef.current + (dt / 50) * 0.3) % 360;
+
+        // Update node positions directly in the DOM
+        const total = timelineData.length;
+        const radius = isCompact ? 140 : 200;
+        timelineData.forEach((item, index) => {
+          const angle = ((index / total) * 360 + rotationRef.current) % 360;
+          const radian = (angle * Math.PI) / 180;
+          const x = radius * Math.cos(radian);
+          const y = radius * Math.sin(radian);
+          const zIndex = Math.round(100 + 50 * Math.cos(radian));
+          const opacity = Math.max(0.4, Math.min(1, 0.4 + 0.6 * ((1 + Math.sin(radian)) / 2)));
+
+          const nodeEl = nodeRefs.current[item.id];
+          if (nodeEl) {
+            nodeEl.style.transform = `translate(${x}px, ${y}px)`;
+            nodeEl.style.zIndex = String(zIndex);
+            nodeEl.style.opacity = String(selectedId !== null && selectedId !== item.id ? 0.4 : (selectedId === item.id ? 1 : opacity));
+          }
         });
-      }, 50);
-    }
-
-    return () => {
-      if (rotationTimer) {
-        clearInterval(rotationTimer);
       }
+      lastTime = now;
+      animId = requestAnimationFrame(tick);
     };
-  }, [autoRotate]);
+
+    animId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animId);
+  }, [timelineData, isCompact, selectedId]);
 
   const calculateNodePosition = (index: number, total: number) => {
-    const angle = ((index / total) * 360 + rotationAngle) % 360;
+    const angle = ((index / total) * 360 + rotationRef.current) % 360;
     const radius = isCompact ? 140 : 200;
     const radian = (angle * Math.PI) / 180;
 
@@ -165,8 +186,13 @@ export default function RadialOrbitalTimeline({
                 ref={(el) => {
                   nodeRefs.current[item.id] = el;
                 }}
-                className="absolute transition-all duration-500 cursor-pointer"
-                style={nodeStyle}
+                className="absolute cursor-pointer"
+                style={{
+                  ...nodeStyle,
+                  transition: selectedId !== null
+                    ? 'transform 0.5s ease, opacity 0.5s ease'
+                    : 'opacity 0.5s ease',
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleNodeClick(item.id);

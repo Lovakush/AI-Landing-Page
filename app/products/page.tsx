@@ -6,6 +6,7 @@ import { MoveRight, Sparkles, Zap, Target, Users, TrendingUp, BarChart3, Bot, Ch
 
 // Dynamic words for header
 const dynamicWords = ["marketing", "hr", "sales", "advertising", "job postings", "lead generation"];
+import Chatbot from '@/components/ui/chatbot';
 
 // Product categories with colors
 const categories = [
@@ -411,9 +412,7 @@ export default function ProductsPage() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
           {/* Left: Logo & Tagline */}
           <div className="text-center md:text-left">
-            <h4 className="text-2xl text-white tracking-widest mb-2">
-              OPSERA
-            </h4>
+            <img src="/sia-logo.png" alt="SIA" className="h-25 w-auto mb-2" />
             <p className="text-white/40 text-sm tracking-wide">
               Execution-first AI for the Enterprise.
             </p>
@@ -432,9 +431,10 @@ export default function ProductsPage() {
 
         {/* Copyright */}
         <div className="mt-20 text-center text-white/10 text-xs tracking-widest">
-          © {new Date().getFullYear()} OPSERA INC. ALL RIGHTS RESERVED.
+          © {new Date().getFullYear()} SIA INC. ALL RIGHTS RESERVED.
         </div>
       </footer>
+      <Chatbot />
     </div>
   );
 }
