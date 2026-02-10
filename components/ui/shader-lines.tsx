@@ -4,10 +4,10 @@
 // White background with subtle purple accents
 export function ShaderAnimation() {
   return (
-    <div className="w-full h-full absolute inset-0 overflow-hidden bg-white">
-      {/* Subtle gradient accents */}
+    <div className="w-full h-full absolute inset-0 overflow-hidden bg-[#0d0015]">
+      {/* Deep purple gradient accents */}
       <div
-        className="absolute inset-0 opacity-30"
+        className="absolute inset-0 opacity-50"
         style={{
           background: `
             radial-gradient(at 80% 20%, #6B4E9B 0px, transparent 50%),
@@ -18,9 +18,9 @@ export function ShaderAnimation() {
         }}
       />
 
-      {/* Floating orbs - very subtle */}
+      {/* Floating orbs */}
       <div
-        className="absolute w-[500px] h-[500px] rounded-full blur-[150px] opacity-20"
+        className="absolute w-[500px] h-[500px] rounded-full blur-[150px] opacity-30"
         style={{
           background: 'radial-gradient(circle, #6B4E9B 0%, transparent 70%)',
           top: '0%',
@@ -29,7 +29,7 @@ export function ShaderAnimation() {
         }}
       />
       <div
-        className="absolute w-[400px] h-[400px] rounded-full blur-[120px] opacity-15"
+        className="absolute w-[400px] h-[400px] rounded-full blur-[120px] opacity-20"
         style={{
           background: 'radial-gradient(circle, #E8B84A 0%, transparent 70%)',
           bottom: '10%',

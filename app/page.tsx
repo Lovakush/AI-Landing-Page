@@ -261,7 +261,7 @@ export default function OpseraLanding() {
 
       {/* Hero Section with Shader Background */}
       <section
-        className="relative min-h-screen flex items-center overflow-hidden bg-white"
+        className="relative min-h-screen flex items-center overflow-hidden"
       >
         {/* Shader Animation Background - Full opacity */}
         <div className="absolute inset-0 z-0">
@@ -277,7 +277,7 @@ export default function OpseraLanding() {
             className="flex flex-col items-start gap-6"
           >
             {/* Main Heading with Animated Word */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl tracking-tighter text-left font-light text-[#2D1B4E]">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl tracking-tighter text-left font-light text-white">
               <span>Operations made</span>
               <div className="relative w-full h-[1.2em]">
                 {heroWords.map((word, index) => (
@@ -299,7 +299,7 @@ export default function OpseraLanding() {
             </h1>
 
             {/* Subtitle */}
-            <p className="text-base md:text-lg leading-relaxed tracking-tight text-[#2D1B4E]/70 max-w-md text-left font-light">
+            <p className="text-base md:text-lg leading-relaxed tracking-tight text-white/70 max-w-md text-left font-light">
               Domain-specific AI agents that deliver clarity and automation in 30 days — not 6 months.
             </p>
 
@@ -311,7 +311,7 @@ export default function OpseraLanding() {
                 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center justify-center gap-2 bg-[#2D1B4E]/10 backdrop-blur-sm border border-[#2D1B4E]/30 text-[#2D1B4E] px-6 py-3 rounded-full text-sm hover:bg-[#2D1B4E]/20 transition-all"
+                className="flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-full text-sm hover:bg-white/20 transition-all"
               >
                 Book a Demo
               </motion.button>
@@ -369,9 +369,9 @@ export default function OpseraLanding() {
                   </div>
                 </div>
                 {/* Chat Bubble */}
-                <div className="absolute left-full ml-2 top-2 bg-white rounded-2xl px-3 py-2 shadow-lg min-w-max">
+                <div className="absolute left-full ml-2 top-2 bg-white/95 backdrop-blur-sm rounded-2xl px-3 py-2 shadow-lg shadow-[#E8B84A]/20 min-w-max">
                   <p className="text-sm text-[#2D1B4E] font-semibold">{robotChats.argo[chatTick % robotChats.argo.length]}</p>
-                  <div className="absolute left-0 top-4 -translate-x-1 w-2 h-2 bg-white rotate-45" />
+                  <div className="absolute left-0 top-4 -translate-x-1 w-2 h-2 bg-white/95 rotate-45" />
                 </div>
               </motion.div>
 
@@ -409,9 +409,9 @@ export default function OpseraLanding() {
                   </div>
                 </div>
                 {/* Chat Bubble */}
-                <div className="absolute right-full mr-2 top-2 bg-white rounded-2xl px-3 py-2 shadow-lg min-w-max">
+                <div className="absolute right-full mr-2 top-2 bg-white/95 backdrop-blur-sm rounded-2xl px-3 py-2 shadow-lg shadow-[#A855F7]/20 min-w-max">
                   <p className="text-sm text-[#2D1B4E] font-semibold">{robotChats.mark[(chatTick + 1) % robotChats.mark.length]}</p>
-                  <div className="absolute right-0 top-4 translate-x-1 w-2 h-2 bg-white rotate-45" />
+                  <div className="absolute right-0 top-4 translate-x-1 w-2 h-2 bg-white/95 rotate-45" />
                 </div>
               </motion.div>
 
@@ -449,17 +449,17 @@ export default function OpseraLanding() {
                   </div>
                 </div>
                 {/* Chat Bubble */}
-                <div className="absolute left-full ml-2 top-0 bg-white rounded-2xl px-3 py-2 shadow-lg min-w-max">
+                <div className="absolute left-full ml-2 top-0 bg-white/95 backdrop-blur-sm rounded-2xl px-3 py-2 shadow-lg shadow-[#06B6D4]/20 min-w-max">
                   <p className="text-sm text-[#2D1B4E] font-semibold">{robotChats.consuelo[(chatTick + 2) % robotChats.consuelo.length]}</p>
-                  <div className="absolute left-0 top-4 -translate-x-1 w-2 h-2 bg-white rotate-45" />
+                  <div className="absolute left-0 top-4 -translate-x-1 w-2 h-2 bg-white/95 rotate-45" />
                 </div>
               </motion.div>
 
               {/* Simple connection lines */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: -1 }}>
-                <path d="M 60 80 Q 150 150 240 160" stroke="#E8B84A" strokeWidth="2" fill="none" opacity="0.15" strokeDasharray="6,6" />
-                <path d="M 240 200 Q 180 280 130 300" stroke="#A855F7" strokeWidth="2" fill="none" opacity="0.15" strokeDasharray="6,6" />
-                <path d="M 130 320 Q 60 250 60 100" stroke="#06B6D4" strokeWidth="2" fill="none" opacity="0.15" strokeDasharray="6,6" />
+                <path d="M 60 80 Q 150 150 240 160" stroke="#E8B84A" strokeWidth="2" fill="none" opacity="0.3" strokeDasharray="6,6" />
+                <path d="M 240 200 Q 180 280 130 300" stroke="#A855F7" strokeWidth="2" fill="none" opacity="0.3" strokeDasharray="6,6" />
+                <path d="M 130 320 Q 60 250 60 100" stroke="#06B6D4" strokeWidth="2" fill="none" opacity="0.3" strokeDasharray="6,6" />
               </svg>
             </div>
           </motion.div>
