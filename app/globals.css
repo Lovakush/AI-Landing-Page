@@ -187,3 +187,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Chatbot dark scrollbar */
+.chatbot-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.chatbot-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chatbot-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(107, 78, 155, 0.3);
+  border-radius: 3px;
+}
+.chatbot-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 78, 155, 0.5);
+}
+.chatbot-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(107, 78, 155, 0.3) transparent;
+}

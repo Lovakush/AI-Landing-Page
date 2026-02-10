@@ -6,6 +6,7 @@ import { MoveRight, Sparkles, Zap, Target, Users, TrendingUp, BarChart3, Bot, Ch
 
 // Dynamic words for header
 const dynamicWords = ["marketing", "hr", "sales", "advertising", "job postings", "lead generation"];
+import Chatbot from '@/components/ui/chatbot';
 
 // Product categories with colors
 const categories = [
@@ -182,32 +183,37 @@ export default function ProductsPage() {
     <div className="bg-gradient-to-b from-white via-[#faf5ff] via-[#e9d5ff] to-[#12041a] min-h-screen w-full overflow-x-hidden">
       {/* Header/Navbar */}
       <header
-        className="fixed top-0 left-0 right-0 z-50 px-6 py-4"
+        className="fixed top-0 left-0 right-0 z-50 px-8 h-25"
         style={{
-          background: 'rgba(0, 0, 0, 0.7)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          background: 'rgba(13, 0, 21, 0.85)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+          transform: navVisible ? 'translateY(0)' : 'translateY(-100%)',
+          transition: 'transform 0.3s ease-in-out',
         }}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
           {/* Logo */}
-          <a href="/" className="text-2xl font-bold text-white tracking-widest">
-            OPSERA
+          <a href="/" className="flex items-center h-full">
+            <img src="/sia-logo.png" alt="SIA" className="h-full py-1 w-auto brightness-0 invert" />
           </a>
 
-          {/* Nav Links */}
-          <nav className="flex items-center gap-4">
-            <a href="/" className="text-white/70 hover:text-white transition-colors font-medium px-4 py-2 rounded-full border border-white/20 hover:border-white/40">
+          {/* Nav Links + CTA */}
+          <nav className="flex items-center gap-8">
+            <a href="/" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">
               Home
             </a>
-            <a href="/about" className="text-white/70 hover:text-white transition-colors font-medium px-4 py-2 rounded-full border border-white/20 hover:border-white/40">
+            <a href="/products" className="text-white hover:text-white transition-colors text-sm font-medium tracking-wide">
+              Products
+            </a>
+            <a href="/about" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">
               About Us
             </a>
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-white text-black px-5 py-2 rounded-full text-sm font-medium"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="text-[#2D1B4E] text-sm font-semibold px-4 py-2 rounded-lg bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] hover:shadow-[0_0_20px_rgba(232,184,74,0.3)] transition-all ml-4"
             >
               Get Started
             </motion.button>
@@ -386,9 +392,7 @@ export default function ProductsPage() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
           {/* Left: Logo & Tagline */}
           <div className="text-center md:text-left">
-            <h4 className="text-2xl text-white tracking-widest mb-2">
-              OPSERA
-            </h4>
+            <img src="/sia-logo.png" alt="SIA" className="h-25 w-auto mb-2" />
             <p className="text-white/40 text-sm tracking-wide">
               Execution-first AI for the Enterprise.
             </p>
@@ -407,9 +411,10 @@ export default function ProductsPage() {
 
         {/* Copyright */}
         <div className="mt-20 text-center text-white/10 text-xs tracking-widest">
-          © {new Date().getFullYear()} OPSERA INC. ALL RIGHTS RESERVED.
+          © {new Date().getFullYear()} SIA INC. ALL RIGHTS RESERVED.
         </div>
       </footer>
+      <Chatbot />
     </div>
   );
 }
