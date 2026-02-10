@@ -166,6 +166,23 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('category1');
   const [wordIndex, setWordIndex] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null);
+  const [navVisible, setNavVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY < lastScrollY.current || currentScrollY < 100) {
+        setNavVisible(true);
+      } else if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+        setNavVisible(false);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   const [shouldScrollToDetails, setShouldScrollToDetails] = useState(false);
   const [navVisible, setNavVisible] = useState(true);
   const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);

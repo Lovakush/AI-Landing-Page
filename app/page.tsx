@@ -160,11 +160,16 @@ export default function OpseraLanding() {
   const [navVisible, setNavVisible] = useState(true);
   const lastScrollY = useRef(0);
 
+  // Auto-hide navbar on scroll
   useEffect(() => {
     const handleScroll = () => {
-      const currentY = window.scrollY;
-      setNavVisible(currentY < lastScrollY.current || currentY < 10);
-      lastScrollY.current = currentY;
+      const currentScrollY = window.scrollY;
+      if (currentScrollY < lastScrollY.current || currentScrollY < 100) {
+        setNavVisible(true);
+      } else if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+        setNavVisible(false);
+      }
+      lastScrollY.current = currentScrollY;
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -218,7 +223,7 @@ export default function OpseraLanding() {
     <div ref={containerRef} className="bg-[#0d0015] min-h-screen w-full overflow-x-hidden">
       {/* Header/Navbar */}
       <header
-        className="fixed top-0 left-0 right-0 z-50 px-8 h-25"
+        className="fixed top-0 left-0 right-0 z-50 px-8 h-20"
         style={{
           background: 'rgba(13, 0, 21, 0.85)',
           backdropFilter: 'blur(16px)',
@@ -229,28 +234,17 @@ export default function OpseraLanding() {
         }}
       >
         <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
-          {/* Logo */}
           <a href="/" className="flex items-center h-full">
-            <img src="/sia-logo.png" alt="SIA" className="h-full py-1 w-auto brightness-0 invert" />
+            <img src="/sia-logo.png" alt="SIA" className="h-full py-3 w-auto brightness-0 invert" />
           </a>
-
-          {/* Nav Links + CTA */}
           <nav className="flex items-center gap-8">
-            <a href="/" className="text-white hover:text-white transition-colors text-sm font-medium tracking-wide">
-              Home
-            </a>
-            <a href="/products" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">
-              Products
-            </a>
-            <a href="/about" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">
-              About Us
-            </a>
+            <a href="/" className="text-white hover:text-white transition-colors text-sm font-medium tracking-wide">Home</a>
+            <a href="/products" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">Products</a>
+            <a href="/about" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">About Us</a>
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => {
-                document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={() => { document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' }); }}
               className="text-[#2D1B4E] text-sm font-semibold px-4 py-2 rounded-lg bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] hover:shadow-[0_0_20px_rgba(232,184,74,0.3)] transition-all ml-4"
             >
               Get Started
