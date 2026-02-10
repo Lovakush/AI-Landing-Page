@@ -81,7 +81,7 @@ export default function Chatbot() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     if (!input.trim()) return;
 
     const userMessage: Message = {
@@ -91,25 +91,60 @@ export default function Chatbot() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const currentInput = input.trim();
     setInput('');
     setShowQuickQuestions(false);
     setIsTyping(true);
 
-    // Simulated bot reply
-    setTimeout(() => {
-      const botMessage: Message = {
-        id: Date.now() + 1,
-        text: "Thanks for your message! Our team will get back to you shortly. In the meantime, feel free to explore our products.",
-        sender: 'bot',
-      };
+    try {
+      // Call Django backend chatbot API
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+      const response = await fetch(`${apiUrl}/api/waitlist/chat/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: currentInput }),
+      });
+
+      const data = await response.json();
+
       setIsTyping(false);
-      setMessages((prev) => [...prev, botMessage]);
+
+      if (data.success && data.response) {
+        const botMessage: Message = {
+          id: Date.now() + 1,
+          text: data.response,
+          sender: 'bot',
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      } else {
+        const errorMessage: Message = {
+          id: Date.now() + 1,
+          text: "Sorry, I couldn't process your message. Please try again.",
+          sender: 'bot',
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      }
 
       // Show notification dot if chat is closed
       if (!isOpenRef.current) {
         setUnreadCount((prev) => prev + 1);
       }
-    }, 1500);
+    } catch (error) {
+      console.error('Chatbot error:', error);
+      setIsTyping(false);
+      const errorMessage: Message = {
+        id: Date.now() + 1,
+        text: "Sorry, I'm having trouble connecting. Please check if the backend is running.",
+        sender: 'bot',
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+
+      if (!isOpenRef.current) {
+        setUnreadCount((prev) => prev + 1);
+      }
+    }
   }, [input]);
 
   return (

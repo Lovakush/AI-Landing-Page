@@ -1323,7 +1323,8 @@ export default function OpseraLanding() {
                       e.preventDefault();
                       setErrorMessage('');
                       try {
-                        const res = await fetch('http://localhost:8000/api/waitlist/join/', {
+                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+                        const res = await fetch(`${apiUrl}/api/waitlist/join/`, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ email }),
@@ -1350,7 +1351,7 @@ export default function OpseraLanding() {
                         setEmail('');
                       } catch (err) {
                         console.error('Waitlist error:', err);
-                        setErrorMessage('Could not connect to the server. Please try again.');
+                        setErrorMessage('Could not connect to the server. Please check if the backend is running.');
                       }
                     }}
                     className="space-y-4"
