@@ -99,7 +99,7 @@ const getCategoryRobot = (category: string, size = 80) => {
 const products = [
   {
     id: 1, category: 'category1', icon: Sparkles, color: '#A855F7', colorIntensity: 0.4,
-    name: 'Content & Social Media Agent', tagline: 'Create and manage engaging social content',
+    name: 'Content & Social Media Agent', tagline: 'Spot trends early for engagement-elevating content creation',
     description: 'Make best use of trends, get editor hints on brand voice and lift uour engagement before publishing',
     features: ['Hashtag Streaming', 'Trend Radar', 'AI Content Coach'],
     price: '$499/mo',
