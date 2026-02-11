@@ -149,7 +149,7 @@ const aiAgentsData = [
 export default function OpseraLanding() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [wordIndex, setWordIndex] = useState(0);
-  const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<number | null>(2);
   const [selectedAgent, setSelectedAgent] = useState<string | null>('argo');
   const [showAgentDetails, setShowAgentDetails] = useState(false);
   const [chatTick, setChatTick] = useState(0);
@@ -196,6 +196,26 @@ export default function OpseraLanding() {
     }, 10000);
     return () => clearInterval(interval);
   }, [showAgentDetails]);
+
+  // Auto-advance products every 25 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSelectedProduct(prev => {
+        if (prev === null) return 1;
+        const currentIndex = productTimelineData.findIndex(p => p.id === prev);
+        const nextIndex = (currentIndex + 1) % productTimelineData.length;
+        return productTimelineData[nextIndex].id;
+      });
+    }, 25000);
+    return () => clearTimeout(timer);
+  }, [selectedProduct]);
+
+  // Prevent deselection — always keep a product selected
+  const handleProductSelect = (id: number | null) => {
+    if (id !== null) {
+      setSelectedProduct(id);
+    }
+  };
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -485,51 +505,26 @@ export default function OpseraLanding() {
             </h3>
           </motion.div>
 
-          {/* Interactive Layout - Single Orbit that transforms */}
+          {/* Interactive Layout - Orbit on right, info on left */}
           <div className="relative min-h-[600px] flex items-center">
-            {/* The Orbit - Always rendered, transforms position and size */}
-            <motion.div
-              animate={{
-                x: selectedProduct ? '20%' : '0%',
-                scale: selectedProduct ? 0.75 : 1,
-              }}
-              transition={{
-                duration: 0.5,
-                ease: [0.4, 0, 0.2, 1],
-              }}
+            {/* The Orbit - Always positioned on the right */}
+            <div
               className="w-full"
               style={{
+                transform: 'translateX(20%) scale(0.75)',
                 transformOrigin: 'center center',
               }}
             >
               <RadialOrbitalTimeline
                 timelineData={productTimelineData}
                 selectedId={selectedProduct}
-                onSelectNode={setSelectedProduct}
+                onSelectNode={handleProductSelect}
                 isCompact={false}
               />
-              {!selectedProduct && (
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="text-center text-white/40 text-sm mt-4"
-                >
-                  Click on any node to explore our products
-                </motion.p>
-              )}
-            </motion.div>
+            </div>
 
-            {/* Left Side - Product Info & KPIs (appears when product selected) */}
-            <motion.div
-              initial={false}
-              animate={{
-                opacity: selectedProduct ? 1 : 0,
-                x: selectedProduct ? 0 : -50,
-              }}
-              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1], delay: selectedProduct ? 0.15 : 0 }}
-              className={`absolute left-0 top-1/2 -translate-y-1/2 w-[45%] ${!selectedProduct ? 'pointer-events-none' : ''}`}
-            >
+            {/* Left Side - Product Info & KPIs (always visible) */}
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[45%]">
               {selectedProduct && selectedProductData && (
                 <div className="space-y-6">
                   {/* Product Title */}
@@ -539,7 +534,7 @@ export default function OpseraLanding() {
                       className="text-3xl md:text-4xl font-semibold text-white mb-3"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
+                      transition={{ delay: 0.1 }}
                     >
                       {selectedProductData.title}
                     </motion.h4>
@@ -548,7 +543,7 @@ export default function OpseraLanding() {
                       className="text-base text-white/70 leading-relaxed"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.25 }}
+                      transition={{ delay: 0.15 }}
                     >
                       {selectedProductData.description}
                     </motion.p>
@@ -561,7 +556,7 @@ export default function OpseraLanding() {
                         key={`kpi-${selectedProduct}-${index}`}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3 + index * 0.1 }}
+                        transition={{ delay: 0.2 + index * 0.1 }}
                         className="group relative bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 overflow-hidden cursor-pointer hover:bg-white/10 hover:border-white/20 transition-all duration-300"
                       >
                         {/* Shine effect on hover */}
@@ -578,20 +573,9 @@ export default function OpseraLanding() {
                       </motion.div>
                     ))}
                   </div>
-
-                  {/* Back button */}
-                  <motion.button
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                    onClick={() => setSelectedProduct(null)}
-                    className="text-white/50 hover:text-white text-sm flex items-center gap-2 transition-colors mt-4"
-                  >
-                    ← Back to all products
-                  </motion.button>
                 </div>
               )}
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
