@@ -17,7 +17,7 @@ const getBrandName = (category: string): string => {
   switch (category) {
     case 'category1': return 'Mark';
     case 'category2': return 'Consuelo';
-    case 'category3': return 'Argeo';
+    case 'category3': return 'Argo';
     default: return 'Our Product';
   }
 };
@@ -100,64 +100,244 @@ const products = [
   {
     id: 1, category: 'category1', icon: Sparkles, color: '#A855F7', colorIntensity: 0.4,
     name: 'Content & Social Media Agent', tagline: 'Spot trends early for engagement-elevating content creation',
-    description: 'Make best use of trends, get editor hints on brand voice and lift uour engagement before publishing',
-    features: ['Hashtag Streaming', 'Trend Radar', 'AI Content Coach'],
+    description: 'Make best use of trends, get editor hints on brand voice and lift your engagement before publishing',
+    features: [ {
+      title: 'Engagement Predictor​',
+      description: 'ML model forecasts clicks, likes, and shares; choose the slot with the highest projected reach.​.'
+    },
+      {
+      title: 'Trend Radar',
+      description: 'Streams top hashtags, search spikes, and competitor chatter into one panel so you’re always on-message.​'
+    },
+    {
+      title: 'Unified Campaign Dashboard',
+      description: 'Real-time view of spend, reach, and conversions across all channels; red-flag alerts for under-performers.​​'
+    },
+      {
+      title: 'AI Content Coach',
+      description: 'In-editor hints on tone, CTA, length, and brand voice to lift engagement before you hit Publish.'
+    }],
     price: '$499/mo',
   },
   {
     id: 2, category: 'category1', icon: Target, color: '#A855F7', colorIntensity: 0.6,
-    name: 'Advertising Agent', tagline: 'Optimize ad campaigns and maximize ROI',
+    name: 'Advertising Agent', tagline: 'Manage, schedule and generate your campaigns the smart way',
     description: 'Smart recommendations guide for intelligent multiplatform posting',
-    features: ['Campaign Automation', 'Content Generator', 'Smart Scheduler'],
+    features: [
+      {
+        title: 'Unifies Campaign Dashboard',
+        description: 'Real-time view of spend, reach, and conversions across all channels; red-flag alerts for under-performerss.'
+      },
+      {
+        title: 'Content Generator',
+        description: 'Generate multi-platform posts (text, image prompts, hashtags) in secondss.'
+      },
+      {
+        title: 'Smart Scheduler',
+        description: 'Auto-drops approved posts into each platform’s best-time window and fires reminders to stakeholders.'
+      }
+    ],
     price: '$699/mo',
   },
   {
     id: 3, category: 'category1', icon: Zap, color: '#A855F7', colorIntensity: 0.8,
     name: 'Full Marketing Agent', tagline: 'Complete marketing automation suite',
     description: 'The complete Mark solution combining all of our best for content and marketing. Unified platform for all your marketing needs with  AI automation.',
-    features: ['Trend Radar', 'AI Content Coach', 'Hashtag Streaming', 'Content Generator', 'Campaign Automation', 'Smart Scheduler'],
+    features: [
+      {
+        title: 'Trend Radar',
+        description: 'Streams top hashtags, search spikes, and competitor chatter into one panel so you’re always on-message.'
+      },
+      {
+        title: 'AI Content Coach',
+        description: 'In-editor hints on tone, CTA, length, and brand voice to lift engagement before you hit Publish.'
+      },
+      {
+        title: 'Content Generator',
+        description: 'Generate multi-platform posts (text, image prompts, hashtags) in seconds.'
+      },
+      {
+        title: 'Campaign Automation',
+        description: 'Automatically schedule and publish content across multiple platforms based on optimal timing and audience insights.'
+      },
+      {
+        title: 'Smart Scheduler',
+        description: 'Auto-drops approved posts into each platform’s best-time window and fires reminders to stakeholders.'
+      },
+      {
+        title: 'Unified Campaign Dashboard',
+        description: 'Real-time view of spend, reach, and conversions across all channels; red-flag alerts for under-performerss.'
+      }
+
+    ],
     price: '$1,299/mo',
   },
   {
     id: 4, category: 'category2', icon: Users, color: '#E8B84A', colorIntensity: 0.4,
     name: 'CV Screening & Hiring Analytics', tagline: 'Evaluate candidates by your most important criteria, get funnel insights from application to offer outcome',
     description: 'Automate the candidate evaluation bias-free with instant fit scoring. Track the health of your hiring funnel from CV to signing.',
-    features: ['Resume Parsing + Fit Scoring', 'Smart Filter Dashboard', 'Real-time Hiring Analytics'],
+    features: [
+      {
+        title: 'Resume Parsing + Fit Scoring',
+        description: 'Converts every CV into structured fields and the AI assigns an instant match score.'
+      },
+      {
+        title: 'Smart Filter Dashboard',
+        description: 'Slice the pipeline by skills, seniority, DEI mix, or location in one click; short-list in seconds.'
+      },
+      {
+        title: 'Real-time Hiring Analytics',
+        description: 'Track hiring funnel health, time-to-hire, and status alerts in real-time.'
+      }
+    ],
     price: '$399/mo',
   },
   {
     id: 5, category: 'category2', icon: BarChart3, color: '#E8B84A', colorIntensity: 0.6,
     name: 'Tech-Test Grader', tagline: 'Automate candidate coding and case study submissions evaluation',
     description: 'Generate and automatically grade coding tests and case studies with AI. Get unbiased skill assessments and feedback for every candidate.',
-    features: ['Test Grading', 'Interview Question Generator', 'AI Soft-Skills Tester'],
+    features: [
+      {
+        title: 'Test Grading',
+        description: 'Automatically grade coding tests and case studies with AI. Evaluates coding or case-study submissions, logs scores, and flags answers.'
+      },
+      {
+        title: 'Interview Question Generator',
+        description: 'Builds role-specific questions (soft + hard) and emails them to the interviewer automatically.'
+      },
+      {
+        title: 'AI Soft-Skills Tester',
+        description: 'Voice & text assessments scored automatically and added to fit profile.'
+      }
+    ],
     price: '$299/mo',
   },
   {
     id: 6, category: 'category2', icon: Bot, color: '#E8B84A', colorIntensity: 0.8,
     name: 'Full HR Agent', tagline: 'Comprehensive HR automation platform',
     description: 'The complete Consuelo solution combining CV screening and candidate engagement. End-to-end recruitment and HR automation in one platform.',
-    features: ['Resume Parsing + Fit Scoring', 'Smart Filter Dashboard', 'Real-time Hiring Analytics', 'Test Grading', 'Interview Question Generator', 'AI Soft-Skills Tester'],
+    features: [
+      {
+        title: 'Resume Parsing + Fit Scoring',
+        description: 'Converts every CV into structured fields and the AI assigns an instant match score.'
+      },
+      {
+        title: 'Smart Filter Dashboard',
+        description: 'Slice the pipeline by skills, seniority, DEI mix, or location in one click; short-list in seconds.'
+      },
+      {
+        title: 'Real-time Hiring Analytics',
+        description: 'Track hiring funnel health, time-to-hire, and status alerts in real-time.'
+      },
+      {
+        title: 'Test Grading',
+        description: 'Automatically grade coding tests and case studies with AI. Evaluates coding or case-study submissions, logs scores, and flags answers.'
+      },
+      {
+        title: 'Interview Question Generator',
+        description: 'Builds role-specific questions (soft + hard) and emails them to the interviewer automatically.'
+      },
+      {
+        title: 'AI Soft-Skills Tester',
+        description: 'Voice & text assessments scored automatically and added to fit profile.'
+      }
+    ],
     price: '$899/mo',
   },
   {
     id: 7, category: 'category3', icon: Target, color: '#06B6D4', colorIntensity: 0.4,
     name: 'Lead Generation and Scoring', tagline: 'AI-powered lead identification and scoring',
     description: 'Discover and qualify hot leads while ML model calculates probability-to-land for each prospect.',
-    features: ['Lead Generation', 'Product Matching', 'Machine Learning', 'Manager Dashboard', 'Quota Generation'],
+    features: [
+      {
+        title: 'Lead Generation',
+        description: 'One click lead generation to find the most comparable Leads to current offerings.'
+      },
+      {
+        title: 'Product Matching',
+        description: 'Scores and reasons the need prospect’s need of your product.'
+      },
+      {
+        title: 'Machine Learning',
+        description: 'Machine learning priorities tasks based on historical data and best practices and calculates real time probability to land.'
+      },
+      {
+        title: 'Self-Learning Loop',
+        description: 'Every win/lose feeds the model, so targeting and messaging get sharper daily.​'
+      },
+      {
+        title: 'Manager Dashboard',
+        description: 'Real time sales analytics for sales managers to understand pipeline developments and forecast the future.'      
+      },
+    ],
     price: '$499/mo',
   },
   {
     id: 8, category: 'category3', icon: MoveRight, color: '#06B6D4', colorIntensity: 0.6,
     name: 'Outreach Automation ', tagline: 'Personalized and intelligent outreach decisions',
     description: 'Personalized outreach emails drafted and sent in seconds. Accompanied and followed by smart recommendations for next-best-action',
-    features: ['Personalized Outreach Automation', 'Next-Best-Action Reasoning', 'Quota Generation', 'Presentation Generator'],
+    features: [ 
+      {
+        title: 'Personalized Outreach Automation',
+        description: 'Personalized 1-to-1 outreach drafted & sent in seconds - opens and replies soarr.'
+      },
+      {
+        title: 'Next-Best-Action Reasoning',
+        description: 'Scores and reasons the need prospect’s need of your productt'
+      },
+      {
+        title: 'Quota Generation',
+        description: 'Automate Deal Calculations and add them to Contracts.'
+      },
+      {
+        title: 'Presentation Generator',
+        description: 'One Click Presentation slides for client meetings.'
+      }
+    ],
     price: '$599/mo',
   },
   {
     id: 9, category: 'category3', icon: TrendingUp, color: '#06B6D4', colorIntensity: 0.8,
     name: 'Full Sales Agent', tagline: 'End-to-end sales automation',
     description: 'The complete Argo solution combining lead generation, machine learning features, and outreach automation. Your complete autonomous sales team working 24/7.',
-    features: ['Lead Generation', 'Product Matching', 'Machine Learning', 'Manager Dashboard', 'Quota Generation', 'Personalized Outreach Automation', 'Next-Best-Action Reasoning', 'Presentation Generator', 'Self-Learning Loop'],
+    features: [
+      {
+        title: 'Lead Generation',
+        description: 'One click lead generation to find the most comparable Leads to current offerings.'
+      },
+      {
+        title: 'Product Matching',
+        description: 'Scores and reasons the need prospect’s need of your product.'
+      },
+      {
+        title: 'Machine Learning',
+        description: 'Machine learning priorities tasks based on historical data and best practices and calculates real time probability to land.'
+      },
+      {
+        title: 'Manager Dashboard',
+        description: 'Real time sales analytics for sales managers to understand pipeline developments and forecast the future.'      
+      },
+      {
+        title: 'Quota Generation',
+        description: 'Automate Deal Calculations and add them to Contracts.'
+      },
+      {
+        title: 'Personalized Outreach Automation',
+        description: 'Personalized 1-to-1 outreach drafted & sent in seconds - opens and replies soarr.'
+      },
+      {
+        title: 'Next-Best-Action Reasoning',
+        description: 'Scores and reasons the need prospect’s need of your productt'
+      },
+      {
+        title: 'Presentation Generator',
+        description: 'One Click Presentation slides for client meetings.'
+      },
+      {
+        title: 'Self-Learning Loop',
+        description: 'Every win/lose feeds the model, so targeting and messaging get sharper daily.​'
+      }
+    ],
     price: '$1,199/mo',
   },
 ];
@@ -781,10 +961,8 @@ const ProductDetailsSection = forwardRef<
                         <FeatureIcon className="w-5 h-5" style={{ color: product.color }} />
                       </div>
                       <div>
-                        <h4 className="text-lg font-semibold text-white mb-1">{feat}</h4>
-                        <p className="text-white/45 text-sm leading-relaxed">
-                          {`Provides ${feat.toLowerCase()} to streamline processes, increase accuracy, and save time.`}
-                        </p>
+                        <h4 className="text-lg font-semibold text-white mb-1">{feat.title}</h4>
+                        <p className="text-white/50 text-sm">{feat.description}</p>
                       </div>
                     </motion.div>
                   );
