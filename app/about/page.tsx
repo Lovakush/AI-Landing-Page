@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Chatbot from '@/components/ui/chatbot';
 import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/ui/Navbar';
+import Footer from '@/components/ui/Footer';
 
 export default function AboutPage() {
   const [activePanel, setActivePanel] = useState<'why' | 'how' | 'what' | null>(null);
@@ -774,27 +775,7 @@ export default function AboutPage() {
         </motion.div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="py-10 px-16 border-t border-gray-200 flex justify-between items-center text-sm text-gray-600">
-        <div className="flex items-center">
-          <img src="/sia-logo.png" alt="SIA" className="h-10 w-auto" />
-        </div>
-        <div className="flex gap-8">
-          <a href="#" className="hover:text-gray-900 transition-colors">
-            Privacy
-          </a>
-          <a href="#" className="hover:text-gray-900 transition-colors">
-            Terms
-          </a>
-          <a href="#" className="hover:text-gray-900 transition-colors">
-            Cookies
-          </a>
-        </div>
-
-        <div className="mt-20 text-center text-[#2D1B4E]/20 text-xs tracking-widest">
-          © {new Date().getFullYear()} SIA INC. ALL RIGHTS RESERVED.
-        </div>
-      </footer>
+      <Footer />
       <Chatbot />
     </div>
   );

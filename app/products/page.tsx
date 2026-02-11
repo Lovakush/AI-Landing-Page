@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, forwardRef } from 'react';
 import { MoveRight, Sparkles, Zap, Target, Users, TrendingUp, BarChart3, Bot, Check, X } from 'lucide-react';
 import Chatbot from '@/components/ui/chatbot';
 import Navbar from '@/components/ui/Navbar';
+import Footer from '@/components/ui/Footer';
 import WaitlistSection from "@/components/ui/WaitList";
 import BookADemo from "@/components/ui/BookaDemo";
 
@@ -553,26 +554,7 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* ─── Footer ─── */}
-      <footer className="relative z-10 pt-16 pb-10 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-          <div>
-            <img src="/sia-logo.png" alt="SIA" className="h-10 w-auto brightness-0 invert mb-2" />
-            <p className="text-white/30 text-sm">Execution-first AI for the Enterprise.</p>
-          </div>
-          <div className="flex gap-8 text-white/40 text-sm">
-            {['Privacy', 'Terms', 'Cookies'].map((link) => (
-              <a key={link} href="#" className="relative group overflow-hidden hover:text-white/70 transition-colors">
-                {link}
-                <span className="absolute bottom-0 left-0 w-full h-px bg-[#E8B84A] -translate-x-full transition-transform duration-300 group-hover:translate-x-0" />
-              </a>
-            ))}
-          </div>
-        </div>
-        <div className="mt-16 text-center text-white/10 text-xs tracking-widest">
-          © {new Date().getFullYear()} SIA INC. ALL RIGHTS RESERVED.
-        </div>
-      </footer>
+      <Footer />
 
       <Chatbot />
     </div>

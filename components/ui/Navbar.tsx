@@ -29,22 +29,22 @@ const Navbar = () => {
 
   {/* Navigation */}
   <div className="flex items-center space-x-12">
-    <a
-      href="home"
+    <Link
+      href="/"
       className="text-white hover:text-gray-300 transition-colors duration-200 text-base font-medium"
     >
       Home
     </Link>
 
-    <a
-      href="products"
+    <Link
+      href="/products"
       className="text-gray-300 hover:text-white transition-colors duration-200 text-base font-medium"
     >
       Products
     </Link>
 
-    <a
-      href="about"
+    <Link
+      href="/about"
       className="text-gray-300 hover:text-white transition-colors duration-200 text-base font-medium"
     >
       About Us
