@@ -24,31 +24,27 @@ const Navbar = () => {
 </div>
 
 
-
-
-
-
          {/* Right Side (Nav + CTA) */}
 <div className="hidden md:flex items-center space-x-10 ml-auto">
 
   {/* Navigation */}
   <div className="flex items-center space-x-12">
-    <Link
-      href="/"
+    <a
+      href="home"
       className="text-white hover:text-gray-300 transition-colors duration-200 text-base font-medium"
     >
       Home
     </Link>
 
-    <Link
-      href="/products"
+    <a
+      href="products"
       className="text-gray-300 hover:text-white transition-colors duration-200 text-base font-medium"
     >
       Products
     </Link>
 
-    <Link
-      href="/about"
+    <a
+      href="about"
       className="text-gray-300 hover:text-white transition-colors duration-200 text-base font-medium"
     >
       About Us
