@@ -7,6 +7,8 @@ import RadialOrbitalTimeline from "@/components/ui/radial-orbital-timeline";
 import { Users, Target, Box, Bot, Zap, ScanSearch, Rocket, Twitter, Linkedin, Github, MoveRight, Cpu, Brain, BookOpen, Lightbulb, Cog } from 'lucide-react';
 import Link from 'next/link';
 import Chatbot from '@/components/ui/chatbot';
+import Navbar from '@/components/ui/Navbar';
+
 
 const CountUp = ({ to, duration = 2, suffix = "", prefix = "" }: { to: number, duration?: number, suffix?: string, prefix?: string }) => {
   const nodeRef = useRef<HTMLSpanElement>(null);
@@ -149,7 +151,7 @@ const aiAgentsData = [
 export default function OpseraLanding() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [wordIndex, setWordIndex] = useState(0);
-  const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<number | null>(2);
   const [selectedAgent, setSelectedAgent] = useState<string | null>('argo');
   const [showAgentDetails, setShowAgentDetails] = useState(false);
   const [chatTick, setChatTick] = useState(0);
@@ -197,6 +199,26 @@ export default function OpseraLanding() {
     return () => clearInterval(interval);
   }, [showAgentDetails]);
 
+  // Auto-advance products every 25 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSelectedProduct(prev => {
+        if (prev === null) return 1;
+        const currentIndex = productTimelineData.findIndex(p => p.id === prev);
+        const nextIndex = (currentIndex + 1) % productTimelineData.length;
+        return productTimelineData[nextIndex].id;
+      });
+    }, 25000);
+    return () => clearTimeout(timer);
+  }, [selectedProduct]);
+
+  // Prevent deselection — always keep a product selected
+  const handleProductSelect = (id: number | null) => {
+    if (id !== null) {
+      setSelectedProduct(id);
+    }
+  };
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
@@ -221,37 +243,7 @@ export default function OpseraLanding() {
 
   return (
     <div ref={containerRef} className="bg-[#0d0015] min-h-screen w-full overflow-x-hidden">
-      {/* Header/Navbar */}
-      <header
-        className="fixed top-0 left-0 right-0 z-50 px-8 h-20"
-        style={{
-          background: 'rgba(13, 0, 21, 0.85)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-          transform: navVisible ? 'translateY(0)' : 'translateY(-100%)',
-          transition: 'transform 0.3s ease-in-out',
-        }}
-      >
-        <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
-          <a href="/" className="flex items-center h-full">
-            <img src="/sia-logo.png" alt="SIA" className="h-full py-3 w-auto brightness-0 invert" />
-          </a>
-          <nav className="flex items-center gap-8">
-            <a href="/" className="text-white hover:text-white transition-colors text-sm font-medium tracking-wide">Home</a>
-            <a href="/products" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">Products</a>
-            <a href="/about" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">About Us</a>
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => { document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' }); }}
-              className="text-[#2D1B4E] text-sm font-semibold px-4 py-2 rounded-lg bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] hover:shadow-[0_0_20px_rgba(232,184,74,0.3)] transition-all ml-4"
-            >
-              Get Started
-            </motion.button>
-          </nav>
-        </div>
-      </header>
+      <Navbar/>
 
       {/* Hero Section with Shader Background */}
       <section
@@ -485,51 +477,26 @@ export default function OpseraLanding() {
             </h3>
           </motion.div>
 
-          {/* Interactive Layout - Single Orbit that transforms */}
+          {/* Interactive Layout - Orbit on right, info on left */}
           <div className="relative min-h-[600px] flex items-center">
-            {/* The Orbit - Always rendered, transforms position and size */}
-            <motion.div
-              animate={{
-                x: selectedProduct ? '20%' : '0%',
-                scale: selectedProduct ? 0.75 : 1,
-              }}
-              transition={{
-                duration: 0.5,
-                ease: [0.4, 0, 0.2, 1],
-              }}
+            {/* The Orbit - Always positioned on the right */}
+            <div
               className="w-full"
               style={{
+                transform: 'translateX(20%) scale(0.75)',
                 transformOrigin: 'center center',
               }}
             >
               <RadialOrbitalTimeline
                 timelineData={productTimelineData}
                 selectedId={selectedProduct}
-                onSelectNode={setSelectedProduct}
+                onSelectNode={handleProductSelect}
                 isCompact={false}
               />
-              {!selectedProduct && (
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="text-center text-white/40 text-sm mt-4"
-                >
-                  Click on any node to explore our products
-                </motion.p>
-              )}
-            </motion.div>
+            </div>
 
-            {/* Left Side - Product Info & KPIs (appears when product selected) */}
-            <motion.div
-              initial={false}
-              animate={{
-                opacity: selectedProduct ? 1 : 0,
-                x: selectedProduct ? 0 : -50,
-              }}
-              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1], delay: selectedProduct ? 0.15 : 0 }}
-              className={`absolute left-0 top-1/2 -translate-y-1/2 w-[45%] ${!selectedProduct ? 'pointer-events-none' : ''}`}
-            >
+            {/* Left Side - Product Info & KPIs (always visible) */}
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[45%]">
               {selectedProduct && selectedProductData && (
                 <div className="space-y-6">
                   {/* Product Title */}
@@ -539,7 +506,7 @@ export default function OpseraLanding() {
                       className="text-3xl md:text-4xl font-semibold text-white mb-3"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
+                      transition={{ delay: 0.1 }}
                     >
                       {selectedProductData.title}
                     </motion.h4>
@@ -548,7 +515,7 @@ export default function OpseraLanding() {
                       className="text-base text-white/70 leading-relaxed"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.25 }}
+                      transition={{ delay: 0.15 }}
                     >
                       {selectedProductData.description}
                     </motion.p>
@@ -561,7 +528,7 @@ export default function OpseraLanding() {
                         key={`kpi-${selectedProduct}-${index}`}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3 + index * 0.1 }}
+                        transition={{ delay: 0.2 + index * 0.1 }}
                         className="group relative bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 overflow-hidden cursor-pointer hover:bg-white/10 hover:border-white/20 transition-all duration-300"
                       >
                         {/* Shine effect on hover */}
@@ -578,20 +545,9 @@ export default function OpseraLanding() {
                       </motion.div>
                     ))}
                   </div>
-
-                  {/* Back button */}
-                  <motion.button
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                    onClick={() => setSelectedProduct(null)}
-                    className="text-white/50 hover:text-white text-sm flex items-center gap-2 transition-colors mt-4"
-                  >
-                    ← Back to all products
-                  </motion.button>
                 </div>
               )}
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>

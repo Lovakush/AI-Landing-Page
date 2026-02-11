@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import Chatbot from '@/components/ui/chatbot';
 import { useState, useEffect, useRef } from 'react';
+import Navbar from '@/components/ui/Navbar';
 
 export default function AboutPage() {
   const [activePanel, setActivePanel] = useState<'why' | 'how' | 'what' | null>(null);
@@ -44,48 +45,7 @@ export default function AboutPage() {
 
   return (
     <div ref={containerRef} className="min-h-screen bg-white">
-      {/* Header/Navbar */}
-      <header
-        className="fixed top-0 left-0 right-0 z-50 px-8 h-20"
-        style={{
-          background: 'rgba(13, 0, 21, 0.85)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-          transform: navVisible ? 'translateY(0)' : 'translateY(-100%)',
-          transition: 'transform 0.3s ease-in-out',
-        }}
-      >
-        <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
-          {/* Logo */}
-          <a href="/" className="flex items-center h-full">
-            <img src="/sia-logo.png" alt="SIA" className="h-full py-3 w-auto brightness-0 invert" />
-          </a>
-
-          {/* Nav Links + CTA */}
-          <nav className="flex items-center gap-8">
-            <a href="/" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">
-              Home
-            </a>
-            <a href="/products" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">
-              Products
-            </a>
-            <a href="/about" className="text-white hover:text-white transition-colors text-sm font-medium tracking-wide">
-              About Us
-            </a>
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => {
-                document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="text-[#2D1B4E] text-sm font-semibold px-4 py-2 rounded-lg bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] hover:shadow-[0_0_20px_rgba(232,184,74,0.3)] transition-all ml-4"
-            >
-              Get Started
-            </motion.button>
-          </nav>
-        </div>
-      </header>
+      <Navbar/>
 
       {/* SECTION 1: HERO + ORBITAL (Side by Side) */}
       <section className="pt-32 pb-20 px-16 bg-gradient-to-b from-amber-50 to-amber-50">
