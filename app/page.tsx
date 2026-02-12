@@ -9,6 +9,7 @@ import Link from 'next/link';
 import Chatbot from '@/components/ui/chatbot';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
+import SIADashboard from '@/components/ui/SIADashboard';
 
 
 const CountUp = ({ to, duration = 2, suffix = "", prefix = "" }: { to: number, duration?: number, suffix?: string, prefix?: string }) => {
@@ -36,28 +37,6 @@ const CountUp = ({ to, duration = 2, suffix = "", prefix = "" }: { to: number, d
 
 // Animated words for hero
 const heroWords = ["powerful", "intelligent", "automated", "seamless", "efficient"];
-
-// Robot chat messages - cycle through these
-const robotChats = {
-  argo: [
-    "Found 12 hot leads!",
-    "Deal closing at 87%",
-    "Revenue up 23%",
-    "3 meetings booked!",
-  ],
-  mark: [
-    "Campaign launched! 🚀",
-    "Posts scheduled!",
-    "Engagement +45%",
-    "Trending now! 📈",
-  ],
-  consuelo: [
-    "50 resumes screened!",
-    "Top 5 candidates ready",
-    "Interview scheduled",
-    "Skills matched! ✨",
-  ],
-};
 
 // Product timeline data for RadialOrbitalTimeline
 const productTimelineData = [
@@ -155,7 +134,6 @@ export default function OpseraLanding() {
   const [selectedProduct, setSelectedProduct] = useState<number | null>(2);
   const [selectedAgent, setSelectedAgent] = useState<string | null>('argo');
   const [showAgentDetails, setShowAgentDetails] = useState(false);
-  const [chatTick, setChatTick] = useState(0);
   const [showAccessModal, setShowAccessModal] = useState(false);
   const [email, setEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -176,14 +154,6 @@ export default function OpseraLanding() {
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Single timer for all robot chat cycling - prevents multiple interval conflicts
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setChatTick(prev => prev + 1);
-    }, 4000);
-    return () => clearInterval(interval);
   }, []);
 
   // Auto-rotate agents every 10 seconds (pause when details modal is open)
@@ -248,29 +218,29 @@ export default function OpseraLanding() {
 
       {/* Hero Section with Shader Background */}
       <section
-        className="relative min-h-screen flex items-center overflow-hidden"
+        className="relative overflow-visible"
       >
         {/* Shader Animation Background - Full opacity */}
         <div className="absolute inset-0 z-0">
           <ShaderAnimation />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center pt-20">
-          {/* Left - Text Content */}
+        {/* Text Content - Centered */}
+        <div className="relative z-10 max-w-4xl mx-auto px-6 pt-32 pb-12 text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col items-start gap-6"
+            className="flex flex-col items-center gap-6"
           >
             {/* Main Heading with Animated Word */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl tracking-tighter text-left font-light text-white">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl tracking-tighter font-light text-white">
               <span>Operations made</span>
               <div className="relative w-full h-[1.2em]">
                 {heroWords.map((word, index) => (
                   <motion.span
                     key={word}
-                    className="absolute inset-0 flex items-center justify-start font-semibold bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] bg-clip-text text-transparent"
+                    className="absolute inset-0 flex items-center justify-center font-semibold bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] bg-clip-text text-transparent"
                     initial={{ opacity: 0, y: 50 }}
                     animate={
                       wordIndex === index
@@ -286,7 +256,7 @@ export default function OpseraLanding() {
             </h1>
 
             {/* Subtitle */}
-            <p className="text-base md:text-lg leading-relaxed tracking-tight text-white/70 max-w-md text-left font-light">
+            <p className="text-base md:text-lg leading-relaxed tracking-tight text-white/60 max-w-xl font-light">
               Domain-specific AI agents that deliver clarity and automation in 30 days — not 6 months.
             </p>
 
@@ -313,145 +283,33 @@ export default function OpseraLanding() {
               </Link>
             </div>
           </motion.div>
-
-          {/* Right - Friendly Robot Agents */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="relative h-[400px] hidden lg:flex items-center justify-center"
-          >
-            <div className="relative w-full h-full">
-              {/* Argo Robot - Gold - Top Left */}
-              <motion.div
-                className="absolute top-8 left-4"
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <div className="relative">
-                  {/* Robot Head/Body */}
-                  <div className="w-20 h-24 rounded-3xl bg-gradient-to-b from-[#E8B84A] to-[#d4a43d] shadow-xl relative">
-                    {/* Face plate */}
-                    <div className="absolute top-3 left-2 right-2 bottom-6 bg-[#2D1B4E]/10 rounded-2xl flex flex-col items-center justify-center gap-1">
-                      {/* Eyes */}
-                      <div className="flex gap-3">
-                        <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-[#2D1B4E] rounded-full" />
-                        </div>
-                        <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-[#2D1B4E] rounded-full" />
-                        </div>
-                      </div>
-                      {/* Smile */}
-                      <div className="w-6 h-3 border-b-2 border-[#2D1B4E]/40 rounded-b-full mt-1" />
-                    </div>
-                    {/* Ears/Sides */}
-                    <div className="absolute -left-1 top-8 w-2 h-6 bg-[#c9983a] rounded-full" />
-                    <div className="absolute -right-1 top-8 w-2 h-6 bg-[#c9983a] rounded-full" />
-                  </div>
-                  {/* Antenna */}
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                    <div className="w-3 h-3 bg-[#E8B84A] rounded-full shadow-lg shadow-[#E8B84A]/50" />
-                    <div className="w-1 h-3 bg-[#c9983a]" />
-                  </div>
-                </div>
-                {/* Chat Bubble */}
-                <div className="absolute left-full ml-2 top-2 bg-white/95 backdrop-blur-sm rounded-2xl px-3 py-2 shadow-lg shadow-[#E8B84A]/20 min-w-max">
-                  <p className="text-sm text-[#2D1B4E] font-semibold">{robotChats.argo[chatTick % robotChats.argo.length]}</p>
-                  <div className="absolute left-0 top-4 -translate-x-1 w-2 h-2 bg-white/95 rotate-45" />
-                </div>
-              </motion.div>
-
-              {/* Mark Robot - Purple - Right */}
-              <motion.div
-                className="absolute top-1/2 -translate-y-1/2 right-4"
-                animate={{ y: [0, -12, 0] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              >
-                <div className="relative">
-                  {/* Robot Head/Body */}
-                  <div className="w-18 h-22 rounded-3xl bg-gradient-to-b from-[#A855F7] to-[#8B5CF6] shadow-xl relative" style={{ width: '72px', height: '88px' }}>
-                    {/* Face plate */}
-                    <div className="absolute top-2.5 left-2 right-2 bottom-5 bg-white/10 rounded-2xl flex flex-col items-center justify-center gap-1">
-                      {/* Eyes */}
-                      <div className="flex gap-2.5">
-                        <div className="w-3.5 h-3.5 bg-white rounded-full flex items-center justify-center">
-                          <div className="w-1.5 h-1.5 bg-[#2D1B4E] rounded-full" />
-                        </div>
-                        <div className="w-3.5 h-3.5 bg-white rounded-full flex items-center justify-center">
-                          <div className="w-1.5 h-1.5 bg-[#2D1B4E] rounded-full" />
-                        </div>
-                      </div>
-                      {/* Smile */}
-                      <div className="w-5 h-2.5 border-b-2 border-white/50 rounded-b-full mt-0.5" />
-                    </div>
-                    {/* Ears */}
-                    <div className="absolute -left-1 top-6 w-2 h-5 bg-[#7c3aed] rounded-full" />
-                    <div className="absolute -right-1 top-6 w-2 h-5 bg-[#7c3aed] rounded-full" />
-                  </div>
-                  {/* Antenna */}
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                    <div className="w-2.5 h-2.5 bg-[#A855F7] rounded-full shadow-lg shadow-[#A855F7]/50" />
-                    <div className="w-1 h-2.5 bg-[#7c3aed]" />
-                  </div>
-                </div>
-                {/* Chat Bubble */}
-                <div className="absolute right-full mr-2 top-2 bg-white/95 backdrop-blur-sm rounded-2xl px-3 py-2 shadow-lg shadow-[#A855F7]/20 min-w-max">
-                  <p className="text-sm text-[#2D1B4E] font-semibold">{robotChats.mark[(chatTick + 1) % robotChats.mark.length]}</p>
-                  <div className="absolute right-0 top-4 translate-x-1 w-2 h-2 bg-white/95 rotate-45" />
-                </div>
-              </motion.div>
-
-              {/* Consuelo Robot - Cyan - Bottom */}
-              <motion.div
-                className="absolute bottom-8 left-1/3"
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              >
-                <div className="relative">
-                  {/* Robot Head/Body */}
-                  <div className="w-16 h-20 rounded-3xl bg-gradient-to-b from-[#06B6D4] to-[#0891B2] shadow-xl relative">
-                    {/* Face plate */}
-                    <div className="absolute top-2 left-1.5 right-1.5 bottom-4 bg-white/10 rounded-2xl flex flex-col items-center justify-center gap-1">
-                      {/* Eyes */}
-                      <div className="flex gap-2">
-                        <div className="w-3 h-3 bg-white rounded-full flex items-center justify-center">
-                          <div className="w-1.5 h-1.5 bg-[#2D1B4E] rounded-full" />
-                        </div>
-                        <div className="w-3 h-3 bg-white rounded-full flex items-center justify-center">
-                          <div className="w-1.5 h-1.5 bg-[#2D1B4E] rounded-full" />
-                        </div>
-                      </div>
-                      {/* Smile */}
-                      <div className="w-4 h-2 border-b-2 border-white/50 rounded-b-full" />
-                    </div>
-                    {/* Ears */}
-                    <div className="absolute -left-1 top-5 w-1.5 h-4 bg-[#0e7490] rounded-full" />
-                    <div className="absolute -right-1 top-5 w-1.5 h-4 bg-[#0e7490] rounded-full" />
-                  </div>
-                  {/* Antenna */}
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                    <div className="w-2 h-2 bg-[#06B6D4] rounded-full shadow-lg shadow-[#06B6D4]/50" />
-                    <div className="w-0.5 h-2 bg-[#0e7490]" />
-                  </div>
-                </div>
-                {/* Chat Bubble */}
-                <div className="absolute left-full ml-2 top-0 bg-white/95 backdrop-blur-sm rounded-2xl px-3 py-2 shadow-lg shadow-[#06B6D4]/20 min-w-max">
-                  <p className="text-sm text-[#2D1B4E] font-semibold">{robotChats.consuelo[(chatTick + 2) % robotChats.consuelo.length]}</p>
-                  <div className="absolute left-0 top-4 -translate-x-1 w-2 h-2 bg-white/95 rotate-45" />
-                </div>
-              </motion.div>
-
-              {/* Simple connection lines */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: -1 }}>
-                <path d="M 60 80 Q 150 150 240 160" stroke="#E8B84A" strokeWidth="2" fill="none" opacity="0.3" strokeDasharray="6,6" />
-                <path d="M 240 200 Q 180 280 130 300" stroke="#A855F7" strokeWidth="2" fill="none" opacity="0.3" strokeDasharray="6,6" />
-                <path d="M 130 320 Q 60 250 60 100" stroke="#06B6D4" strokeWidth="2" fill="none" opacity="0.3" strokeDasharray="6,6" />
-              </svg>
-            </div>
-          </motion.div>
         </div>
 
+        {/* Dashboard Preview - Below text, with perspective */}
+        <motion.div
+          initial={{ opacity: 0, y: 60 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="relative z-10 w-full px-4 pb-32"
+        >
+          <div
+            style={{
+              perspective: '2000px',
+            }}
+          >
+            <div
+              className="relative rounded-2xl overflow-hidden border border-white/10 shadow-[0_-20px_80px_rgba(139,92,246,0.15)]"
+              style={{
+                height: '85vh',
+                maxHeight: '900px',
+                transform: 'translateX(10%) translateY(-80px) translateZ(100px) rotateY(35deg) rotateX(36deg) rotateZ(-12deg) translateX(80px)',
+                transformOrigin: 'center center',
+              }}
+            >
+              <SIADashboard />
+            </div>
+          </div>
+        </motion.div>
       </section>
 
       {/* Products Section - Built on Reality */}
@@ -484,7 +342,7 @@ export default function OpseraLanding() {
             <div
               className="w-full"
               style={{
-                transform: 'translateX(20%) scale(0.75)',
+                transform: 'translateX(30%) scale(1.1)',
                 transformOrigin: 'center center',
               }}
             >

@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-[#0a0a1a]/80 backdrop-blur-md border-b border-gray-800">
@@ -13,7 +15,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-20">
 
           {/* Logo */}
-     <div className="flex-shrink-0">
+     <Link href="/" className="flex-shrink-0">
   <Image
     src="/sia-logo.png"
     alt="SIA Logo"
@@ -21,7 +23,7 @@ const Navbar = () => {
     height={400}
     className="h-32 w-auto brightness-0 invert"
   />
-</div>
+</Link>
 
 
          {/* Right Side (Nav + CTA) */}
@@ -31,21 +33,21 @@ const Navbar = () => {
   <div className="flex items-center space-x-12">
     <Link
       href="/"
-      className="text-white hover:text-gray-300 transition-colors duration-200 text-base font-medium"
+      className={`transition-colors duration-200 text-base font-medium ${pathname === '/' ? 'text-[#f0b849]' : 'text-gray-300 hover:text-white'}`}
     >
       Home
     </Link>
 
     <Link
       href="/products"
-      className="text-gray-300 hover:text-white transition-colors duration-200 text-base font-medium"
+      className={`transition-colors duration-200 text-base font-medium ${pathname === '/products' ? 'text-[#f0b849]' : 'text-gray-300 hover:text-white'}`}
     >
       Products
     </Link>
 
     <Link
       href="/about"
-      className="text-gray-300 hover:text-white transition-colors duration-200 text-base font-medium"
+      className={`transition-colors duration-200 text-base font-medium ${pathname === '/about' ? 'text-[#f0b849]' : 'text-gray-300 hover:text-white'}`}
     >
       About Us
     </Link>
@@ -97,7 +99,7 @@ const Navbar = () => {
           <div className="px-6 py-4 space-y-3">
             <Link
               href="/"
-              className="block text-white hover:text-gray-300 text-base font-medium"
+              className={`block text-base font-medium ${pathname === '/' ? 'text-[#f0b849]' : 'text-gray-300 hover:text-white'}`}
               onClick={() => setIsOpen(false)}
             >
               Home
@@ -105,7 +107,7 @@ const Navbar = () => {
 
             <Link
               href="/products"
-              className="block text-gray-300 hover:text-white text-base font-medium"
+              className={`block text-base font-medium ${pathname === '/products' ? 'text-[#f0b849]' : 'text-gray-300 hover:text-white'}`}
               onClick={() => setIsOpen(false)}
             >
               Products
@@ -113,7 +115,7 @@ const Navbar = () => {
 
             <Link
               href="/about"
-              className="block text-gray-300 hover:text-white text-base font-medium"
+              className={`block text-base font-medium ${pathname === '/about' ? 'text-[#f0b849]' : 'text-gray-300 hover:text-white'}`}
               onClick={() => setIsOpen(false)}
             >
               About Us
