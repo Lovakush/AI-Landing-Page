@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
-import { useState, useEffect, useRef, forwardRef } from 'react';
+import { useState, useEffect, useRef, forwardRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { MoveRight, Sparkles, Zap, Target, Users, TrendingUp, BarChart3, Bot, Check, X, Network, GitBranch, Workflow, Cpu, Activity } from 'lucide-react';
 import Chatbot from '@/components/ui/chatbot';
@@ -246,6 +246,14 @@ const products = [
 ];
 
 export default function ProductsPage() {
+  return (
+    <Suspense>
+      <ProductsPageContent />
+    </Suspense>
+  );
+}
+
+function ProductsPageContent() {
   const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState('category1');
   const [wordIndex, setWordIndex] = useState(0);
