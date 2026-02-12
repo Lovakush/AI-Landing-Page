@@ -2,30 +2,635 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import Chatbot from '@/components/ui/chatbot';
-import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
+import { useState, useEffect, useRef } from 'react';
+
+const tetrisPieces = [
+  {
+    id: 1,
+    shape: [
+      [1, 0, 0, 0, 0],
+      [1, 1, 0, 0, 0],
+      [1, 1, 1, 0, 0]
+    ],
+    icon: '🤖',
+    iconPos: [1, 1],
+    color: '#A855F7',
+    targetRow: 2,
+  },
+  {
+    id: 2,
+    shape: [
+      [0, 0, 0, 1, 0],
+      [0, 0, 1, 1, 0],
+      [0, 0, 0, 1, 0]
+    ],
+    icon: '⚙️',
+    iconPos: [1, 3],
+    color: '#06B6D4',
+    targetRow: 2,
+  },
+  {
+    id: 3,
+    shape: [
+      [0, 0, 0, 0, 1],
+      [0, 0, 0, 0, 1],
+      [0, 0, 0, 0, 1],
+      [0, 0, 0, 0, 1],
+      [0, 0, 0, 0, 1]
+    ],
+    icon: '⛓️',
+    iconPos: [2, 4],
+    color: '#94A3B8',
+    targetRow: 0,
+  },
+  {
+    id: 4,
+    shape: [
+      [0, 0, 1, 1, 0],
+      [0, 0, 1, 1, 0],
+      [0, 1, 1, 0, 0]
+    ],
+    icon: '📈',
+    iconPos: [1, 2],
+    color: '#10B981',
+    targetRow: 0,
+  },
+  {
+    id: 5,
+    shape: [
+      [1, 1, 0, 0, 0],
+      [1, 1, 0, 0, 0]
+    ],
+    icon: '🏢',
+    iconPos: [0, 0],
+    color: '#E8B84A',
+    targetRow: 0,
+  },
+];
+
+const GRID_ROWS = 5;
+const GRID_COLS = 5;
+const BLOCK_SIZE = 55;
+
+function TetrisAnimation({ onSubtitleTrigger, onPieceChange }: { onSubtitleTrigger: () => void; onPieceChange: (index: number) => void }) {
+  const [board, setBoard] = useState<Array<Array<{ color: string; icon?: string } | null>>>(() =>
+    Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null))
+  );
+  const [fallingPiece, setFallingPiece] = useState<{
+    pieceId: number;
+    row: number;
+    col: number;
+  } | null>(null);
+  const [currentPieceIndex, setCurrentPieceIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [scrollLocked, setScrollLocked] = useState(false);
+  const [sectionActivated, setSectionActivated] = useState(false);
+  const [animationComplete, setAnimationComplete] = useState(false);
+  const [justLanded, setJustLanded] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const lastScrollTime = useRef(0);
+
+  const placePiece = (pieceData: typeof tetrisPieces[0], row: number, col: number) => {
+    setBoard((prevBoard) => {
+      const newBoard = prevBoard.map(r => [...r]);
+      pieceData.shape.forEach((shapeRow, r) => {
+        shapeRow.forEach((cell, c) => {
+          if (cell === 1) {
+            const boardRow = row + r;
+            const boardCol = col + c;
+            if (boardRow >= 0 && boardRow < GRID_ROWS && boardCol >= 0 && boardCol < GRID_COLS) {
+              // For SIA logo piece, mark all cells with the icon
+              const shouldHaveIcon = pieceData.icon === '🏢' || (pieceData.iconPos[0] === r && pieceData.iconPos[1] === c);
+              newBoard[boardRow][boardCol] = {
+                color: pieceData.color,
+                icon: shouldHaveIcon ? pieceData.icon : undefined,
+              };
+            }
+          }
+        });
+      });
+      return newBoard;
+    });
+  };
+
+  useEffect(() => {
+    const dropPiece = (pieceIndex: number) => {
+      if (pieceIndex >= tetrisPieces.length || isAnimating) return;
+
+      setIsAnimating(true);
+      const piece = tetrisPieces[pieceIndex];
+      const startCol = 0;
+      const startRow = -piece.shape.length;
+      const targetRow = piece.targetRow;
+
+      setFallingPiece({ pieceId: piece.id, row: startRow, col: startCol });
+
+      let currentRow = startRow;
+
+      const fall = () => {
+        const nextRow = currentRow + 1;
+
+        if (nextRow < targetRow) {
+          currentRow = nextRow;
+          setFallingPiece({ pieceId: piece.id, row: currentRow, col: startCol });
+
+          // Gradual deceleration as piece approaches target
+          const distanceToTarget = targetRow - nextRow;
+          const fallSpeed = distanceToTarget <= 1 ? 160 : distanceToTarget <= 2 ? 110 : 80;
+
+          setTimeout(fall, fallSpeed);
+        } else {
+          // Update falling piece to final position first
+          setFallingPiece({ pieceId: piece.id, row: targetRow, col: startCol });
+
+          // Trigger text change immediately when piece lands
+          onPieceChange(pieceIndex + 1);
+
+          // Wait for visual animation to complete before placing on board
+          setTimeout(() => {
+            placePiece(piece, targetRow, startCol);
+            setFallingPiece(null);
+            setCurrentPieceIndex(pieceIndex + 1);
+            setIsAnimating(false);
+
+            // Trigger grid damping animation
+            setJustLanded(true);
+            setTimeout(() => setJustLanded(false), 400);
+
+            // Trigger subtitle when SIA piece lands
+            if (pieceIndex === tetrisPieces.length - 1) {
+              onSubtitleTrigger();
+            }
+
+            // Unlock scroll after last piece lands with a delay
+            if (pieceIndex + 1 >= tetrisPieces.length) {
+              setAnimationComplete(true);
+              setTimeout(() => {
+                setScrollLocked(false);
+              }, 800);
+            }
+          }, 200);
+        }
+      };
+
+      setTimeout(fall, 100);
+    };
+
+    const handleScroll = () => {
+      if (!sectionRef.current || sectionActivated) return;
+
+      const rect = sectionRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const isMidPage = rect.top <= windowHeight * 0.5 && rect.top >= windowHeight * 0.3;
+
+      if (isMidPage && !sectionActivated) {
+        setSectionActivated(true);
+        setScrollLocked(true);
+        dropPiece(0);
+      }
+    };
+
+    const handleWheel = (e: WheelEvent) => {
+      if (!scrollLocked) return;
+
+      // Always prevent scroll when locked, even during animation
+      if (currentPieceIndex < tetrisPieces.length) {
+        e.preventDefault();
+      }
+
+      // Only drop new piece if not animating and enough time has passed
+      if (isAnimating) return;
+
+      const now = Date.now();
+      if (now - lastScrollTime.current < 500) return;
+      lastScrollTime.current = now;
+
+      if (currentPieceIndex < tetrisPieces.length) {
+        dropPiece(currentPieceIndex);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('wheel', handleWheel);
+    };
+  }, [currentPieceIndex, isAnimating, scrollLocked, sectionActivated]);
+
+  return (
+    <div ref={sectionRef} className="relative w-full h-full flex items-start justify-center pt-4">
+      <div className="absolute inset-0 flex items-center justify-center opacity-10">
+        <div className="grid grid-cols-5 gap-[1px]">
+          {Array.from({ length: 60 }).map((_, i) => (
+            <div key={i} className="w-10 h-10 border border-white/5" />
+          ))}
+        </div>
+      </div>
+
+      <motion.div
+        className="relative transition-all duration-1000"
+        style={{
+          width: `${GRID_COLS * BLOCK_SIZE}px`,
+          height: `${GRID_ROWS * BLOCK_SIZE + 200}px`,
+          filter: animationComplete ? 'drop-shadow(0 0 20px rgba(232, 184, 74, 0.25)) drop-shadow(0 0 40px rgba(232, 184, 74, 0.15))' : 'none'
+        }}
+        animate={{
+          y: justLanded ? [0, -3, 0] : 0,
+        }}
+        transition={{
+          y: { duration: 0.4, ease: [0.4, 0, 0.2, 1] }
+        }}
+      >
+        {board.map((row, rowIndex) =>
+          row.map((cell, colIndex) => {
+            if (!cell) return null;
+
+            // Check if this is part of a 2x2 SIA logo block
+            const isSiaLogo = cell.icon === '🏢';
+            const isTopLeft = isSiaLogo &&
+              board[rowIndex]?.[colIndex]?.icon === '🏢' &&
+              board[rowIndex]?.[colIndex + 1]?.icon === '🏢' &&
+              board[rowIndex + 1]?.[colIndex]?.icon === '🏢' &&
+              board[rowIndex + 1]?.[colIndex + 1]?.icon === '🏢';
+
+            // Skip rendering if it's part of SIA logo but not the top-left cell
+            if (isSiaLogo && !isTopLeft) {
+              // Check if this cell is part of a 2x2 block where top-left exists
+              const isPartOfBlock = (
+                (rowIndex > 0 && colIndex > 0 && board[rowIndex - 1]?.[colIndex - 1]?.icon === '🏢') ||
+                (rowIndex > 0 && board[rowIndex - 1]?.[colIndex]?.icon === '🏢' && board[rowIndex - 1]?.[colIndex + 1]?.icon === '🏢') ||
+                (colIndex > 0 && board[rowIndex]?.[colIndex - 1]?.icon === '🏢' && board[rowIndex + 1]?.[colIndex - 1]?.icon === '🏢')
+              );
+              if (isPartOfBlock) return null;
+            }
+
+            // Calculate distance from SIA figure center (0.5, 0.5) for radial animation
+            const siaCenter = { row: 0.5, col: 0.5 };
+            const distance = Math.sqrt(
+              Math.pow(rowIndex - siaCenter.row, 2) + Math.pow(colIndex - siaCenter.col, 2)
+            );
+            const colorDelay = animationComplete ? distance * 0.15 : 0;
+
+            const displayColor = animationComplete ? '#E8B84A' : cell.color;
+
+            return (
+              <motion.div
+                key={`${rowIndex}-${colIndex}`}
+                className="absolute border-[3px] flex items-center justify-center text-2xl rounded-lg"
+                style={{
+                  width: isTopLeft ? `${BLOCK_SIZE * 2}px` : `${BLOCK_SIZE}px`,
+                  height: isTopLeft ? `${BLOCK_SIZE * 2}px` : `${BLOCK_SIZE}px`,
+                  left: `${colIndex * BLOCK_SIZE}px`,
+                  top: `${rowIndex * BLOCK_SIZE}px`,
+                  backdropFilter: 'blur(12px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+                  backgroundImage: `linear-gradient(135deg, ${displayColor}0a 0%, ${displayColor}05 50%, ${displayColor}08 100%)`,
+                }}
+                initial={{
+                  y: -2,
+                  backgroundColor: cell.icon === '🏢' && animationComplete ? `${cell.color}08` : cell.icon === '🏢' ? `${cell.color}08` : animationComplete ? `${cell.color}08` : `${cell.color}08`,
+                  borderColor: cell.icon === '🏢' && animationComplete ? `${cell.color}99` : cell.icon === '🏢' ? `${cell.color}99` : animationComplete ? `${cell.color}99` : `${cell.color}70`,
+                  boxShadow: cell.icon === '🏢' && animationComplete
+                    ? `0 2px 12px ${displayColor}30, inset 0 1px 2px rgba(255,255,255,0.15), inset 0 -1px 2px ${displayColor}20, 0 0 15px ${displayColor}50, 0 0 30px ${displayColor}30`
+                    : cell.icon === '🏢'
+                    ? `0 2px 12px ${displayColor}15, inset 0 1px 2px rgba(255,255,255,0.08), inset 0 -1px 2px ${displayColor}10, 0 0 5px ${displayColor}20`
+                    : animationComplete
+                    ? `0 2px 12px ${displayColor}20, inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px ${displayColor}15, 0 0 6px ${displayColor}30`
+                    : `0 2px 12px ${displayColor}20, inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px ${displayColor}15`,
+                }}
+                animate={
+                  cell.icon === '🏢' && animationComplete
+                    ? {
+                        y: 0,
+                        backgroundColor: [`${cell.color}08`, `${cell.color}04`, `#E8B84A08`],
+                        borderColor: [`${cell.color}99`, `${cell.color}50`, `#E8B84A99`],
+                        // Strong pulsing glow for SIA figure after grid complete
+                        boxShadow: [
+                          `0 2px 12px ${displayColor}30, inset 0 1px 2px rgba(255,255,255,0.15), inset 0 -1px 2px ${displayColor}20, 0 0 15px ${displayColor}50, 0 0 30px ${displayColor}30`,
+                          `0 2px 12px ${displayColor}30, inset 0 1px 2px rgba(255,255,255,0.15), inset 0 -1px 2px ${displayColor}20, 0 0 25px ${displayColor}70, 0 0 45px ${displayColor}40`,
+                          `0 2px 12px ${displayColor}30, inset 0 1px 2px rgba(255,255,255,0.15), inset 0 -1px 2px ${displayColor}20, 0 0 15px ${displayColor}50, 0 0 30px ${displayColor}30`,
+                        ],
+                      }
+                    : cell.icon === '🏢'
+                    ? {
+                        y: 0,
+                        backgroundColor: `${cell.color}08`,
+                        borderColor: `${cell.color}99`,
+                        // SIA figure before grid completion - single pulse then settle
+                        boxShadow: [
+                          `0 2px 12px ${displayColor}15, inset 0 1px 2px rgba(255,255,255,0.08), inset 0 -1px 2px ${displayColor}10, 0 0 5px ${displayColor}20`,
+                          `0 0 35px ${displayColor}85, 0 0 18px ${displayColor}65, inset 0 0 12px ${displayColor}35`,
+                          `0 2px 12px ${displayColor}25, inset 0 1px 2px rgba(255,255,255,0.12), inset 0 -1px 2px ${displayColor}18, 0 0 8px ${displayColor}35`,
+                        ],
+                      }
+                    : animationComplete
+                    ? {
+                        y: 0,
+                        backgroundColor: [`${cell.color}08`, `${cell.color}04`, `#E8B84A08`],
+                        borderColor: [`${cell.color}99`, `${cell.color}50`, `#E8B84A99`],
+                        // Weak pulsing glow for other figures when grid is complete
+                        boxShadow: [
+                          `0 2px 12px ${displayColor}20, inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px ${displayColor}15, 0 0 6px ${displayColor}30`,
+                          `0 2px 12px ${displayColor}20, inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px ${displayColor}15, 0 0 12px ${displayColor}45`,
+                          `0 2px 12px ${displayColor}20, inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px ${displayColor}15, 0 0 6px ${displayColor}30`,
+                        ],
+                      }
+                    : {
+                        y: 0,
+                        backgroundColor: `${cell.color}08`,
+                        borderColor: `${cell.color}70`,
+                        // Base shadow for regular figures
+                        boxShadow: `0 2px 12px ${displayColor}20, inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px ${displayColor}15`,
+                      }
+                }
+                transition={
+                  cell.icon === '🏢' || animationComplete
+                    ? {
+                        y: { type: 'spring', damping: 18, stiffness: 200, duration: 0.5 },
+                        backgroundColor: { delay: colorDelay, duration: 1.2, ease: 'easeOut', times: [0, 0.25, 1] },
+                        borderColor: { delay: colorDelay, duration: 1.2, ease: 'easeOut', times: [0, 0.25, 1] },
+                        boxShadow: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
+                      }
+                    : {
+                        y: { type: 'spring', damping: 18, stiffness: 200, duration: 0.5 },
+                        backgroundColor: { duration: 0 },
+                        borderColor: { duration: 0 },
+                        boxShadow: { duration: 0 }
+                      }
+                }
+              >
+                {cell.icon && (
+                  <>
+                    {cell.icon === '🏢' ? (
+                      <motion.img
+                        src="/sia-logo.png"
+                        alt="SIA"
+                        style={{
+                          width: '80px',
+                          height: '80px',
+                          objectFit: 'contain',
+                          opacity: 1
+                        }}
+                        animate={{
+                          filter: animationComplete
+                            ? [
+                                'drop-shadow(0 0 20px #E8B84A) drop-shadow(0 0 12px #E8B84ACC) brightness(0) saturate(100%) invert(77%) sepia(63%) saturate(446%) hue-rotate(359deg) brightness(101%) contrast(93%)',
+                                'drop-shadow(0 0 35px #E8B84A) drop-shadow(0 0 20px #E8B84ACC) brightness(0) saturate(100%) invert(77%) sepia(63%) saturate(446%) hue-rotate(359deg) brightness(101%) contrast(93%)',
+                                'drop-shadow(0 0 20px #E8B84A) drop-shadow(0 0 12px #E8B84ACC) brightness(0) saturate(100%) invert(77%) sepia(63%) saturate(446%) hue-rotate(359deg) brightness(101%) contrast(93%)',
+                              ]
+                            : 'drop-shadow(0 0 8px #E8B84A70) brightness(0) saturate(100%) invert(77%) sepia(63%) saturate(446%) hue-rotate(359deg) brightness(101%) contrast(93%)',
+                        }}
+                        transition={{
+                          filter: animationComplete
+                            ? { duration: 3, repeat: Infinity, ease: 'easeInOut' }
+                            : { duration: 0.5 }
+                        }}
+                      />
+                    ) : (
+                      <svg
+                        width="30"
+                        height="30"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke={animationComplete ? '#E8B84A' : cell.color}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        style={{ filter: `drop-shadow(0 0 6px ${animationComplete ? '#E8B84A' : cell.color}50)` }}
+                      >
+                        {cell.icon === '🤖' && (
+                          <>
+                            <rect x="4" y="8" width="16" height="12" rx="2" />
+                            <path d="M8 12h8M8 16h8M12 8V4M8 4h8" />
+                          </>
+                        )}
+                        {cell.icon === '⚙️' && (
+                          <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+                        )}
+                        {cell.icon === '⛓️' && (
+                          <>
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                          </>
+                        )}
+                        {cell.icon === '📈' && (
+                          <>
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                          </>
+                        )}
+                      </svg>
+                    )}
+                  </>
+                )}
+              </motion.div>
+            );
+          })
+        )}
+
+        {fallingPiece && (() => {
+          const pieceData = tetrisPieces.find(p => p.id === fallingPiece.pieceId)!;
+          const isAtTarget = fallingPiece.row === pieceData.targetRow;
+          return (
+            <motion.div
+              className="absolute"
+              style={{
+                left: `${fallingPiece.col * BLOCK_SIZE}px`,
+                top: `${(fallingPiece.row < 0 ? -Math.abs(fallingPiece.row) * BLOCK_SIZE : fallingPiece.row * BLOCK_SIZE)}px`,
+              }}
+              initial={{ opacity: 0 }}
+              animate={{
+                top: `${(fallingPiece.row < 0 ? -Math.abs(fallingPiece.row) * BLOCK_SIZE : fallingPiece.row * BLOCK_SIZE)}px`,
+                opacity: 1,
+              }}
+              transition={{
+                top: { duration: 0.2, ease: 'easeOut' },
+                opacity: { duration: 0.7, ease: 'easeOut' }
+              }}
+            >
+              <div className="relative">
+                {pieceData.icon === '🏢' ? (
+                  <motion.div
+                    className="border-[3px] flex items-center justify-center text-2xl rounded-lg relative"
+                    style={{
+                      width: `${BLOCK_SIZE * 2}px`,
+                      height: `${BLOCK_SIZE * 2}px`,
+                      backgroundColor: `${pieceData.color}08`,
+                      borderColor: `${pieceData.color}99`,
+                      backdropFilter: 'blur(12px) saturate(180%)',
+                      WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+                      backgroundImage: `linear-gradient(135deg, ${pieceData.color}0a 0%, ${pieceData.color}05 50%, ${pieceData.color}08 100%)`,
+                    }}
+                    animate={
+                      isAtTarget
+                        ? {
+                            boxShadow: [
+                              `0 2px 12px ${pieceData.color}15, inset 0 1px 2px rgba(255,255,255,0.08), inset 0 -1px 2px ${pieceData.color}10, 0 0 5px ${pieceData.color}20`,
+                              `0 0 40px ${pieceData.color}90, 0 0 20px ${pieceData.color}70, inset 0 0 15px ${pieceData.color}40`,
+                              `0 2px 12px ${pieceData.color}20, inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px ${pieceData.color}15`
+                            ]
+                          }
+                        : {
+                            boxShadow: `0 2px 12px ${pieceData.color}20, inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px ${pieceData.color}15`
+                          }
+                    }
+                    transition={
+                      isAtTarget
+                        ? {
+                            boxShadow: {
+                              duration: 1,
+                              ease: 'easeInOut',
+                              times: [0, 0.3, 1],
+                              delay: 0.2
+                            }
+                          }
+                        : {}
+                    }
+                  >
+                    <img
+                      src="/sia-logo.png"
+                      alt="SIA"
+                      style={{
+                        width: '80px',
+                        height: '80px',
+                        objectFit: 'contain',
+                        filter: 'drop-shadow(0 0 12px #E8B84A90) brightness(0) saturate(100%) invert(77%) sepia(63%) saturate(446%) hue-rotate(359deg) brightness(101%) contrast(93%)',
+                        opacity: 1
+                      }}
+                    />
+                  </motion.div>
+                ) : (
+                pieceData.shape.map((row, rowIndex) => (
+                  <div key={rowIndex} className="flex">
+                    {row.map((cell, colIndex) => (
+                      <div
+                        key={colIndex}
+                        className="relative"
+                        style={{ width: `${BLOCK_SIZE}px`, height: `${BLOCK_SIZE}px` }}
+                      >
+                        {cell === 1 && (
+                          <motion.div
+                            className="w-full h-full border-[3px] flex items-center justify-center text-2xl rounded-lg relative"
+                            style={{
+                              backgroundColor: `${pieceData.color}08`,
+                              borderColor: `${pieceData.color}99`,
+                              backdropFilter: 'blur(12px) saturate(180%)',
+                              WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+                              backgroundImage: `linear-gradient(135deg, ${pieceData.color}0a 0%, ${pieceData.color}05 50%, ${pieceData.color}08 100%)`,
+                            }}
+                            animate={
+                              isAtTarget
+                                ? {
+                                    boxShadow: [
+                                      `0 2px 12px ${pieceData.color}15, inset 0 1px 2px rgba(255,255,255,0.08), inset 0 -1px 2px ${pieceData.color}10, 0 0 5px ${pieceData.color}20`,
+                                      `0 0 40px ${pieceData.color}90, 0 0 20px ${pieceData.color}70, inset 0 0 15px ${pieceData.color}40`,
+                                      `0 2px 12px ${pieceData.color}20, inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px ${pieceData.color}15`
+                                    ]
+                                  }
+                                : {
+                                    boxShadow: `0 2px 12px ${pieceData.color}20, inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px ${pieceData.color}15`
+                                  }
+                            }
+                            transition={
+                              isAtTarget
+                                ? {
+                                    boxShadow: {
+                                      duration: 1,
+                                      ease: 'easeInOut',
+                                      times: [0, 0.3, 1],
+                                      delay: 0.2
+                                    }
+                                  }
+                                : {}
+                            }
+                          >
+                            {pieceData.iconPos[0] === rowIndex && pieceData.iconPos[1] === colIndex && (
+                              <svg
+                                width="30"
+                                height="30"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke={pieceData.color}
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                style={{ filter: `drop-shadow(0 0 6px ${pieceData.color}50)` }}
+                              >
+                                {pieceData.icon === '🤖' && (
+                                  <>
+                                    <rect x="4" y="8" width="16" height="12" rx="2" />
+                                    <path d="M8 12h8M8 16h8M12 8V4M8 4h8" />
+                                  </>
+                                )}
+                                {pieceData.icon === '⚙️' && (
+                                  <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+                                )}
+                                {pieceData.icon === '⛓️' && (
+                                  <>
+                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                                  </>
+                                )}
+                                {pieceData.icon === '📈' && (
+                                  <>
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                                  </>
+                                )}
+                              </svg>
+                            )}
+                          </motion.div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ))
+              )}
+              </div>
+            </motion.div>
+          );
+        })()}
+      </motion.div>
+    </div>
+  );
+}
 
 export default function AboutPage() {
   const [activePanel, setActivePanel] = useState<'why' | 'how' | 'what' | null>(null);
   const [activeWorkPanel, setActiveWorkPanel] = useState<'pain' | 'solution' | 'live' | null>(null);
-  const [navVisible, setNavVisible] = useState(true);
+  const [showSubtitle, setShowSubtitle] = useState(false);
+  const [currentPiece, setCurrentPiece] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const lastScrollY = useRef(0);
 
+  // Body background to prevent white flash + smooth scroll snap via CSS
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY < lastScrollY.current || currentScrollY < 100) {
-        setNavVisible(true);
-      } else if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
-        setNavVisible(false);
-      }
-      lastScrollY.current = currentScrollY;
-    };
+    document.body.style.background = '#0c0118';
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    const style = document.createElement('style');
+    style.textContent = `
+      html {
+        scroll-snap-type: y proximity;
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        html {
+          scroll-padding-top: 0px;
+        }
+      }
+      section[data-snap] {
+        scroll-snap-align: start;
+        scroll-snap-stop: normal;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.body.style.background = '';
+      style.remove();
+    };
   }, []);
 
   const showPanel = (panel: 'why' | 'how' | 'what') => {
@@ -45,21 +650,19 @@ export default function AboutPage() {
   };
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-white">
-      <Navbar/>
+    <div ref={containerRef} className="min-h-screen" style={{ background: 'linear-gradient(160deg, #12041a 0%, #1e0835 30%, #2a0d4a 55%, #160228 80%, #0c0118 100%)' }}>
+      <Navbar />
 
-      {/* SECTION 1: HERO + ORBITAL (Side by Side) */}
-      <section className="pt-32 pb-20 px-16 bg-gradient-to-b from-amber-50 to-amber-50">
+      <section className="pt-24 md:pt-32 pb-12 md:pb-20 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" data-snap>
         <motion.div
-          className="max-w-7xl mx-auto"
+          className="max-w-7xl mx-auto w-full"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <div className="grid grid-cols-2 gap-16 items-center min-h-[500px]">
-            {/* Left: Hero Text + Panels */}
-            <div className="relative min-h-72">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center min-h-[400px] lg:min-h-[500px]">
+            <div className="relative min-h-52 lg:min-h-72 text-center lg:text-left">
               <AnimatePresence mode="wait">
                 {!activePanel && (
                   <motion.div
@@ -69,13 +672,13 @@ export default function AboutPage() {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-gray-900 mb-4 leading-tight tracking-tighter">
-                      The AI revolution is <em className="italic text-amber-700">already here.</em>
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-4 leading-tight tracking-tighter">
+                      The AI revolution is <em className="italic text-[#E8B84A]">already here.</em>
                     </h1>
-                    <p className="text-base md:text-lg text-gray-600 font-light mb-6 leading-relaxed">
+                    <p className="text-base md:text-lg text-white/70 font-light mb-6 leading-relaxed">
                       The story, mission, and value behind SIA
                     </p>
-                    <span className="text-xs md:text-sm text-gray-400 font-normal tracking-wider">
+                    <span className="text-xs md:text-sm text-white/40 font-normal tracking-wider">
                       Click the circle to explore our story →
                     </span>
                   </motion.div>
@@ -89,18 +692,18 @@ export default function AboutPage() {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="inline-block px-4 py-1 rounded-full bg-amber-700/10 mb-6">
-                      <span className="text-xs font-semibold tracking-widest text-amber-700 uppercase">Why we exist</span>
+                    <div className="inline-block px-4 py-1 rounded-full bg-[#A855F7]/10 mb-6">
+                      <span className="text-xs font-semibold tracking-widest text-[#A855F7] uppercase">Why we exist</span>
                     </div>
-                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-light text-gray-900 mb-4 leading-tight tracking-tight">
+                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-light text-white mb-4 leading-tight tracking-tight">
                       The future is arriving faster than businesses can react.
                     </h3>
-                    <p className="text-base md:text-lg text-gray-600 font-light leading-relaxed">
+                    <p className="text-base md:text-lg text-white/70 font-light leading-relaxed">
                       We exist to turn this uncertainty into an advantage — putting our customers in a position to act decisively, rather than reactively.
                     </p>
                     <button
                       onClick={resetPanel}
-                      className="mt-6 text-sm font-medium text-amber-700 hover:opacity-70 transition-opacity"
+                      className="mt-6 text-sm font-medium text-[#A855F7] hover:opacity-70 transition-opacity"
                     >
                       ← Back
                     </button>
@@ -115,18 +718,18 @@ export default function AboutPage() {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="inline-block px-4 py-1 rounded-full bg-amber-700/10 mb-6">
-                      <span className="text-xs font-semibold tracking-widest text-amber-700 uppercase">How we do it</span>
+                    <div className="inline-block px-4 py-1 rounded-full bg-[#06B6D4]/10 mb-6">
+                      <span className="text-xs font-semibold tracking-widest text-[#06B6D4] uppercase">How we do it</span>
                     </div>
-                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-light text-gray-900 mb-4 leading-tight tracking-tight">
+                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-light text-white mb-4 leading-tight tracking-tight">
                       Global reach. In-house brains. Relentless speed.
                     </h3>
-                    <p className="text-base md:text-lg text-gray-600 font-light leading-relaxed">
+                    <p className="text-base md:text-lg text-white/70 font-light leading-relaxed">
                       We combine a global footprint with deep in-house expertise and rapid execution — allowing us to adapt and deploy solutions tailored to each client.
                     </p>
                     <button
                       onClick={resetPanel}
-                      className="mt-6 text-sm font-medium text-amber-700 hover:opacity-70 transition-opacity"
+                      className="mt-6 text-sm font-medium text-[#06B6D4] hover:opacity-70 transition-opacity"
                     >
                       ← Back
                     </button>
@@ -141,18 +744,18 @@ export default function AboutPage() {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="inline-block px-4 py-1 rounded-full bg-amber-700/10 mb-6">
-                      <span className="text-xs font-semibold tracking-widest text-amber-700 uppercase">What we build</span>
+                    <div className="inline-block px-4 py-1 rounded-full bg-[#E8B84A]/10 mb-6">
+                      <span className="text-xs font-semibold tracking-widest text-[#E8B84A] uppercase">What we build</span>
                     </div>
-                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-light text-gray-900 mb-9 leading-tight tracking-tight">
+                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-light text-white mb-9 leading-tight tracking-tight">
                       Plug-and-play AI agents for the workflows that matter.
                     </h3>
-                    <p className="text-base md:text-lg text-gray-600 font-light leading-relaxed">
+                    <p className="text-base md:text-lg text-white/70 font-light leading-relaxed">
                       Domain-specific AI agents that automate critical workflows for startups and SMEs — freeing teams to focus on high-value growth.
                     </p>
                     <button
                       onClick={resetPanel}
-                      className="mt-6 text-sm font-medium text-amber-700 hover:opacity-70 transition-opacity"
+                      className="mt-6 text-sm font-medium text-[#E8B84A] hover:opacity-70 transition-opacity"
                     >
                       ← Back
                     </button>
@@ -161,24 +764,21 @@ export default function AboutPage() {
               </AnimatePresence>
             </div>
 
-            {/* Right: Inverted Semicircle Orbital */}
             <div className="relative flex justify-center">
               <div
-                className="relative w-[450px] h-64 pt-12 overflow-hidden"
+                className="relative w-[450px] h-64 pt-12 overflow-hidden scale-[0.65] sm:scale-[0.8] lg:scale-100 origin-center"
                 style={{
                   maskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
                 }}
               >
-                {/* Concentric circles as interactive arcs */}
                 <div className="relative w-[450px] h-[450px] -mt-4">
-                  {/* Outermost Arc - Why */}
                   <motion.div
                     onClick={() => showPanel('why')}
                     className={`absolute rounded-full border-2 cursor-pointer transition-all duration-500 ${
                       activePanel === 'why'
-                        ? 'border-amber-700/50'
-                        : 'border-gray-900/12 hover:border-gray-900/35'
+                        ? 'border-[#A855F7]/50'
+                        : 'border-white/12 hover:border-white/35'
                     }`}
                     style={{
                       width: '450px',
@@ -186,8 +786,8 @@ export default function AboutPage() {
                       top: '0px',
                       left: '0px',
                       background: activePanel === 'why'
-                        ? 'rgba(180, 83, 9, 0.05)'
-                        : 'radial-gradient(circle at center, rgba(17, 24, 39, 0.02) 0%, rgba(17, 24, 39, 0.01) 100%)',
+                        ? 'rgba(168, 85, 247, 0.05)'
+                        : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%)',
                     }}
                     animate={{
                       y: activePanel === 'why' ? -8 : 0,
@@ -197,8 +797,8 @@ export default function AboutPage() {
                     <div
                       className={`absolute text-xs font-semibold tracking-widest uppercase transition-all duration-500 px-3 py-1 rounded-full z-20 ${
                         activePanel === 'why'
-                          ? 'text-amber-700 bg-white/90'
-                          : 'text-gray-900/40 bg-white/70'
+                          ? 'text-[#A855F7] bg-white/90'
+                          : 'text-white/40 bg-white/10'
                       }`}
                       style={{
                         left: '50%',
@@ -210,13 +810,12 @@ export default function AboutPage() {
                     </div>
                   </motion.div>
 
-                  {/* Middle Arc - How */}
                   <motion.div
                     onClick={() => showPanel('how')}
                     className={`absolute rounded-full border-2 cursor-pointer transition-all duration-500 ${
                       activePanel === 'how'
-                        ? 'border-amber-700/50'
-                        : 'border-gray-900/12 hover:border-gray-900/35'
+                        ? 'border-[#06B6D4]/50'
+                        : 'border-white/12 hover:border-white/35'
                     }`}
                     style={{
                       width: '310px',
@@ -224,8 +823,8 @@ export default function AboutPage() {
                       top: '70px',
                       left: '70px',
                       background: activePanel === 'how'
-                        ? 'rgba(180, 83, 9, 0.05)'
-                        : 'radial-gradient(circle at center, rgba(17, 24, 39, 0.04) 0%, rgba(17, 24, 39, 0.02) 100%)',
+                        ? 'rgba(6, 182, 212, 0.05)'
+                        : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%)',
                     }}
                     animate={{
                       y: activePanel === 'how' ? -8 : 0,
@@ -235,8 +834,8 @@ export default function AboutPage() {
                     <div
                       className={`absolute text-xs font-semibold tracking-widest uppercase transition-all duration-500 px-3 py-1 rounded-full z-10 ${
                         activePanel === 'how'
-                          ? 'text-amber-700 bg-white/90'
-                          : 'text-gray-900/40 bg-white/70'
+                          ? 'text-[#06B6D4] bg-white/90'
+                          : 'text-white/40 bg-white/10'
                       }`}
                       style={{
                         left: '50%',
@@ -248,13 +847,12 @@ export default function AboutPage() {
                     </div>
                   </motion.div>
 
-                  {/* Innermost Arc - What */}
                   <motion.div
                     onClick={() => showPanel('what')}
                     className={`absolute rounded-full border-2 cursor-pointer transition-all duration-500 ${
                       activePanel === 'what'
-                        ? 'border-amber-700/50'
-                        : 'border-gray-900/12 hover:border-gray-900/35'
+                        ? 'border-[#E8B84A]/50'
+                        : 'border-white/12 hover:border-white/35'
                     }`}
                     style={{
                       width: '170px',
@@ -262,8 +860,8 @@ export default function AboutPage() {
                       top: '140px',
                       left: '140px',
                       background: activePanel === 'what'
-                        ? 'rgba(180, 83, 9, 0.1)'
-                        : 'radial-gradient(circle at center, rgba(17, 24, 39, 0.08) 0%, rgba(17, 24, 39, 0.04) 100%)',
+                        ? 'rgba(232, 184, 74, 0.1)'
+                        : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)',
                     }}
                     animate={{
                       y: activePanel === 'what' ? -8 : 0,
@@ -273,8 +871,8 @@ export default function AboutPage() {
                     <div
                       className={`absolute text-xs font-semibold tracking-widest uppercase transition-all duration-500 px-3 py-1 rounded-full z-10 ${
                         activePanel === 'what'
-                          ? 'text-amber-700 bg-white/90'
-                          : 'text-gray-900/40 bg-white/70'
+                          ? 'text-[#E8B84A] bg-white/90'
+                          : 'text-white/40 bg-white/10'
                       }`}
                       style={{
                         left: '48%',
@@ -292,125 +890,177 @@ export default function AboutPage() {
         </motion.div>
       </section>
 
-      {/* SECTION 2: THE PROBLEM */}
-      <section className="py-32 px-16 bg-gradient-to-br from-gray-900 via-purple-900 to-purple-950 relative overflow-hidden">
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'radial-gradient(circle at 30% 50%, rgba(168, 107, 101, 0.15) 0%, transparent 60%)',
-          }}
-        />
-        <motion.div
-          className="max-w-4xl mx-auto relative z-10"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-8 leading-tight tracking-tight">
-            The giants are <em className="italic text-amber-700">pulling ahead.</em>
-          </h2>
-          <p className="text-base md:text-lg text-white/70 mb-6 font-light leading-relaxed">
-            The largest companies in the world are using AI to move faster, decide smarter, and widen the gap every quarter.
-          </p>
-          <p className="text-base md:text-lg text-white/70 mb-8 font-light leading-relaxed">
-            Meanwhile, growing businesses are left choosing between expensive consultants, half-built tools, and doing everything manually.
-          </p>
-          <motion.div
-            className="text-xl text-white font-medium pl-6 border-l-4 border-amber-700 mt-12"
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            We started SIA because we believe that's wrong.
-          </motion.div>
-        </motion.div>
+      <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 relative overflow-hidden min-h-screen flex items-center" data-snap>
+        <div className="max-w-7xl mx-auto relative z-10 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+            <motion.div
+              className="text-center lg:text-left order-2 lg:order-1"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+              <h2 className="text-3xl md:text-5xl lg:text-6xl font-light text-white mb-8 leading-tight tracking-tight">
+                The giants are <em className="italic text-[#E8B84A]">pulling ahead.</em>
+              </h2>
+              <AnimatePresence mode="wait">
+                {showSubtitle ? (
+                  <motion.div
+                    key="subtitle"
+                    className="text-lg md:text-xl text-white font-medium pl-6 border-l-4 border-[#E8B84A] max-w-2xl mx-auto lg:mx-0 text-left"
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -30 }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                  >
+                    We started SIA to close the gap between AI solutions and enterprises that need it the most.
+                  </motion.div>
+                ) : currentPiece >= 4 ? (
+                  <motion.p
+                    key="text-4"
+                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0"
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -30 }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                  >
+                    Meanwhile, growing businesses are stuck choosing between expensive consultants, half-built tools, or doing everything manually.
+                  </motion.p>
+                ) : currentPiece >= 3 ? (
+                  <motion.p
+                    key="text-3"
+                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0"
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -30 }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                  >
+                    Widening the gap, every year.
+                  </motion.p>
+                ) : currentPiece >= 2 ? (
+                  <motion.p
+                    key="text-2"
+                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0"
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -30 }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                  >
+                    To decide smarter and outpace the market.
+                  </motion.p>
+                ) : currentPiece >= 1 ? (
+                  <motion.p
+                    key="text-1"
+                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0"
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -30 }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                  >
+                    The world's largest companies are using AI to move faster.
+                  </motion.p>
+                ) : null}
+              </AnimatePresence>
+            </motion.div>
+
+            <div className="relative min-h-[350px] lg:min-h-[500px] flex items-center justify-center order-1 lg:order-2 scale-[0.75] sm:scale-[0.85] lg:scale-100 origin-center">
+              <TetrisAnimation
+                onSubtitleTrigger={() => setShowSubtitle(true)}
+                onPieceChange={(index) => setCurrentPiece(index)}
+              />
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* SECTION 3: THE ANSWER */}
-      <section className="py-32 px-16 bg-gradient-to-b from-white via-gray-50 to-white">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" data-snap>
+        <div className="max-w-6xl mx-auto w-full">
           <motion.div
-            className="text-center mb-20"
+            className="text-center mb-12 md:mb-20"
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-light text-gray-900 mb-6 leading-tight tracking-tight">
-              We exist to <em className="italic text-amber-700">level the field.</em>
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-light text-white mb-6 leading-tight tracking-tight">
+              We exist to <em className="italic text-[#E8B84A]">level the field.</em>
             </h2>
-            <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto font-light leading-relaxed">
+            <p className="text-base md:text-lg text-white/70 max-w-2xl mx-auto font-light leading-relaxed">
               Plug-and-play AI agents that automate critical workflows, so your team stops drowning in operations and starts focusing on growth.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {[
               {
                 icon: '⚡',
                 title: '30 days, not 6 months',
                 description: 'No drawn-out implementation timelines. No enterprise-only pricing. No 40-page SOW before you see results.',
-                bg: 'bg-amber-700/10',
-                color: 'text-amber-700',
+                bg: 'bg-[#E8B84A]/10',
+                color: 'text-[#E8B84A]',
               },
               {
                 icon: '⚙️',
                 title: 'Tailored to how you run',
                 description: "We don't hand you a platform and wish you luck. We deploy solutions built for how your business actually operates.",
-                bg: 'bg-purple-600/10',
-                color: 'text-purple-600',
+                bg: 'bg-[#E8B84A]/10',
+                color: 'text-[#E8B84A]',
               },
               {
                 icon: '🎯',
                 title: 'Free your best people',
                 description: 'Our agents handle the workflows that quietly eat your team\'s time — sales, reporting, follow-ups, internal ops.',
-                bg: 'bg-teal-600/10',
-                color: 'text-teal-600',
+                bg: 'bg-[#E8B84A]/10',
+                color: 'text-[#E8B84A]',
               },
             ].map((card, idx) => (
               <motion.div
                 key={idx}
-                className="p-11 rounded-3xl border border-gray-200 bg-gradient-to-br from-amber-50 to-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                className="p-8 md:p-11 rounded-3xl border border-white/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                }}
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.6, delay: idx * 0.2 }}
+                whileHover={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                }}
               >
                 <div className={`w-14 h-14 rounded-2xl ${card.bg} ${card.color} flex items-center justify-center text-2xl mb-6`}>
                   {card.icon}
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{card.title}</h3>
-                <p className="text-base text-gray-700 font-light leading-relaxed">{card.description}</p>
+                <h3 className="text-xl font-semibold text-white mb-3">{card.title}</h3>
+                <p className="text-base text-white/70 font-light leading-relaxed">{card.description}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* SECTION 4: HOW WE WORK - Orbital Design */}
-      <section className="py-32 px-16 bg-gradient-to-b from-amber-50 to-white">
-        <div className="max-w-7xl mx-auto">
-          {/* Scroll-based header that fades in and out */}
+      <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" data-snap>
+        <div className="max-w-7xl mx-auto w-full">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-10 md:mb-16"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: false, amount: 0.8, margin: "-50px" }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
             <motion.h2
-              className="text-4xl md:text-5xl lg:text-6xl font-light text-gray-900 mb-6 leading-tight tracking-tight"
+              className="text-3xl md:text-5xl lg:text-6xl font-light text-white mb-6 leading-tight tracking-tight"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: false, amount: 0.8 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
             >
-              How it <em className="italic text-amber-700">works</em>
+              How it <em className="italic text-[#E8B84A]">works</em>
             </motion.h2>
             <motion.p
-              className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto font-light leading-relaxed"
+              className="text-base md:text-lg text-white/70 max-w-2xl mx-auto font-light leading-relaxed"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: false, amount: 0.8 }}
@@ -420,25 +1070,22 @@ export default function AboutPage() {
             </motion.p>
           </motion.div>
 
-          <div className="grid grid-cols-2 gap-16 items-center min-h-[500px]">
-            {/* Left: Inverted Semicircle Orbital */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center min-h-[400px] lg:min-h-[500px]">
             <div className="relative flex justify-center">
               <div
-                className="relative w-[450px] h-64 pt-12 overflow-hidden"
+                className="relative w-[450px] h-64 pt-12 overflow-hidden scale-[0.65] sm:scale-[0.8] lg:scale-100 origin-center"
                 style={{
                   maskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
                 }}
               >
-                {/* Concentric circles as interactive arcs */}
                 <div className="relative w-[450px] h-[450px] -mt-4">
-                  {/* Outermost Arc - Going Live */}
                   <motion.div
                     onClick={() => showWorkPanel('live')}
                     className={`absolute rounded-full border-2 cursor-pointer transition-all duration-500 ${
                       activeWorkPanel === 'live'
-                        ? 'border-amber-700/50'
-                        : 'border-gray-900/12 hover:border-gray-900/35'
+                        ? 'border-[#06B6D4]/50'
+                        : 'border-white/12 hover:border-white/35'
                     }`}
                     style={{
                       width: '450px',
@@ -446,8 +1093,8 @@ export default function AboutPage() {
                       top: '0px',
                       left: '0px',
                       background: activeWorkPanel === 'live'
-                        ? 'rgba(180, 83, 9, 0.05)'
-                        : 'radial-gradient(circle at center, rgba(17, 24, 39, 0.02) 0%, rgba(17, 24, 39, 0.01) 100%)',
+                        ? 'rgba(6, 182, 212, 0.05)'
+                        : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%)',
                     }}
                     animate={{
                       y: activeWorkPanel === 'live' ? -8 : 0,
@@ -457,8 +1104,8 @@ export default function AboutPage() {
                     <motion.div
                       className={`absolute text-xs font-semibold tracking-widest uppercase transition-all duration-500 px-3 py-1 rounded-full z-20 whitespace-nowrap ${
                         activeWorkPanel === 'live'
-                          ? 'text-amber-700 bg-white/90'
-                          : 'text-gray-900/40 bg-white/70'
+                          ? 'text-[#06B6D4] bg-white/90'
+                          : 'text-white/40 bg-white/10'
                       }`}
                       style={{
                         left: '50%',
@@ -473,13 +1120,12 @@ export default function AboutPage() {
                     </motion.div>
                   </motion.div>
 
-                  {/* Middle Arc - Custom Solution */}
                   <motion.div
                     onClick={() => showWorkPanel('solution')}
                     className={`absolute rounded-full border-2 cursor-pointer transition-all duration-500 ${
                       activeWorkPanel === 'solution'
-                        ? 'border-amber-700/50'
-                        : 'border-gray-900/12 hover:border-gray-900/35'
+                        ? 'border-[#A855F7]/50'
+                        : 'border-white/12 hover:border-white/35'
                     }`}
                     style={{
                       width: '310px',
@@ -487,8 +1133,8 @@ export default function AboutPage() {
                       top: '70px',
                       left: '70px',
                       background: activeWorkPanel === 'solution'
-                        ? 'rgba(180, 83, 9, 0.05)'
-                        : 'radial-gradient(circle at center, rgba(17, 24, 39, 0.04) 0%, rgba(17, 24, 39, 0.02) 100%)',
+                        ? 'rgba(168, 85, 247, 0.05)'
+                        : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%)',
                     }}
                     animate={{
                       y: activeWorkPanel === 'solution' ? -8 : 0,
@@ -498,8 +1144,8 @@ export default function AboutPage() {
                     <motion.div
                       className={`absolute text-xs font-semibold tracking-widest uppercase transition-all duration-500 px-3 py-1 rounded-full z-10 ${
                         activeWorkPanel === 'solution'
-                          ? 'text-amber-700 bg-white/90'
-                          : 'text-gray-900/40 bg-white/70'
+                          ? 'text-[#A855F7] bg-white/90'
+                          : 'text-white/40 bg-white/10'
                       }`}
                       style={{
                         left: '50%',
@@ -514,13 +1160,12 @@ export default function AboutPage() {
                     </motion.div>
                   </motion.div>
 
-                  {/* Innermost Arc - Pain Points */}
                   <motion.div
                     onClick={() => showWorkPanel('pain')}
                     className={`absolute rounded-full border-2 cursor-pointer transition-all duration-500 ${
                       activeWorkPanel === 'pain'
-                        ? 'border-amber-700/50'
-                        : 'border-gray-900/12 hover:border-gray-900/35'
+                        ? 'border-[#E8B84A]/50'
+                        : 'border-white/12 hover:border-white/35'
                     }`}
                     style={{
                       width: '170px',
@@ -528,8 +1173,8 @@ export default function AboutPage() {
                       top: '140px',
                       left: '140px',
                       background: activeWorkPanel === 'pain'
-                        ? 'rgba(180, 83, 9, 0.1)'
-                        : 'radial-gradient(circle at center, rgba(17, 24, 39, 0.08) 0%, rgba(17, 24, 39, 0.04) 100%)',
+                        ? 'rgba(232, 184, 74, 0.1)'
+                        : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)',
                     }}
                     animate={{
                       y: activeWorkPanel === 'pain' ? -8 : 0,
@@ -539,8 +1184,8 @@ export default function AboutPage() {
                     <motion.div
                       className={`absolute text-xs font-semibold tracking-widest uppercase transition-all duration-500 px-3 py-1 rounded-full z-10 whitespace-nowrap ${
                         activeWorkPanel === 'pain'
-                          ? 'text-amber-700 bg-white/90'
-                          : 'text-gray-900/40 bg-white/70'
+                          ? 'text-[#E8B84A] bg-white/90'
+                          : 'text-white/40 bg-white/10'
                       }`}
                       style={{
                         left: '48%',
@@ -558,8 +1203,7 @@ export default function AboutPage() {
               </div>
             </div>
 
-            {/* Right: Text Explanations */}
-            <div className="relative min-h-72">
+            <div className="relative min-h-52 lg:min-h-72 text-center lg:text-left">
               <AnimatePresence mode="wait">
                 {!activeWorkPanel && (
                   <motion.div
@@ -569,13 +1213,13 @@ export default function AboutPage() {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-light text-gray-900 mb-4 leading-tight tracking-tight">
-                      Three steps to <em className="italic text-amber-700">operational freedom</em>
+                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-light text-white mb-4 leading-tight tracking-tight">
+                      Three steps to <em className="italic text-[#E8B84A]">operational freedom</em>
                     </h3>
-                    <p className="text-base md:text-lg text-gray-600 font-light leading-relaxed mb-4">
+                    <p className="text-base md:text-lg text-white/70 font-light leading-relaxed mb-4">
                       From diagnosis to deployment, we move fast and build solutions that fit how your business actually runs.
                     </p>
-                    <span className="text-xs md:text-sm text-gray-400 font-normal tracking-wider">
+                    <span className="text-xs md:text-sm text-white/40 font-normal tracking-wider">
                       Click a circle to explore each step →
                     </span>
                   </motion.div>
@@ -589,18 +1233,18 @@ export default function AboutPage() {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="inline-block px-4 py-1 rounded-full bg-amber-700/10 mb-6">
-                      <span className="text-xs font-semibold tracking-widest text-amber-700 uppercase">Step 1</span>
+                    <div className="inline-block px-4 py-1 rounded-full bg-[#E8B84A]/10 mb-6">
+                      <span className="text-xs font-semibold tracking-widest text-[#E8B84A] uppercase">Step 1</span>
                     </div>
-                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-light text-gray-900 mb-4 leading-tight tracking-tight">
-                      You tell us what's <em className="italic text-amber-700">slowing you down</em>
+                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-light text-white mb-4 leading-tight tracking-tight">
+                      You tell us what's <em className="italic text-[#E8B84A]">slowing you down</em>
                     </h3>
-                    <p className="text-base md:text-lg text-gray-600 font-light leading-relaxed">
+                    <p className="text-base md:text-lg text-white/70 font-light leading-relaxed">
                       We dig into your workflows, team structure, and the bottlenecks quietly eating your time. No surface-level audits — we go deep.
                     </p>
                     <button
                       onClick={resetWorkPanel}
-                      className="mt-6 text-sm font-medium text-amber-700 hover:opacity-70 transition-opacity"
+                      className="mt-6 text-sm font-medium text-[#E8B84A] hover:opacity-70 transition-opacity"
                     >
                       ← Back
                     </button>
@@ -615,18 +1259,18 @@ export default function AboutPage() {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="inline-block px-4 py-1 rounded-full bg-amber-700/10 mb-6">
-                      <span className="text-xs font-semibold tracking-widest text-amber-700 uppercase">Step 2</span>
+                    <div className="inline-block px-4 py-1 rounded-full bg-[#A855F7]/10 mb-6">
+                      <span className="text-xs font-semibold tracking-widest text-[#A855F7] uppercase">Step 2</span>
                     </div>
-                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-light text-gray-900 mb-4 leading-tight tracking-tight">
-                      We build around <em className="italic text-amber-700">how you actually run</em>
+                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-light text-white mb-4 leading-tight tracking-tight">
+                      We build around <em className="italic text-[#A855F7]">how you actually run</em>
                     </h3>
-                    <p className="text-base md:text-lg text-gray-600 font-light leading-relaxed">
+                    <p className="text-base md:text-lg text-white/70 font-light leading-relaxed">
                       No off-the-shelf platform. We design and deploy an AI agent tailored to your real operations — not a generic tool you'll need to bend around.
                     </p>
                     <button
                       onClick={resetWorkPanel}
-                      className="mt-6 text-sm font-medium text-amber-700 hover:opacity-70 transition-opacity"
+                      className="mt-6 text-sm font-medium text-[#A855F7] hover:opacity-70 transition-opacity"
                     >
                       ← Back
                     </button>
@@ -641,18 +1285,18 @@ export default function AboutPage() {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="inline-block px-4 py-1 rounded-full bg-amber-700/10 mb-6">
-                      <span className="text-xs font-semibold tracking-widest text-amber-700 uppercase">Step 3</span>
+                    <div className="inline-block px-4 py-1 rounded-full bg-[#06B6D4]/10 mb-6">
+                      <span className="text-xs font-semibold tracking-widest text-[#06B6D4] uppercase">Step 3</span>
                     </div>
-                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-light text-gray-900 mb-4 leading-tight tracking-tight">
-                      You're <em className="italic text-amber-700">live in weeks</em>
+                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-light text-white mb-4 leading-tight tracking-tight">
+                      You're <em className="italic text-[#06B6D4]">live in weeks</em>
                     </h3>
-                    <p className="text-base md:text-lg text-gray-600 font-light leading-relaxed">
+                    <p className="text-base md:text-lg text-white/70 font-light leading-relaxed">
                       Your agent is running, your team is freed up, and we keep iterating as your business evolves. No six-month timelines — just results.
                     </p>
                     <button
                       onClick={resetWorkPanel}
-                      className="mt-6 text-sm font-medium text-amber-700 hover:opacity-70 transition-opacity"
+                      className="mt-6 text-sm font-medium text-[#06B6D4] hover:opacity-70 transition-opacity"
                     >
                       ← Back
                     </button>
@@ -664,16 +1308,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* SECTION 5: VISION & MISSION */}
-      <section className="py-32 px-16 bg-gradient-to-br from-purple-950 via-gray-900 to-purple-900 relative overflow-hidden">
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'radial-gradient(circle at right, rgba(201, 149, 43, 0.08) 0%, transparent 60%)',
-          }}
-        />
-        <div className="max-w-4xl mx-auto relative z-10">
-          <div className="grid grid-cols-2 gap-12">
+      <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 relative overflow-hidden min-h-screen flex items-center" data-snap>
+        <div className="max-w-4xl mx-auto relative z-10 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
             {[
               {
                 label: 'Vision',
@@ -686,13 +1323,13 @@ export default function AboutPage() {
             ].map((item, idx) => (
               <motion.div
                 key={idx}
-                className="p-12 rounded-3xl border border-white/8 bg-white/3 backdrop-blur-xl hover:bg-white/5 transition-all duration-300"
+                className="p-8 md:p-12 rounded-3xl border border-white/8 bg-white/3 backdrop-blur-xl hover:bg-white/5 transition-all duration-300"
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.6, delay: idx * 0.2 }}
               >
-                <div className="text-xs font-semibold tracking-widest text-amber-700 uppercase mb-6">{item.label}</div>
+                <div className="text-xs font-semibold tracking-widest text-[#E8B84A] uppercase mb-6">{item.label}</div>
                 <h3 className="text-2xl font-light text-white leading-relaxed">{item.text}</h3>
               </motion.div>
             ))}
@@ -700,79 +1337,49 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* SECTION 6: CTA Form */}
-      <section id="cta" className="py-40 px-16 bg-gradient-to-br from-white via-amber-50 to-purple-50 flex items-center justify-center">
-        <motion.div
-          className="w-full max-w-4xl"
-          initial={{ opacity: 0, y: 120, scale: 0.95 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          viewport={{ once: true, margin: "-50px" }}
-          transition={{
-            duration: 1,
-            ease: [0.22, 1, 0.36, 1],
-            opacity: { duration: 0.8 },
-            y: { duration: 1 },
-            scale: { duration: 1 }
-          }}
-        >
-          <div
-            className="rounded-3xl p-10 text-center backdrop-blur-lg border border-white/60 shadow-2xl"
-            style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.3) 100%)',
-              boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.2), inset 0 1px 1px 0 rgba(255, 255, 255, 0.3)',
-            }}
+      <section id="cta" className="relative z-10 py-16 md:py-28 px-6 min-h-screen flex items-center" data-snap>
+        <div className="max-w-4xl mx-auto text-center w-full">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
           >
-            <motion.h2
-              className="text-4xl font-light text-gray-900 mb-4"
+            <h3 className="text-3xl md:text-5xl font-light text-white mb-5">
+              Ready to <em className="not-italic font-semibold" style={{ color: '#E8B84A' }}>level the playing field?</em>
+            </h3>
+            <p className="text-lg text-white/45 mb-10">
+              Join the waitlist to be the first to know when we launch.
+            </p>
+            <motion.form
+              className="max-w-md mx-auto flex flex-col sm:flex-row items-center gap-4 justify-center mb-6"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Ready to <em className="italic text-amber-700">punch above your weight?</em>
-            </motion.h2>
-            <motion.p
-              className="text-lg text-gray-600 mb-8 max-w-3xl mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-            >
-              If that sounds like you, let's talk!
-            </motion.p>
-
-            <motion.form
-              className="max-w-3xl mx-auto flex flex-col sm:flex-row items-center gap-4 justify-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
               <input
                 type="email"
                 placeholder="you@company.com"
-                className="w-full sm:w-96 px-5 py-3 rounded-lg bg-gray-50 border border-gray-300 text-gray-900 placeholder:text-gray-400 outline-none text-base focus:border-amber-700 focus:ring-2 focus:ring-amber-700/20 transition-all"
+                className="w-full px-5 py-3 rounded-full bg-white/5 border border-white/20 text-white placeholder:text-white/40 outline-none text-base focus:border-[#E8B84A] focus:ring-2 focus:ring-[#E8B84A]/20 transition-all"
                 aria-label="Email address"
               />
               <motion.button
                 type="submit"
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                whileHover={{
-                  y: -4,
-                  boxShadow: '0 10px 25px rgba(147, 51, 234, 0.3)'
-                }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-                className="w-full sm:w-auto px-8 py-3 rounded-lg text-base font-semibold whitespace-nowrap text-white"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-bold px-9 py-4 rounded-full text-base whitespace-nowrap"
                 style={{
-                  background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)',
-                  boxShadow: '0 4px 15px rgba(147, 51, 234, 0.2)'
+                  background: 'linear-gradient(135deg, #E8B84A, #E8A87C)',
+                  color: '#2D1B4E',
+                  boxShadow: '0 0 40px rgba(232,184,74,0.4)',
                 }}
               >
-                Book a Demo →
+                Join Waitlist
               </motion.button>
             </motion.form>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </section>
 
       <Footer />
