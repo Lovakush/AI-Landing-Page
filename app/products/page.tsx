@@ -2,14 +2,14 @@
 
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { useState, useEffect, useRef, forwardRef } from 'react';
-import { MoveRight, Sparkles, Zap, Target, Users, TrendingUp, BarChart3, Bot, Check, X } from 'lucide-react';
+import { MoveRight, Sparkles, Zap, Target, Users, TrendingUp, BarChart3, Bot, Check, X, Network, GitBranch, Workflow, Cpu, Activity } from 'lucide-react';
 import Chatbot from '@/components/ui/chatbot';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
 import WaitlistSection from "@/components/ui/WaitList";
 import BookADemo from "@/components/ui/BookaDemo";
 
-const dynamicWords = ["Marketing", "HR", "Sales", "Advertising", "Job Postings", "Lead Generation"];
+const dynamicWords = ["Marketing", "Human Resources", "Sales", "Advertising", "Job Postings", "Lead Generation"];
 
 const categories = [
   { id: 'category1', label: 'Marketing', color: '#A855F7' },
@@ -26,24 +26,93 @@ const getBrandName = (category: string): string => {
   }
 };
 
-// Robot mascot SVGs matching the home page style
+// ─── Floating Particle Dots ───
+const FloatingDots = () => {
+  const dots = [
+    // Original set
+    { size: 6, x: '8%',  y: '15%', duration: 18, delay: 0,    color: 'rgba(168,85,247,0.55)',  driftX: 28,  driftY: -22 },
+    { size: 4, x: '18%', y: '72%', duration: 24, delay: 3,    color: 'rgba(232,184,74,0.45)',  driftX: -18, driftY: 32  },
+    { size: 8, x: '82%', y: '20%', duration: 20, delay: 5,    color: 'rgba(168,85,247,0.35)',  driftX: -30, driftY: 18  },
+    { size: 3, x: '90%', y: '65%', duration: 28, delay: 8,    color: 'rgba(6,182,212,0.50)',   driftX: 22,  driftY: -28 },
+    { size: 5, x: '50%', y: '10%', duration: 22, delay: 2,    color: 'rgba(232,184,74,0.40)',  driftX: -14, driftY: 20  },
+    { size: 7, x: '30%', y: '85%', duration: 26, delay: 6,    color: 'rgba(6,182,212,0.30)',   driftX: 20,  driftY: -16 },
+    { size: 3, x: '70%', y: '45%', duration: 32, delay: 10,   color: 'rgba(168,85,247,0.40)',  driftX: -24, driftY: 24  },
+    { size: 5, x: '14%', y: '42%', duration: 19, delay: 1,    color: 'rgba(6,182,212,0.45)',   driftX: 16,  driftY: -30 },
+    { size: 4, x: '60%', y: '78%', duration: 25, delay: 7,    color: 'rgba(232,184,74,0.35)',  driftX: -20, driftY: 12  },
+    { size: 6, x: '92%', y: '30%', duration: 21, delay: 4,    color: 'rgba(168,85,247,0.30)',  driftX: 14,  driftY: 26  },
+    { size: 3, x: '42%', y: '55%', duration: 30, delay: 12,   color: 'rgba(6,182,212,0.35)',   driftX: -26, driftY: -18 },
+    { size: 5, x: '75%', y: '88%', duration: 23, delay: 9,    color: 'rgba(232,184,74,0.30)',  driftX: 18,  driftY: -24 },
+    { size: 4, x: '25%', y: '25%', duration: 27, delay: 11,   color: 'rgba(168,85,247,0.45)',  driftX: -12, driftY: 30  },
+    { size: 7, x: '55%', y: '35%', duration: 35, delay: 15,   color: 'rgba(6,182,212,0.25)',   driftX: 22,  driftY: -14 },
+    { size: 3, x: '88%', y: '52%', duration: 16, delay: 0.5,  color: 'rgba(232,184,74,0.50)',  driftX: -16, driftY: 20  },
+    // Extra density
+    { size: 5, x: '3%',  y: '38%', duration: 29, delay: 13,   color: 'rgba(168,85,247,0.35)',  driftX: 30,  driftY: 15  },
+    { size: 4, x: '96%', y: '80%', duration: 17, delay: 2.5,  color: 'rgba(6,182,212,0.40)',   driftX: -22, driftY: -18 },
+    { size: 6, x: '38%', y: '5%',  duration: 31, delay: 14,   color: 'rgba(232,184,74,0.30)',  driftX: 18,  driftY: 28  },
+    { size: 3, x: '65%', y: '92%', duration: 24, delay: 4.5,  color: 'rgba(168,85,247,0.45)',  driftX: -28, driftY: -20 },
+    { size: 7, x: '48%', y: '68%', duration: 20, delay: 8.5,  color: 'rgba(6,182,212,0.30)',   driftX: 16,  driftY: -26 },
+    { size: 4, x: '12%', y: '60%', duration: 33, delay: 6.5,  color: 'rgba(232,184,74,0.40)',  driftX: -14, driftY: 22  },
+    { size: 5, x: '78%', y: '12%', duration: 26, delay: 3.5,  color: 'rgba(168,85,247,0.30)',  driftX: 20,  driftY: 16  },
+    { size: 3, x: '22%', y: '48%', duration: 22, delay: 10.5, color: 'rgba(6,182,212,0.50)',   driftX: -18, driftY: -24 },
+    { size: 6, x: '84%', y: '74%', duration: 28, delay: 7.5,  color: 'rgba(232,184,74,0.35)',  driftX: 24,  driftY: -12 },
+    { size: 4, x: '35%', y: '92%', duration: 19, delay: 1.5,  color: 'rgba(168,85,247,0.40)',  driftX: -26, driftY: 18  },
+    { size: 5, x: '58%', y: '18%', duration: 36, delay: 16,   color: 'rgba(6,182,212,0.35)',   driftX: 14,  driftY: 28  },
+    { size: 3, x: '6%',  y: '82%', duration: 23, delay: 5.5,  color: 'rgba(232,184,74,0.45)',  driftX: 28,  driftY: -16 },
+    { size: 7, x: '95%', y: '48%', duration: 30, delay: 11.5, color: 'rgba(168,85,247,0.25)',  driftX: -20, driftY: 22  },
+    { size: 4, x: '44%', y: '32%', duration: 25, delay: 9.5,  color: 'rgba(6,182,212,0.45)',   driftX: 22,  driftY: -20 },
+    { size: 5, x: '72%', y: '60%', duration: 21, delay: 12.5, color: 'rgba(232,184,74,0.30)',  driftX: -16, driftY: 26  },
+  ];
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 2 }}>
+      {dots.map((dot, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            width: dot.size,
+            height: dot.size,
+            left: dot.x,
+            top: dot.y,
+            backgroundColor: dot.color,
+            boxShadow: `0 0 ${dot.size * 3}px ${dot.color}`,
+          }}
+          animate={{
+            x: [0, dot.driftX, dot.driftX * 0.4, -dot.driftX * 0.6, 0],
+            y: [0, dot.driftY, dot.driftY * 0.8, dot.driftY * 0.2, 0],
+            opacity: [0.4, 0.85, 0.6, 0.9, 0.4],
+            scale:   [1, 1.2, 0.9, 1.1, 1],
+          }}
+          transition={{
+            duration: dot.duration,
+            delay: dot.delay,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Robot mascot SVGs
 const RobotMark = ({ size = 80 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="15" y="22" width="50" height="42" rx="10" fill="#A855F7"/>
-    <rect x="15" y="22" width="50" height="42" rx="10" fill="url(#markGrad)" opacity="0.4"/>
-    <circle cx="40" cy="14" r="5" fill="#A855F7"/>
-    <rect x="38" y="14" width="4" height="10" fill="#A855F7"/>
-    <circle cx="29" cy="40" r="8" fill="white" opacity="0.15"/>
-    <circle cx="51" cy="40" r="8" fill="white" opacity="0.15"/>
-    <circle cx="29" cy="40" r="5" fill="white"/>
-    <circle cx="51" cy="40" r="5" fill="white"/>
-    <circle cx="31" cy="38" r="2" fill="#2D1B4E"/>
-    <circle cx="53" cy="38" r="2" fill="#2D1B4E"/>
-    <rect x="27" y="52" width="26" height="4" rx="2" fill="white" opacity="0.4"/>
+    <rect x="15" y="22" width="50" height="42" rx="10" fill="#A855F7" />
+    <rect x="15" y="22" width="50" height="42" rx="10" fill="url(#markGrad)" opacity="0.4" />
+    <circle cx="40" cy="14" r="5" fill="#A855F7" />
+    <rect x="38" y="14" width="4" height="10" fill="#A855F7" />
+    <circle cx="29" cy="40" r="8" fill="white" opacity="0.15" />
+    <circle cx="51" cy="40" r="8" fill="white" opacity="0.15" />
+    <circle cx="29" cy="40" r="5" fill="white" />
+    <circle cx="51" cy="40" r="5" fill="white" />
+    <circle cx="31" cy="38" r="2" fill="#2D1B4E" />
+    <circle cx="53" cy="38" r="2" fill="#2D1B4E" />
+    <rect x="27" y="52" width="26" height="4" rx="2" fill="white" opacity="0.4" />
     <defs>
       <linearGradient id="markGrad" x1="15" y1="22" x2="65" y2="64">
-        <stop stopColor="white"/>
-        <stop offset="1" stopColor="white" stopOpacity="0"/>
+        <stop stopColor="white" />
+        <stop offset="1" stopColor="white" stopOpacity="0" />
       </linearGradient>
     </defs>
   </svg>
@@ -51,21 +120,21 @@ const RobotMark = ({ size = 80 }: { size?: number }) => (
 
 const RobotConsuelo = ({ size = 80 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="15" y="22" width="50" height="42" rx="10" fill="#E8B84A"/>
-    <rect x="15" y="22" width="50" height="42" rx="10" fill="url(#consueloGrad)" opacity="0.4"/>
-    <rect x="37" y="10" width="6" height="13" rx="3" fill="#E8B84A"/>
-    <circle cx="40" cy="10" r="4" fill="#E8B84A"/>
-    <circle cx="29" cy="40" r="8" fill="white" opacity="0.15"/>
-    <circle cx="51" cy="40" r="8" fill="white" opacity="0.15"/>
-    <circle cx="29" cy="40" r="5" fill="white"/>
-    <circle cx="51" cy="40" r="5" fill="white"/>
-    <circle cx="31" cy="38" r="2" fill="#2D1B4E"/>
-    <circle cx="53" cy="38" r="2" fill="#2D1B4E"/>
-    <path d="M30 54 Q40 60 50 54" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.6"/>
+    <rect x="15" y="22" width="50" height="42" rx="10" fill="#E8B84A" />
+    <rect x="15" y="22" width="50" height="42" rx="10" fill="url(#consueloGrad)" opacity="0.4" />
+    <rect x="37" y="10" width="6" height="13" rx="3" fill="#E8B84A" />
+    <circle cx="40" cy="10" r="4" fill="#E8B84A" />
+    <circle cx="29" cy="40" r="8" fill="white" opacity="0.15" />
+    <circle cx="51" cy="40" r="8" fill="white" opacity="0.15" />
+    <circle cx="29" cy="40" r="5" fill="white" />
+    <circle cx="51" cy="40" r="5" fill="white" />
+    <circle cx="31" cy="38" r="2" fill="#2D1B4E" />
+    <circle cx="53" cy="38" r="2" fill="#2D1B4E" />
+    <path d="M30 54 Q40 60 50 54" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.6" />
     <defs>
       <linearGradient id="consueloGrad" x1="15" y1="22" x2="65" y2="64">
-        <stop stopColor="white"/>
-        <stop offset="1" stopColor="white" stopOpacity="0"/>
+        <stop stopColor="white" />
+        <stop offset="1" stopColor="white" stopOpacity="0" />
       </linearGradient>
     </defs>
   </svg>
@@ -73,22 +142,22 @@ const RobotConsuelo = ({ size = 80 }: { size?: number }) => (
 
 const RobotArgeo = ({ size = 80 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="15" y="22" width="50" height="42" rx="10" fill="#06B6D4"/>
-    <rect x="15" y="22" width="50" height="42" rx="10" fill="url(#argeoGrad)" opacity="0.4"/>
-    <circle cx="40" cy="12" r="5" fill="#06B6D4"/>
-    <rect x="38" y="12" width="4" height="12" fill="#06B6D4"/>
-    <circle cx="29" cy="40" r="8" fill="white" opacity="0.15"/>
-    <circle cx="51" cy="40" r="8" fill="white" opacity="0.15"/>
-    <circle cx="29" cy="40" r="5" fill="white"/>
-    <circle cx="51" cy="40" r="5" fill="white"/>
-    <circle cx="31" cy="38" r="2" fill="#0E1A2B"/>
-    <circle cx="53" cy="38" r="2" fill="#0E1A2B"/>
-    <rect x="24" y="52" width="12" height="4" rx="2" fill="white" opacity="0.4"/>
-    <rect x="44" y="52" width="12" height="4" rx="2" fill="white" opacity="0.4"/>
+    <rect x="15" y="22" width="50" height="42" rx="10" fill="#06B6D4" />
+    <rect x="15" y="22" width="50" height="42" rx="10" fill="url(#argeoGrad)" opacity="0.4" />
+    <circle cx="40" cy="12" r="5" fill="#06B6D4" />
+    <rect x="38" y="12" width="4" height="12" fill="#06B6D4" />
+    <circle cx="29" cy="40" r="8" fill="white" opacity="0.15" />
+    <circle cx="51" cy="40" r="8" fill="white" opacity="0.15" />
+    <circle cx="29" cy="40" r="5" fill="white" />
+    <circle cx="51" cy="40" r="5" fill="white" />
+    <circle cx="31" cy="38" r="2" fill="#0E1A2B" />
+    <circle cx="53" cy="38" r="2" fill="#0E1A2B" />
+    <rect x="24" y="52" width="12" height="4" rx="2" fill="white" opacity="0.4" />
+    <rect x="44" y="52" width="12" height="4" rx="2" fill="white" opacity="0.4" />
     <defs>
       <linearGradient id="argeoGrad" x1="15" y1="22" x2="65" y2="64">
-        <stop stopColor="white"/>
-        <stop offset="1" stopColor="white" stopOpacity="0"/>
+        <stop stopColor="white" />
+        <stop offset="1" stopColor="white" stopOpacity="0" />
       </linearGradient>
     </defs>
   </svg>
@@ -102,7 +171,7 @@ const getCategoryRobot = (category: string, size = 80) => {
 
 const products = [
   {
-    id: 1, category: 'category1', icon: Sparkles, color: '#A855F7', colorIntensity: 0.4,
+    id: 1, category: 'category1', icon: Network, color: '#A855F7', colorIntensity: 0.4,
     name: 'Content & Social Media Agent', tagline: 'Create and manage engaging social content',
     description: 'An AI-powered agent that generates, schedules, and optimizes social media content across all major platforms. From caption writing to content calendar management.',
     features: ['Content Generation', 'Social Scheduling', 'Engagement Analytics', 'Brand Voice Consistency'],
@@ -110,7 +179,7 @@ const products = [
     ctaType: 'demo',
   },
   {
-    id: 2, category: 'category1', icon: Target, color: '#A855F7', colorIntensity: 0.6,
+    id: 2, category: 'category1', icon: Cpu, color: '#A855F7', colorIntensity: 0.6,
     name: 'Advertising Agent', tagline: 'Optimize ad campaigns and maximize ROI',
     description: 'Intelligent ad management automation that creates, tests, and optimizes campaigns across Google Ads, Meta, and LinkedIn. Real-time bid optimization and audience targeting.',
     features: ['Campaign Automation', 'Bid Optimization', 'A/B Testing', 'ROI Tracking'],
@@ -118,7 +187,7 @@ const products = [
     ctaType: 'waitlist',
   },
   {
-    id: 3, category: 'category1', icon: Zap, color: '#A855F7', colorIntensity: 0.8,
+    id: 3, category: 'category1', icon: Workflow, color: '#A855F7', colorIntensity: 0.8,
     name: 'Full Marketing Agent', tagline: 'Complete marketing automation suite',
     description: 'The complete Mark solution combining content creation, ad management, and analytics. Unified platform for all your marketing needs with full AI automation.',
     features: ['Content Generation', 'Ad Optimization', 'Lead Scoring', 'Performance Analytics'],
@@ -126,7 +195,7 @@ const products = [
     ctaType: 'waitlist',
   },
   {
-    id: 4, category: 'category2', icon: Users, color: '#E8B84A', colorIntensity: 0.4,
+    id: 4, category: 'category2', icon: GitBranch, color: '#E8B84A', colorIntensity: 0.4,
     name: 'Candidate Screening', tagline: 'Intelligent resume screening and evaluation',
     description: 'Automate resume review and candidate qualification. AI evaluates CVs against job requirements, identifies top candidates, and flags red flags in seconds.',
     features: ['Resume Parsing', 'Skill Matching', 'Qualification Scoring', 'Bias-free Evaluation'],
@@ -134,7 +203,7 @@ const products = [
     ctaType: 'demo',
   },
   {
-    id: 5, category: 'category2', icon: BarChart3, color: '#E8B84A', colorIntensity: 0.6,
+    id: 5, category: 'category2', icon: Activity, color: '#E8B84A', colorIntensity: 0.6,
     name: 'Talent Acquisition', tagline: 'Automated job description generation',
     description: 'Generate compelling and SEO-optimized job descriptions in minutes. AI creates role-specific descriptions, requirements, and benefits tailored to your company culture.',
     features: ['Description Generation', 'SEO Optimization', 'Salary Recommendation', 'Culture Matching'],
@@ -142,7 +211,7 @@ const products = [
     ctaType: 'waitlist',
   },
   {
-    id: 6, category: 'category2', icon: Bot, color: '#E8B84A', colorIntensity: 0.8,
+    id: 6, category: 'category2', icon: Workflow, color: '#E8B84A', colorIntensity: 0.8,
     name: 'Full HR Agent', tagline: 'Comprehensive HR automation platform',
     description: 'The complete Consuelo solution combining CV screening, job creation, and candidate engagement. End-to-end recruitment and HR automation in one platform.',
     features: ['Resume Screening', 'Job Description', 'Candidate Engagement', 'Analytics Dashboard'],
@@ -150,7 +219,7 @@ const products = [
     ctaType: 'waitlist',
   },
   {
-    id: 7, category: 'category3', icon: Target, color: '#06B6D4', colorIntensity: 0.4,
+    id: 7, category: 'category3', icon: Network, color: '#06B6D4', colorIntensity: 0.4,
     name: 'Lead Generation and Classification', tagline: 'AI-powered lead identification and scoring',
     description: 'Discover and qualify hot leads automatically. AI scans the market, identifies prospects matching your ideal customer profile, and scores them for sales-readiness.',
     features: ['Lead Discovery', 'Qualification Scoring', 'Prospect Research', 'CRM Integration'],
@@ -158,7 +227,7 @@ const products = [
     ctaType: 'waitlist',
   },
   {
-    id: 8, category: 'category3', icon: MoveRight, color: '#06B6D4', colorIntensity: 0.6,
+    id: 8, category: 'category3', icon: Cpu, color: '#06B6D4', colorIntensity: 0.6,
     name: 'Meeting Agent', tagline: 'Autonomous meeting scheduling and management',
     description: 'Never chase meeting availability again. AI proactively schedules calls with prospects, sends reminders, and follows up—moving deals forward 24/7.',
     features: ['Meeting Scheduling', 'Calendar Integration', 'Intelligent Reminders', 'Follow-up Automation'],
@@ -166,7 +235,7 @@ const products = [
     ctaType: 'waitlist',
   },
   {
-    id: 9, category: 'category3', icon: TrendingUp, color: '#06B6D4', colorIntensity: 0.8,
+    id: 9, category: 'category3', icon: Workflow, color: '#06B6D4', colorIntensity: 0.8,
     name: 'Full Sales Agent', tagline: 'End-to-end sales automation',
     description: 'The complete Argeo solution combining lead generation, meeting management, and pipeline tracking. Your complete autonomous sales team working 24/7.',
     features: ['Lead Generation', 'Meeting Scheduling', 'Pipeline Management', 'Win Rate Analytics'],
@@ -182,8 +251,10 @@ export default function ProductsPage() {
   const [shouldScrollToDetails, setShouldScrollToDetails] = useState(false);
   const [navVisible, setNavVisible] = useState(true);
   const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
+  const [showPilotOverlay, setShowPilotOverlay] = useState(false);
   const productDetailsRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
@@ -275,9 +346,14 @@ export default function ProductsPage() {
         />
       </div>
 
-      {/* ─── Hero Section ─── */}
+      {/* Floating particle dots — absolute within this wrapper, stops before footer */}
+      <div className="relative">
+        <FloatingDots />
+
+      {/* ─── Hero Section with Floating Dots ─── */}
       <section className="relative z-10 min-h-screen flex items-center justify-center px-6 text-center pt-24">
-        <div className="max-w-4xl mx-auto">
+
+        <div className="max-w-4xl mx-auto relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -285,7 +361,7 @@ export default function ProductsPage() {
           >
             <h1 className="text-6xl font-light text-white leading-tight mb-6 relative">
 
-              {/* Golden blinking glow — covers all 3 lines */}
+              {/* Golden blinking glow */}
               <motion.span
                 aria-hidden="true"
                 className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
@@ -372,8 +448,8 @@ export default function ProductsPage() {
       </section>
 
       {/* ─── Orbital Interactive Display ─── */}
-      <section className="relative z-10 py-32 px-6" data-products-section>
-        <div className="max-w-7xl mx-auto">
+      <section className="relative z-10 py-24 px-6" data-products-section>
+        <div className="max-w-6xl mx-auto">
 
           {/* Category Pills */}
           <motion.div
@@ -421,7 +497,7 @@ export default function ProductsPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-12"
           >
             <h2 className="text-5xl font-light text-white mb-4">
               Explore our <span className="font-semibold" style={{ color: activeCategory.color }}>ecosystem</span>
@@ -431,98 +507,367 @@ export default function ProductsPage() {
             </p>
           </motion.div>
 
-          <AnimatePresence mode="wait">
+          {/* TWO-COLUMN LAYOUT: Pilot Left, Orbital Right */}
+          <div className="grid grid-cols-2 gap-12 items-center">
+
+            {/* LEFT SIDE - Pilot Program CTA */}
             <motion.div
-              key={selectedCategory}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              className="relative"
-              style={{ height: '700px' }}
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="p-8 rounded-2xl relative overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(20,10,30,0.8))',
+                border: '1px solid rgba(232,184,74,0.3)',
+                boxShadow: '0 10px 40px rgba(232,184,74,0.15)',
+              }}
             >
-              {/* Center Hub */}
-              <motion.div
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20"
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: 'spring', stiffness: 100, damping: 15 }}
-              >
-                <div
-                  className="w-32 h-32 rounded-full flex items-center justify-center"
-                  style={{
-                    background: `radial-gradient(circle, ${activeCategory.color}30, ${activeCategory.color}10)`,
-                    border: `2px solid ${activeCategory.color}60`,
-                    boxShadow: `0 0 60px ${activeCategory.color}40, inset 0 0 40px ${activeCategory.color}20`,
-                  }}
+              <div
+                className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-20"
+                style={{ background: 'radial-gradient(circle, #E8B84A, transparent)' }}
+              />
+
+              <div className="relative z-10">
+                <h3 className="text-3xl font-bold text-white mb-3">
+                  Join our Pilot Program!
+                </h3>
+                <p className="text-white/70 mb-6 leading-relaxed">
+                  Be among the first to experience our AI agents working together. Limited spots available for early adopters.
+                </p>
+                <motion.button
+                  onClick={() => setShowPilotOverlay(true)}
+                  className="px-8 py-3.5 rounded-lg font-semibold text-black flex items-center gap-2 group"
+                  style={{ background: 'linear-gradient(135deg, #E8B84A, #E8A87C)' }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  {getCategoryRobot(selectedCategory, 70)}
-                </div>
-                <motion.div
-                  className="absolute inset-0 rounded-full"
-                  style={{
-                    border: `1px solid ${activeCategory.color}30`,
-                  }}
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                />
-              </motion.div>
-
-              {/* Orbiting Products */}
-              {filteredProducts.map((product, index) => {
-                const angle = (index / filteredProducts.length) * Math.PI * 2;
-                const radius = 250;
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
-
-                return (
-                  <OrbitingProduct
-                    key={product.id}
-                    product={product}
-                    x={x}
-                    y={y}
-                    index={index}
-                    isHovered={hoveredProduct === product.id}
-                    onHover={() => setHoveredProduct(product.id)}
-                    onLeave={() => setHoveredProduct(null)}
-                    onClick={() => {
-                      setSelectedProduct(product);
-                      setShouldScrollToDetails(true);
-                    }}
-                  />
-                );
-              })}
-
-              {/* Connecting Lines */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ top: 0, left: 0 }}>
-                {filteredProducts.map((product, index) => {
-                  const angle = (index / filteredProducts.length) * Math.PI * 2;
-                  const radius = 250;
-                  const x = Math.cos(angle) * radius;
-                  const y = Math.sin(angle) * radius;
-
-                  return (
-                    <motion.line
-                      key={product.id}
-                      x1="50%"
-                      y1="50%"
-                      x2={`calc(50% + ${x}px)`}
-                      y2={`calc(50% + ${y}px)`}
-                      stroke={product.color}
-                      strokeWidth={hoveredProduct === product.id ? "2" : "1"}
-                      strokeOpacity={hoveredProduct === product.id ? "0.6" : "0.15"}
-                      strokeDasharray="4 4"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: 1 }}
-                      transition={{ duration: 1, delay: index * 0.1 }}
-                    />
-                  );
-                })}
-              </svg>
+                  See Details
+                  <MoveRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </motion.button>
+              </div>
             </motion.div>
-          </AnimatePresence>
+
+            {/* RIGHT SIDE - ORBITAL VISUALIZATION (SMALLER) */}
+            <div className="relative">
+              {/* ↓ Reduced from 600px to 420px */}
+              <div className="flex items-center justify-center" style={{ minHeight: '420px' }}>
+                <div className="relative" style={{ width: '420px', height: '420px' }}>
+                  
+                  {/* Empty Central Circle */}
+                  <motion.div
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 80, damping: 12 }}
+                  >
+                    <div className="relative w-24 h-24">
+                      <motion.div
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                          border: `2px solid ${activeCategory.color}40`,
+                          boxShadow: `0 0 30px ${activeCategory.color}30, inset 0 0 30px ${activeCategory.color}20`,
+                        }}
+                        animate={{
+                          scale: [1, 1.1, 1],
+                          opacity: [0.5, 1, 0.5],
+                        }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                      />
+                      <motion.div
+                        className="absolute inset-3 rounded-full"
+                        style={{
+                          background: `radial-gradient(circle, ${activeCategory.color}20, transparent)`,
+                          border: `1px solid ${activeCategory.color}60`,
+                        }}
+                        animate={{ scale: [1, 1.05, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    </div>
+                  </motion.div>
+
+                  {/* Orbital rings — scaled down */}
+                  {[0, 1].map((ringIndex) => {
+                    const radius = 108 + ringIndex * 36; // was 150+50
+                    return (
+                      <motion.div
+                        key={ringIndex}
+                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
+                        style={{
+                          width: radius * 2,
+                          height: radius * 2,
+                          border: `1px solid ${activeCategory.color}15`,
+                        }}
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{
+                          scale: 1,
+                          opacity: 1,
+                          rotate: ringIndex % 2 === 0 ? 360 : -360
+                        }}
+                        transition={{
+                          scale: { duration: 0.8, delay: ringIndex * 0.1 },
+                          opacity: { duration: 0.8, delay: ringIndex * 0.1 },
+                          rotate: { duration: 50 + ringIndex * 10, repeat: Infinity, ease: 'linear' }
+                        }}
+                      />
+                    );
+                  })}
+
+                  {/* Agent Nodes — scaled down radius */}
+                  {filteredProducts.map((product, index) => {
+                    const totalProducts = filteredProducts.length;
+                    const angleOffset = (index / totalProducts) * Math.PI * 2 - Math.PI / 2;
+                    const radius = 140; // was 200
+                    const x = Math.cos(angleOffset) * radius;
+                    const y = Math.sin(angleOffset) * radius;
+                    const isHovered = hoveredProduct === product.id;
+                    const isDimmed = hoveredProduct !== null && hoveredProduct !== product.id;
+
+                    return (
+                      <motion.div
+                        key={product.id}
+                        className="absolute left-1/2 top-1/2"
+                        style={{
+                          x: x - 52, // half of 104px node
+                          y: y - 52,
+                        }}
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: isDimmed ? 0.3 : 1, scale: 1 }}
+                        transition={{
+                          delay: index * 0.15,
+                          type: 'spring',
+                          stiffness: 100,
+                          opacity: { duration: 0.3 },
+                          scale: { duration: 0.3 },
+                        }}
+                        onMouseEnter={() => {
+                          if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                          setHoveredProduct(product.id);
+                        }}
+                        onMouseLeave={() => {
+                          hoverTimeoutRef.current = setTimeout(() => setHoveredProduct(null), 180);
+                        }}
+                        onClick={() => {
+                          setSelectedProduct(product);
+                          setShouldScrollToDetails(true);
+                        }}
+                      >
+                        <AgenticNode
+                          product={product}
+                          isActive={isHovered}
+                          index={index}
+                          size={104} // smaller nodes
+                        />
+                      </motion.div>
+                    );
+                  })}
+
+                  {/* Communication Lines — recalculated for 420px canvas center=210 */}
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                    <defs>
+                      <linearGradient id={`commGrad-${selectedCategory}`}>
+                        <stop offset="0%" stopColor={activeCategory.color} stopOpacity="0" />
+                        <stop offset="50%" stopColor={activeCategory.color} stopOpacity="0.8" />
+                        <stop offset="100%" stopColor={activeCategory.color} stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+
+                    {filteredProducts.map((product, index) => {
+                      const totalProducts = filteredProducts.length;
+                      const angleOffset = (index / totalProducts) * Math.PI * 2 - Math.PI / 2;
+                      const radius = 140;
+                      const cx = 210; // center of 420px canvas
+                      const x1 = Math.cos(angleOffset) * radius + cx;
+                      const y1 = Math.sin(angleOffset) * radius + cx;
+
+                      const nextIndex = (index + 1) % totalProducts;
+                      const nextAngle = (nextIndex / totalProducts) * Math.PI * 2 - Math.PI / 2;
+                      const x2 = Math.cos(nextAngle) * radius + cx;
+                      const y2 = Math.sin(nextAngle) * radius + cx;
+
+                      const isDimmed = hoveredProduct !== null &&
+                        hoveredProduct !== product.id &&
+                        hoveredProduct !== filteredProducts[nextIndex].id;
+
+                      return (
+                        <motion.g key={`line-${index}`}>
+                          <motion.line
+                            x1={x1} y1={y1} x2={x2} y2={y2}
+                            stroke={`${activeCategory.color}${isDimmed ? '10' : '20'}`}
+                            strokeWidth="1"
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: 1, opacity: isDimmed ? 0.3 : 1 }}
+                            transition={{ duration: 1, delay: index * 0.2 }}
+                          />
+                          <motion.circle
+                            r="3"
+                            fill={activeCategory.color}
+                            filter="blur(2px)"
+                            animate={{
+                              cx: [x1, x2, x1],
+                              cy: [y1, y2, y1],
+                              opacity: isDimmed ? [0, 0.3, 0.3, 0] : [0, 1, 1, 0],
+                            }}
+                            transition={{ duration: 3, delay: index * 0.5, repeat: Infinity, ease: 'linear' }}
+                          />
+                        </motion.g>
+                      );
+                    })}
+
+                    {filteredProducts.map((product, index) => {
+                      const totalProducts = filteredProducts.length;
+                      const angleOffset = (index / totalProducts) * Math.PI * 2 - Math.PI / 2;
+                      const radius = 140;
+                      const cx = 210;
+                      const x = Math.cos(angleOffset) * radius + cx;
+                      const y = Math.sin(angleOffset) * radius + cx;
+                      const isHighlighted = hoveredProduct === product.id;
+                      const isDimmed = hoveredProduct !== null && hoveredProduct !== product.id;
+
+                      return (
+                        <motion.line
+                          key={`center-${index}`}
+                          x1={cx} y1={cx} x2={x} y2={y}
+                          stroke={isHighlighted ? `${activeCategory.color}60` : `${activeCategory.color}${isDimmed ? '08' : '15'}`}
+                          strokeWidth={isHighlighted ? "2" : "1"}
+                          strokeDasharray="4,4"
+                          initial={{ pathLength: 0, opacity: 0 }}
+                          animate={{ pathLength: 1, opacity: isDimmed ? 0.3 : 1 }}
+                          transition={{ duration: 0.8, delay: index * 0.1 }}
+                        />
+                      );
+                    })}
+                  </svg>
+
+                  {/* Hover Info Box — centered in orbital area, fully interactive */}
+                  <AnimatePresence>
+                    {hoveredProduct !== null && (
+                      <motion.div
+                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 rounded-2xl overflow-hidden z-50"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(10, 5, 15, 0.98))',
+                          border: `1px solid ${products.find(p => p.id === hoveredProduct)?.color}60`,
+                          backdropFilter: 'blur(20px)',
+                          boxShadow: `0 20px 80px ${products.find(p => p.id === hoveredProduct)?.color}40`,
+                        }}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.2 }}
+                        onMouseEnter={() => {
+                          // Cancel any pending hide when mouse enters the card
+                          if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                        }}
+                        onMouseLeave={() => {
+                          // Hide when mouse leaves the card
+                          hoverTimeoutRef.current = setTimeout(() => setHoveredProduct(null), 100);
+                        }}
+                      >
+                        {(() => {
+                          const product = products.find(p => p.id === hoveredProduct);
+                          if (!product) return null;
+                          return (
+                            <>
+                              <div className="h-1" style={{ background: `linear-gradient(90deg, ${product.color}, transparent)` }} />
+                              <div className="p-5">
+                                <h4 className="text-white font-bold text-base mb-1">{product.name}</h4>
+                                <p className="text-white/60 text-xs mb-3">{product.tagline}</p>
+                                <div className="text-white font-bold text-xl mb-3">{product.price}</div>
+                                {/* Clickable CTA button */}
+                                <motion.button
+                                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer"
+                                  style={{ background: `${product.color}20`, border: `1px solid ${product.color}40` }}
+                                  whileHover={{
+                                    background: `${product.color}35`,
+                                    scale: 1.02,
+                                  }}
+                                  whileTap={{ scale: 0.97 }}
+                                  onClick={() => {
+                                    setSelectedProduct(product);
+                                    setShouldScrollToDetails(true);
+                                    setHoveredProduct(null);
+                                  }}
+                                >
+                                  <span className="text-white text-xs font-semibold">Click to learn more</span>
+                                  <MoveRight className="w-3.5 h-3.5" style={{ color: product.color }} />
+                                </motion.button>
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </section>
+
+      {/* ─── Pilot Project Overlay Modal ─── */}
+      <AnimatePresence>
+        {showPilotOverlay && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center px-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowPilotOverlay(false)}
+          >
+            <motion.div className="absolute inset-0 bg-black/70 backdrop-blur-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
+            <motion.div
+              className="relative max-w-3xl w-full rounded-2xl overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, rgba(10, 0, 20, 0.95), rgba(30, 10, 40, 0.95))',
+                border: '1px solid rgba(232,184,74,0.4)',
+                boxShadow: '0 20px 60px rgba(232,184,74,0.3)',
+              }}
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button onClick={() => setShowPilotOverlay(false)} className="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all z-10">
+                <X className="w-5 h-5" />
+              </button>
+              <div className="relative px-8 pt-8 pb-6">
+                <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-20" style={{ background: 'radial-gradient(circle, #E8B84A, transparent)' }} />
+                <h2 className="text-3xl font-bold text-white mb-2 relative z-10">Join Our Pilot Project</h2>
+                <p className="text-white/60 text-base relative z-10">Lock in your competitive advantage with exclusive early access</p>
+              </div>
+              <div className="px-8 pb-8">
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  {[
+                    { val: '2 Years', label: 'Early Access Head Start', desc: 'Get first-mover advantage while competitors are still figuring out where to start' },
+                    { val: '67% Off', label: 'Brand Presence Discount', desc: 'Marketing & digital presence bundled at a fraction of standard rates' },
+                    { val: '€4,200', label: 'Complete Package', desc: 'Enterprise-grade AI infrastructure at SME pricing—10x less than competitors' },
+                  ].map((item) => (
+                    <div key={item.val} className="p-5 rounded-xl" style={{ background: 'rgba(232,184,74,0.08)', border: '1px solid rgba(232,184,74,0.2)' }}>
+                      <div className="text-2xl font-bold mb-1" style={{ color: '#E8B84A' }}>{item.val}</div>
+                      <div className="text-sm font-semibold text-white mb-2">{item.label}</div>
+                      <p className="text-xs text-white/60 leading-relaxed">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-4 rounded-xl mb-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <div className="grid grid-cols-4 gap-4 text-sm">
+                    {[['Duration','6 months'],['Start Date','March 2026'],['Spots Left','20 companies'],['Commitment','Active feedback']].map(([label,val]) => (
+                      <div key={label}><div className="text-white/50 text-xs mb-1">{label}</div><div className="text-white font-semibold">{val}</div></div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <motion.button className="flex-1 px-6 py-3.5 rounded-lg font-semibold text-black text-sm" style={{ background: 'linear-gradient(135deg, #E8B84A, #E8A87C)' }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>Apply for Pilot Access</motion.button>
+                  <motion.button onClick={() => setShowPilotOverlay(false)} className="px-6 py-3.5 rounded-lg font-semibold text-white text-sm border border-white/20 hover:bg-white/5" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>Maybe Later</motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ─── Product Detail Section ─── */}
       <AnimatePresence mode="wait">
@@ -543,122 +888,109 @@ export default function ProductsPage() {
         )}
       </AnimatePresence>
 
-      {/* ─── CTA Section - Book Demo or Waitlist ─── */}
       {selectedProduct && (
         <div className="relative z-10 w-full">
-          {selectedProduct.ctaType === 'demo' ? (
-            <BookADemo />
-          ) : (
-            <WaitlistSection />
-          )}
+          {selectedProduct.ctaType === 'demo' ? <BookADemo /> : <WaitlistSection />}
         </div>
       )}
 
-      <Footer />
+      </div>{/* end dots wrapper */}
 
+      <Footer />
       <Chatbot />
     </div>
   );
 }
 
-
-
-// ─── Orbiting Product Component ───
-function OrbitingProduct({
-  product, x, y, index, isHovered, onHover, onLeave, onClick
-}: {
+// ─── Agentic Node Component — accepts optional size prop ───
+function AgenticNode({ product, isActive, index, size = 144 }: {
   product: typeof products[0];
-  x: number;
-  y: number;
+  isActive: boolean;
   index: number;
-  isHovered: boolean;
-  onHover: () => void;
-  onLeave: () => void;
-  onClick: () => void;
+  size?: number;
 }) {
-  const IconComponent = product.icon;
+  const AgenticIcon = product.icon;
+  const iconSize = Math.round(size * 0.33);
+  const fontSize = size < 120 ? 'text-[9px]' : 'text-xs';
 
   return (
     <motion.div
-      className="absolute left-1/2 top-1/2 cursor-pointer"
-      style={{
-        x: x - 60,
-        y: y - 60,
-      }}
-      initial={{ scale: 0, opacity: 0 }}
-      animate={{
-        scale: isHovered ? 1.15 : 1,
-        opacity: 1,
-      }}
-      transition={{
-        type: 'spring',
-        stiffness: 300,
-        damping: 20,
-        delay: index * 0.1,
-      }}
-      onMouseEnter={onHover}
-      onMouseLeave={onLeave}
-      onClick={onClick}
+      className="cursor-pointer"
+      style={{ width: size, height: size }}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
     >
-      <motion.div
-        className="w-32 h-32 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden"
+      <div
+        className="w-full h-full rounded-2xl p-3 relative overflow-hidden transition-all duration-300"
         style={{
-          background: isHovered
-            ? `linear-gradient(135deg, ${product.color}30, ${product.color}15)`
-            : `rgba(255,255,255,0.04)`,
-          border: `1px solid ${isHovered ? product.color : 'rgba(255,255,255,0.1)'}`,
-          boxShadow: isHovered ? `0 0 40px ${product.color}40` : '0 4px 20px rgba(0,0,0,0.3)',
+          background: isActive
+            ? `linear-gradient(135deg, ${product.color}25, ${product.color}10)`
+            : 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))',
+          border: `2px solid ${isActive ? product.color + '80' : product.color + '30'}`,
+          boxShadow: isActive
+            ? `0 8px 32px ${product.color}50, inset 0 0 24px ${product.color}20`
+            : `0 4px 16px ${product.color}20`,
+          backdropFilter: 'blur(10px)',
         }}
-        whileHover={{ rotate: [0, -5, 5, 0] }}
-        transition={{ duration: 0.4 }}
       >
-        <IconComponent
-          className="w-10 h-10 mb-2"
-          style={{ color: product.color }}
-        />
-        <span className="text-white text-xs font-semibold text-center px-2">
-          {product.name.split(' ')[0]}
-        </span>
-
-        {/* Pulse effect on hover */}
-        {isHovered && (
+        {isActive && (
           <motion.div
-            className="absolute inset-0 rounded-2xl"
-            style={{ border: `2px solid ${product.color}` }}
-            initial={{ scale: 1, opacity: 0.6 }}
-            animate={{ scale: 1.3, opacity: 0 }}
-            transition={{ duration: 1, repeat: Infinity }}
+            className="absolute inset-0"
+            style={{ background: `radial-gradient(circle at 50% 50%, ${product.color}20, transparent)` }}
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
           />
         )}
-      </motion.div>
 
-      {/* Hover info card */}
-      <AnimatePresence>
-        {isHovered && (
-          <motion.div
-            className="absolute left-full ml-4 top-1/2 -translate-y-1/2 w-64 p-4 rounded-xl"
-            style={{
-              background: 'rgba(10, 0, 20, 0.95)',
-              border: `1px solid ${product.color}40`,
-              backdropFilter: 'blur(20px)',
-              boxShadow: `0 10px 40px ${product.color}20`,
-            }}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            <h4 className="text-white font-semibold text-sm mb-1">{product.name}</h4>
-            <p className="text-white/50 text-xs mb-3">{product.tagline}</p>
-            <div className="flex items-center justify-between">
-              <span className="text-white font-bold text-lg">{product.price}</span>
-              <span className="text-xs" style={{ color: product.color }}>
-                Click to learn more →
-              </span>
-            </div>
-          </motion.div>
+        {/* Corner brackets */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100">
+          {[
+            "M5,5 L20,5 M5,5 L5,20", "M95,5 L80,5 M95,5 L95,20",
+            "M5,95 L20,95 M5,95 L5,80", "M95,95 L80,95 M95,95 L95,80"
+          ].map((d, i) => (
+            <motion.path key={i} d={d} stroke={product.color} strokeWidth="1.5"
+              strokeOpacity={isActive ? "1" : "0.5"} strokeLinecap="square"
+              initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
+              transition={{ delay: index * 0.1 + i * 0.1, duration: 0.5 }} />
+          ))}
+        </svg>
+
+        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center">
+          <div className="relative mb-2">
+            <motion.div className="absolute inset-0 blur-xl"
+              style={{ background: product.color, opacity: isActive ? 0.6 : 0.3 }}
+              animate={isActive ? { scale: [1, 1.2, 1] } : {}}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+            <AgenticIcon style={{ width: iconSize, height: iconSize, color: product.color, filter: `drop-shadow(0 0 6px ${product.color})` }} className="relative z-10" />
+          </div>
+
+          <div className={`text-white ${fontSize} font-bold leading-tight px-1`}>
+            {product.name.split(' ').slice(0, 2).join(' ')}
+          </div>
+
+          <div className="flex gap-1 mt-1.5">
+            {[0, 1, 2].map((i) => (
+              <motion.div key={i} className="w-1 h-1 rounded-full"
+                style={{ backgroundColor: product.color }}
+                animate={{ opacity: [0.3, 1, 0.3], scale: [1, 1.5, 1] }}
+                transition={{ duration: 1.5, delay: i * 0.2, repeat: Infinity }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {isActive && (
+          <>
+            <motion.div className="absolute inset-0 rounded-2xl" style={{ border: `2px solid ${product.color}` }}
+              initial={{ scale: 1, opacity: 0.8 }} animate={{ scale: 1.4, opacity: 0 }}
+              transition={{ duration: 1.2, repeat: Infinity }} />
+            <motion.div className="absolute inset-0 rounded-2xl" style={{ border: `2px solid ${product.color}` }}
+              initial={{ scale: 1, opacity: 0.6 }} animate={{ scale: 1.4, opacity: 0 }}
+              transition={{ duration: 1.2, repeat: Infinity, delay: 0.4 }} />
+          </>
         )}
-      </AnimatePresence>
+      </div>
     </motion.div>
   );
 }
@@ -671,31 +1003,13 @@ const ProductDetailsSection = forwardRef<
   const otherProducts = products.filter(p => p.id !== product.id).slice(0, 2);
 
   return (
-    <motion.div
-      ref={ref}
-      className="relative z-10 py-24 px-6 w-full"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      {/* Subtle divider */}
+    <motion.div ref={ref} className="relative z-10 py-24 px-6 w-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <div className="max-w-7xl mx-auto mb-24" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }} />
-
       <div className="max-w-7xl mx-auto">
-
-        {/* Overview */}
-        <motion.div
-          className="mb-28"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: false, amount: 0.2 }}
-          transition={{ duration: 0.6 }}
-        >
+        <motion.div className="mb-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
           <div className="grid grid-cols-3 gap-14 items-center">
             <div className="col-span-1">
-              <h2 className="text-4xl font-light text-white mb-6 text-center">
-                {product.name}
-              </h2>
+              <h2 className="text-4xl font-light text-white mb-6 text-center">{product.name}</h2>
               <p className="text-base text-white/55 leading-relaxed mb-6">{product.description}</p>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: product.color }} />
@@ -703,13 +1017,7 @@ const ProductDetailsSection = forwardRef<
               </div>
             </div>
             <div className="col-span-2">
-              <div
-                className="w-full h-[380px] rounded-2xl flex items-center justify-center"
-                style={{
-                  background: `linear-gradient(135deg, ${product.color}14, ${product.color}06)`,
-                  border: `1px solid ${product.color}20`,
-                }}
-              >
+              <div className="w-full h-[380px] rounded-2xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${product.color}14, ${product.color}06)`, border: `1px solid ${product.color}20` }}>
                 <div className="text-center opacity-40">
                   {getCategoryRobot(product.category, 120)}
                   <p className="text-white text-sm mt-4">Illustration coming soon</p>
@@ -719,54 +1027,24 @@ const ProductDetailsSection = forwardRef<
           </div>
         </motion.div>
 
-        {/* Features breakdown */}
-        <motion.div
-          className="mb-28"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: false, amount: 0.2 }}
-          transition={{ duration: 0.6 }}
-        >
+        <motion.div className="mb-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
           <div className="grid grid-cols-3 gap-14 items-start">
             <div className="col-span-1">
-              <h3 className="text-4xl font-light text-white mb-4">
-                How does
-                <div className="text-4xl font-semibold mt-1" style={{ color: product.color }}>
-                  {getBrandName(product.category)} work?
-                </div>
-              </h3>
-              <p className="text-base text-white/50 leading-relaxed">
-                A breakdown of the core capabilities — each function is designed to save time, reduce manual effort, and deliver measurable results.
-              </p>
+              <h3 className="text-4xl font-light text-white mb-4">How does<div className="text-4xl font-semibold mt-1" style={{ color: product.color }}>{getBrandName(product.category)} work?</div></h3>
+              <p className="text-base text-white/50 leading-relaxed">A breakdown of the core capabilities — each function is designed to save time, reduce manual effort, and deliver measurable results.</p>
             </div>
             <div className="col-span-2">
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
                 {product.features.map((feat, idx) => {
                   const FeatureIcon = featureIcons[idx % featureIcons.length];
                   return (
-                    <motion.div
-                      key={idx}
-                      className="py-6 flex gap-6 items-start"
-                      style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
-                      initial={{ opacity: 0, x: 20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: false, amount: 0.2 }}
-                      transition={{ delay: idx * 0.07 }}
-                    >
-                      <div
-                        className="w-11 h-11 rounded-xl flex-shrink-0 flex items-center justify-center"
-                        style={{
-                          background: `${product.color}18`,
-                          border: `1px solid ${product.color}30`,
-                        }}
-                      >
+                    <motion.div key={idx} className="py-6 flex gap-6 items-start" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ delay: idx * 0.07 }}>
+                      <div className="w-11 h-11 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ background: `${product.color}18`, border: `1px solid ${product.color}30` }}>
                         <FeatureIcon className="w-5 h-5" style={{ color: product.color }} />
                       </div>
                       <div>
                         <h4 className="text-lg font-semibold text-white mb-1">{feat}</h4>
-                        <p className="text-white/45 text-sm leading-relaxed">
-                          {`Provides ${feat.toLowerCase()} to streamline processes, increase accuracy, and save time.`}
-                        </p>
+                        <p className="text-white/45 text-sm leading-relaxed">{`Provides ${feat.toLowerCase()} to streamline processes, increase accuracy, and save time.`}</p>
                       </div>
                     </motion.div>
                   );
@@ -776,29 +1054,11 @@ const ProductDetailsSection = forwardRef<
           </div>
         </motion.div>
 
-        {/* Demo/Video */}
-        <motion.div
-          className="mb-28"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: false, amount: 0.2 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h3 className="text-4xl font-light text-white text-center mb-10">
-            See <span style={{ color: product.color }}>{product.name}</span> in action
-          </h3>
-          <div
-            className="w-full h-[460px] rounded-2xl flex items-center justify-center"
-            style={{
-              background: `linear-gradient(135deg, ${product.color}10, ${product.color}04)`,
-              border: `1px solid ${product.color}18`,
-            }}
-          >
+        <motion.div className="mb-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
+          <h3 className="text-4xl font-light text-white text-center mb-10">See <span style={{ color: product.color }}>{product.name}</span> in action</h3>
+          <div className="w-full h-[460px] rounded-2xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${product.color}10, ${product.color}04)`, border: `1px solid ${product.color}18` }}>
             <div className="text-center opacity-40">
-              <div
-                className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
-                style={{ background: `${product.color}25`, border: `2px solid ${product.color}50` }}
-              >
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: `${product.color}25`, border: `2px solid ${product.color}50` }}>
                 <span className="text-4xl">▶</span>
               </div>
               <p className="text-white text-sm">Demo video coming soon</p>
@@ -806,43 +1066,19 @@ const ProductDetailsSection = forwardRef<
           </div>
         </motion.div>
 
-        {/* Other products upsell */}
-        <motion.div
-          className="mb-16"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: false, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
-        >
+        <motion.div className="mb-16" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.3 }} transition={{ duration: 0.6 }}>
           <div className="grid grid-cols-3 gap-14 items-center">
             <div className="col-span-1">
               <p className="text-white/40 text-base mb-3">Not what you're looking for?</p>
-              <h3 className="text-3xl font-light text-white">
-                Check our other{' '}
-                <span style={{ color: product.color }}>solutions</span>
-              </h3>
+              <h3 className="text-3xl font-light text-white">Check our other <span style={{ color: product.color }}>solutions</span></h3>
             </div>
             <div className="col-span-2 flex gap-5">
               {otherProducts.map((prod) => (
-                <motion.button
-                  key={prod.id}
-                  onClick={() => onSelectProduct(prod)}
-                  whileHover={{ scale: 1.02, y: -3 }}
-                  whileTap={{ scale: 0.98 }}
+                <motion.button key={prod.id} onClick={() => onSelectProduct(prod)} whileHover={{ scale: 1.02, y: -3 }} whileTap={{ scale: 0.98 }}
                   className="flex-1 px-6 py-5 rounded-xl text-left group"
-                  style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    transition: 'border-color 0.2s, background 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.borderColor = prod.color + '60';
-                    (e.currentTarget as HTMLElement).style.background = `${prod.color}0D`;
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)';
-                    (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)';
-                  }}
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', transition: 'border-color 0.2s, background 0.2s' }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = prod.color + '60'; (e.currentTarget as HTMLElement).style.background = `${prod.color}0D`; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; }}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     {prod.icon && <prod.icon className="w-4 h-4" style={{ color: prod.color }} />}
@@ -854,7 +1090,6 @@ const ProductDetailsSection = forwardRef<
             </div>
           </div>
         </motion.div>
-
       </div>
     </motion.div>
   );
