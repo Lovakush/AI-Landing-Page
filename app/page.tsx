@@ -342,7 +342,7 @@ export default function OpseraLanding() {
             <div
               className="w-full"
               style={{
-                transform: 'translateX(20%) scale(0.75)',
+                transform: 'translateX(30%) scale(1.1)',
                 transformOrigin: 'center center',
               }}
             >
