@@ -620,6 +620,34 @@ export default function AboutPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Body background to prevent white flash + smooth scroll snap via CSS
+  useEffect(() => {
+    document.body.style.background = '#0c0118';
+
+    const style = document.createElement('style');
+    style.textContent = `
+      html {
+        scroll-snap-type: y proximity;
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        html {
+          scroll-padding-top: 0px;
+        }
+      }
+      section[data-snap] {
+        scroll-snap-align: start;
+        scroll-snap-stop: normal;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.body.style.background = '';
+      style.remove();
+    };
+  }, []);
+
   const showPanel = (panel: 'why' | 'how' | 'what') => {
     setActivePanel(panel);
   };
@@ -639,7 +667,7 @@ export default function AboutPage() {
   return (
     <div ref={containerRef} className="min-h-screen" style={{ background: 'linear-gradient(160deg, #12041a 0%, #1e0835 30%, #2a0d4a 55%, #160228 80%, #0c0118 100%)' }}>
       <header
-        className="fixed top-0 left-0 right-0 z-50 px-8 h-20"
+        className="fixed top-0 left-0 right-0 z-50 px-4 md:px-8 h-16 md:h-20"
         style={{
           background: 'rgba(13, 0, 21, 0.85)',
           backdropFilter: 'blur(16px)',
@@ -654,14 +682,14 @@ export default function AboutPage() {
             <img src="/sia-logo.png" alt="SIA" className="h-full py-3 w-auto brightness-0 invert" />
           </a>
 
-          <nav className="flex items-center gap-8">
-            <a href="/" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">
+          <nav className="flex items-center gap-4 md:gap-8">
+            <a href="/" className="hidden sm:block text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">
               Home
             </a>
-            <a href="/products" className="text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">
+            <a href="/products" className="hidden sm:block text-white/60 hover:text-white transition-colors text-sm font-medium tracking-wide">
               Products
             </a>
-            <a href="/about" className="text-white hover:text-white transition-colors text-sm font-medium tracking-wide">
+            <a href="/about" className="hidden sm:block text-white hover:text-white transition-colors text-sm font-medium tracking-wide">
               About Us
             </a>
             <motion.button
@@ -670,7 +698,7 @@ export default function AboutPage() {
               onClick={() => {
                 document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="text-[#2D1B4E] text-sm font-semibold px-4 py-2 rounded-lg bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] hover:shadow-[0_0_20px_rgba(232,184,74,0.3)] transition-all ml-4"
+              className="text-[#2D1B4E] text-sm font-semibold px-4 py-2 rounded-lg bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] hover:shadow-[0_0_20px_rgba(232,184,74,0.3)] transition-all"
             >
               Get Started
             </motion.button>
@@ -678,16 +706,16 @@ export default function AboutPage() {
         </div>
       </header>
 
-      <section className="pt-32 pb-20 px-16">
+      <section className="pt-24 md:pt-32 pb-12 md:pb-20 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" data-snap>
         <motion.div
-          className="max-w-7xl mx-auto"
+          className="max-w-7xl mx-auto w-full"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <div className="grid grid-cols-2 gap-16 items-center min-h-[500px]">
-            <div className="relative min-h-72">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center min-h-[400px] lg:min-h-[500px]">
+            <div className="relative min-h-52 lg:min-h-72 text-center lg:text-left">
               <AnimatePresence mode="wait">
                 {!activePanel && (
                   <motion.div
@@ -791,7 +819,7 @@ export default function AboutPage() {
 
             <div className="relative flex justify-center">
               <div
-                className="relative w-[450px] h-64 pt-12 overflow-hidden"
+                className="relative w-[450px] h-64 pt-12 overflow-hidden scale-[0.65] sm:scale-[0.8] lg:scale-100 origin-center"
                 style={{
                   maskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
@@ -915,23 +943,24 @@ export default function AboutPage() {
         </motion.div>
       </section>
 
-      <section className="py-32 px-16 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid grid-cols-2 gap-16 items-start">
+      <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 relative overflow-hidden min-h-screen flex items-center" data-snap>
+        <div className="max-w-7xl mx-auto relative z-10 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
             <motion.div
+              className="text-center lg:text-left order-2 lg:order-1"
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             >
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-8 leading-tight tracking-tight">
+              <h2 className="text-3xl md:text-5xl lg:text-6xl font-light text-white mb-8 leading-tight tracking-tight">
                 The giants are <em className="italic text-[#E8B84A]">pulling ahead.</em>
               </h2>
               <AnimatePresence mode="wait">
                 {showSubtitle ? (
                   <motion.div
                     key="subtitle"
-                    className="text-xl text-white font-medium pl-6 border-l-4 border-[#E8B84A] max-w-2xl"
+                    className="text-lg md:text-xl text-white font-medium pl-6 border-l-4 border-[#E8B84A] max-w-2xl mx-auto lg:mx-0 text-left"
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -30 }}
@@ -942,7 +971,7 @@ export default function AboutPage() {
                 ) : currentPiece >= 4 ? (
                   <motion.p
                     key="text-4"
-                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl"
+                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0"
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -30 }}
@@ -953,7 +982,7 @@ export default function AboutPage() {
                 ) : currentPiece >= 3 ? (
                   <motion.p
                     key="text-3"
-                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl"
+                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0"
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -30 }}
@@ -964,7 +993,7 @@ export default function AboutPage() {
                 ) : currentPiece >= 2 ? (
                   <motion.p
                     key="text-2"
-                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl"
+                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0"
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -30 }}
@@ -975,7 +1004,7 @@ export default function AboutPage() {
                 ) : currentPiece >= 1 ? (
                   <motion.p
                     key="text-1"
-                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl"
+                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0"
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -30 }}
@@ -987,7 +1016,7 @@ export default function AboutPage() {
               </AnimatePresence>
             </motion.div>
 
-            <div className="relative min-h-[500px] flex items-center justify-center">
+            <div className="relative min-h-[350px] lg:min-h-[500px] flex items-center justify-center order-1 lg:order-2 scale-[0.75] sm:scale-[0.85] lg:scale-100 origin-center">
               <TetrisAnimation
                 onSubtitleTrigger={() => setShowSubtitle(true)}
                 onPieceChange={(index) => setCurrentPiece(index)}
@@ -997,16 +1026,16 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="py-32 px-16">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" data-snap>
+        <div className="max-w-6xl mx-auto w-full">
           <motion.div
-            className="text-center mb-20"
+            className="text-center mb-12 md:mb-20"
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-6 leading-tight tracking-tight">
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-light text-white mb-6 leading-tight tracking-tight">
               We exist to <em className="italic text-[#E8B84A]">level the field.</em>
             </h2>
             <p className="text-base md:text-lg text-white/70 max-w-2xl mx-auto font-light leading-relaxed">
@@ -1014,7 +1043,7 @@ export default function AboutPage() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {[
               {
                 icon: '⚡',
@@ -1040,7 +1069,7 @@ export default function AboutPage() {
             ].map((card, idx) => (
               <motion.div
                 key={idx}
-                className="p-11 rounded-3xl border border-white/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                className="p-8 md:p-11 rounded-3xl border border-white/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
                 style={{
                   background: 'rgba(255, 255, 255, 0.05)',
                   backdropFilter: 'blur(10px)',
@@ -1065,17 +1094,17 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="py-32 px-16">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" data-snap>
+        <div className="max-w-7xl mx-auto w-full">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-10 md:mb-16"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: false, amount: 0.8, margin: "-50px" }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
             <motion.h2
-              className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-6 leading-tight tracking-tight"
+              className="text-3xl md:text-5xl lg:text-6xl font-light text-white mb-6 leading-tight tracking-tight"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: false, amount: 0.8 }}
@@ -1094,10 +1123,10 @@ export default function AboutPage() {
             </motion.p>
           </motion.div>
 
-          <div className="grid grid-cols-2 gap-16 items-center min-h-[500px]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center min-h-[400px] lg:min-h-[500px]">
             <div className="relative flex justify-center">
               <div
-                className="relative w-[450px] h-64 pt-12 overflow-hidden"
+                className="relative w-[450px] h-64 pt-12 overflow-hidden scale-[0.65] sm:scale-[0.8] lg:scale-100 origin-center"
                 style={{
                   maskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
@@ -1227,7 +1256,7 @@ export default function AboutPage() {
               </div>
             </div>
 
-            <div className="relative min-h-72">
+            <div className="relative min-h-52 lg:min-h-72 text-center lg:text-left">
               <AnimatePresence mode="wait">
                 {!activeWorkPanel && (
                   <motion.div
@@ -1332,9 +1361,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="py-32 px-16 relative overflow-hidden">
-        <div className="max-w-4xl mx-auto relative z-10">
-          <div className="grid grid-cols-2 gap-12">
+      <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 relative overflow-hidden min-h-screen flex items-center" data-snap>
+        <div className="max-w-4xl mx-auto relative z-10 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
             {[
               {
                 label: 'Vision',
@@ -1347,7 +1376,7 @@ export default function AboutPage() {
             ].map((item, idx) => (
               <motion.div
                 key={idx}
-                className="p-12 rounded-3xl border border-white/8 bg-white/3 backdrop-blur-xl hover:bg-white/5 transition-all duration-300"
+                className="p-8 md:p-12 rounded-3xl border border-white/8 bg-white/3 backdrop-blur-xl hover:bg-white/5 transition-all duration-300"
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true, margin: "-100px" }}
@@ -1361,15 +1390,15 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section id="cta" className="relative z-10 py-28 px-6">
-        <div className="max-w-4xl mx-auto text-center">
+      <section id="cta" className="relative z-10 py-16 md:py-28 px-6 min-h-screen flex items-center" data-snap>
+        <div className="max-w-4xl mx-auto text-center w-full">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h3 className="text-5xl font-light text-white mb-5">
+            <h3 className="text-3xl md:text-5xl font-light text-white mb-5">
               Ready to <em className="not-italic font-semibold" style={{ color: '#E8B84A' }}>level the playing field?</em>
             </h3>
             <p className="text-lg text-white/45 mb-10">
@@ -1406,11 +1435,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <footer className="py-10 px-16 border-t border-white/10 flex justify-between items-center text-sm text-white/60">
+      <footer className="py-8 md:py-10 px-6 md:px-10 lg:px-16 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-white/60">
         <div className="flex items-center">
           <img src="/sia-logo.png" alt="SIA" className="h-10 w-auto brightness-0 invert" />
         </div>
-        <div className="flex gap-8">
+        <div className="flex gap-6 md:gap-8">
           <a href="#" className="hover:text-white transition-colors">
             Privacy
           </a>
@@ -1422,7 +1451,7 @@ export default function AboutPage() {
           </a>
         </div>
 
-        <div className="mt-20 text-center text-white/10 text-xs tracking-widest">
+        <div className="text-center text-white/10 text-xs tracking-widest">
           © {new Date().getFullYear()} SIA INC. ALL RIGHTS RESERVED.
         </div>
       </footer>
