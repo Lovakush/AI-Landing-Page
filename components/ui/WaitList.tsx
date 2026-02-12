@@ -3,40 +3,198 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-/* ─── MINIMAL AI CORE ANIMATION ─── */
+/* ─── CREATIVE AI ENGINE ANIMATION ─── */
 function MarketingNetwork() {
   return (
-    <div className="relative w-[340px] h-[340px] flex items-center justify-center">
-      <div className="absolute w-72 h-72 rounded-full bg-[#E8B84A]/20 blur-3xl animate-pulse" />
-
+    <div className="relative w-[400px] h-[400px] flex items-center justify-center">
+      {/* Outer pulsing glow */}
       <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ repeat: Infinity, duration: 40, ease: "linear" }}
-        className="absolute w-64 h-64 rounded-full border border-[#E8B84A]/20"
+        animate={{ 
+          scale: [1, 1.2, 1],
+          opacity: [0.3, 0.5, 0.3]
+        }}
+        transition={{ 
+          repeat: Infinity, 
+          duration: 4,
+          ease: "easeInOut"
+        }}
+        className="absolute w-80 h-80 rounded-full bg-gradient-to-r from-[#E8B84A]/30 via-purple-500/30 to-[#E8B84A]/30 blur-3xl"
       />
 
-      {[0, 60, 120, 180, 240, 300].map((angle, i) => (
+      {/* Rotating orbit rings */}
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+        className="absolute w-72 h-72"
+      >
+        <div className="absolute inset-0 rounded-full border-2 border-dashed border-[#E8B84A]/30" />
+      </motion.div>
+
+      <motion.div
+        animate={{ rotate: -360 }}
+        transition={{ repeat: Infinity, duration: 30, ease: "linear" }}
+        className="absolute w-80 h-80"
+      >
+        <div className="absolute inset-0 rounded-full border border-purple-400/20" />
+      </motion.div>
+
+      {/* Floating particles/nodes */}
+      {[...Array(8)].map((_, i) => {
+        const angle = (i * 360) / 8;
+        const radius = 140;
+        return (
+          <motion.div
+            key={i}
+            animate={{
+              rotate: 360,
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              rotate: { repeat: Infinity, duration: 25, ease: "linear" },
+              scale: { repeat: Infinity, duration: 2, delay: i * 0.2 }
+            }}
+            className="absolute"
+            style={{
+              left: "50%",
+              top: "50%",
+            }}
+          >
+            <motion.div
+              className="absolute w-3 h-3 rounded-full bg-gradient-to-br from-[#E8B84A] to-purple-400 shadow-lg shadow-[#E8B84A]/50"
+              style={{
+                transform: `translate(-50%, -50%) rotate(${angle}deg) translateY(-${radius}px)`,
+              }}
+            />
+          </motion.div>
+        );
+      })}
+
+      {/* Energy beams radiating */}
+      {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
         <motion.div
-          key={i}
+          key={`beam-${i}`}
           style={{ rotate: angle }}
-          animate={{ opacity: [0.2, 0.6, 0.2] }}
-          transition={{ repeat: Infinity, duration: 3, delay: i * 0.3 }}
-          className="absolute w-[2px] h-24 bg-gradient-to-b from-[#E8B84A]/60 to-transparent origin-bottom"
+          animate={{ 
+            opacity: [0.1, 0.6, 0.1],
+            scaleY: [1, 1.1, 1]
+          }}
+          transition={{ 
+            repeat: Infinity, 
+            duration: 3, 
+            delay: i * 0.2,
+            ease: "easeInOut"
+          }}
+          className="absolute w-[3px] h-32 bg-gradient-to-t from-[#E8B84A]/60 via-[#E8B84A]/30 to-transparent origin-bottom"
         />
       ))}
 
+      {/* Data flow particles */}
+      {[...Array(12)].map((_, i) => (
+        <motion.div
+          key={`particle-${i}`}
+          animate={{
+            rotate: [0, 360],
+            scale: [0, 1, 0],
+            opacity: [0, 1, 0]
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: 4,
+            delay: i * 0.3,
+            ease: "easeOut"
+          }}
+          className="absolute"
+          style={{
+            left: "50%",
+            top: "50%",
+          }}
+        >
+          <div 
+            className="w-1 h-1 rounded-full bg-[#E8B84A]"
+            style={{
+              transform: `translate(-50%, -50%) rotate(${i * 30}deg) translateY(-100px)`,
+            }}
+          />
+        </motion.div>
+      ))}
+
+      {/* Central core with enhanced styling */}
       <motion.div
-        animate={{ scale: [1, 1.08, 1] }}
-        transition={{ repeat: Infinity, duration: 3 }}
-        className="relative z-10 w-32 h-32 rounded-full flex items-center justify-center text-center
-                   backdrop-blur-xl border border-[#E8B84A]/40
-                   bg-gradient-to-br from-[#E8B84A]/20 to-purple-600/20
-                   shadow-[0_0_60px_rgba(232,184,74,0.5)]"
+        animate={{ 
+          scale: [1, 1.05, 1],
+          boxShadow: [
+            "0 0 40px rgba(232,184,74,0.4)",
+            "0 0 60px rgba(232,184,74,0.6)",
+            "0 0 40px rgba(232,184,74,0.4)"
+          ]
+        }}
+        transition={{ 
+          repeat: Infinity, 
+          duration: 3,
+          ease: "easeInOut"
+        }}
+        className="relative z-10 w-36 h-36 rounded-full flex items-center justify-center text-center
+                   backdrop-blur-xl border-2 border-[#E8B84A]/60
+                   bg-gradient-to-br from-[#E8B84A]/30 via-purple-600/20 to-[#E8B84A]/30"
       >
-        <span className="text-lg font-semibold text-white leading-tight">
-          AI<br />Engine
-        </span>
+        {/* Inner glow ring */}
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+          className="absolute inset-2 rounded-full border border-[#E8B84A]/40"
+        />
+        
+        {/* Text */}
+        <div className="relative z-10">
+          <motion.div
+            animate={{ opacity: [0.7, 1, 0.7] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+          >
+            <span className="text-xl font-bold text-white leading-tight block">
+              AI
+            </span>
+            <span className="text-lg font-semibold text-white/90 leading-tight block">
+              Engine
+            </span>
+          </motion.div>
+        </div>
+
+        {/* Hexagon overlay */}
+        <motion.div
+          animate={{ rotate: -360 }}
+          transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
+          className="absolute inset-0 opacity-20"
+        >
+          <svg viewBox="0 0 100 100" className="w-full h-full">
+            <polygon 
+              points="50,5 90,27.5 90,72.5 50,95 10,72.5 10,27.5" 
+              fill="none" 
+              stroke="#E8B84A" 
+              strokeWidth="1"
+            />
+          </svg>
+        </motion.div>
       </motion.div>
+
+      {/* Corner accent elements */}
+      {[0, 90, 180, 270].map((rotation, i) => (
+        <motion.div
+          key={`corner-${i}`}
+          animate={{ 
+            opacity: [0.3, 0.6, 0.3],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ 
+            repeat: Infinity, 
+            duration: 2,
+            delay: i * 0.5 
+          }}
+          className="absolute w-full h-full"
+          style={{ rotate: rotation }}
+        >
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-12 border-t-2 border-l-2 border-[#E8B84A]/40 rounded-tl-3xl" />
+        </motion.div>
+      ))}
     </div>
   );
 }
@@ -73,15 +231,15 @@ export default function WaitlistSection() {
   };
 
   return (
-    <section
-      className="relative w-full overflow-hidden py-28 px-6"
-      style={{
-        background:
-          "linear-gradient(to bottom, #050508, #0e0818, #050508)",
-      }}
-    >
+    <section className="relative w-full overflow-hidden py-28 px-6">
+      {/* Subtle ambient glows */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/2 left-1/4 w-[400px] h-[400px] bg-[#E8B84A] opacity-5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-0 right-1/3 w-[300px] h-[300px] bg-purple-600 opacity-5 blur-[100px] rounded-full" />
+      </div>
+
       <div className="max-w-6xl mx-auto relative z-10 flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
-        {/* LEFT SIDE */}
+        {/* LEFT SIDE - CONTENT */}
         <div className="flex-1 max-w-xl">
           <h2 className="text-4xl md:text-5xl font-light leading-tight text-white mb-5">
             Be first to run on{" "}
@@ -156,7 +314,7 @@ export default function WaitlistSection() {
           </motion.form>
         </div>
 
-        {/* RIGHT SIDE ANIMATION */}
+        {/* RIGHT SIDE - ANIMATION */}
         <motion.div
           initial={{ opacity: 0, x: 40 }}
           whileInView={{ opacity: 1, x: 0 }}
