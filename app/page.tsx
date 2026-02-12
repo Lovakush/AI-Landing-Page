@@ -100,7 +100,7 @@ const aiAgentsData = [
     shortDesc: 'Only work deals that close',
     description: 'Prospects sound great until they don\'t. Argo scores & disputes every lead so your team stops chasing ghosts and only works deals that close.',
     features: ['Lead Generation', 'Product Matching', 'Machine Learning', 'Next-Best-Action'],
-    color: '#E8B84A',
+    color: '#06B6D4',
     icon: Target,
     dashboardImg: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
   },
@@ -122,7 +122,7 @@ const aiAgentsData = [
     shortDesc: 'Screens 1000 resumes by 9am',
     description: 'Great talent hides before lunch. Consuelo screens 1000 resumes by 9am, scores soft skills and flags who to call first — bias-free.',
     features: ['Resume Parser', 'Smart Filter', 'AI Soft-Skills Test', 'Hiring Insights'],
-    color: '#06B6D4',
+    color: '#E8B84A',
     icon: Users,
     dashboardImg: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
   },
@@ -278,7 +278,7 @@ export default function OpseraLanding() {
                   whileTap={{ scale: 0.95 }}
                   className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#6B4E9B] to-[#2D1B4E] text-white font-semibold px-6 py-3 rounded-full text-sm shadow-[0_0_30px_rgba(107,78,155,0.4)] hover:shadow-[0_0_50px_rgba(107,78,155,0.6)] transition-all"
                 >
-                  Read our launch article <MoveRight className="w-4 h-4" />
+                  Our Story <MoveRight className="w-4 h-4" />
                 </motion.button>
               </Link>
             </div>
@@ -447,7 +447,7 @@ export default function OpseraLanding() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8 }}
-              className="flex items-center justify-center"
+              className="flex items-center justify-start"
             >
               <div className="grid [grid-template-areas:'stack'] place-items-center">
                 {aiAgentsData.map((agent, index) => {
@@ -473,8 +473,8 @@ export default function OpseraLanding() {
 
                   const positions = [
                     { x: 0, y: 0 },      // Back
-                    { x: 64, y: 40 },    // Middle
-                    { x: 128, y: 80 },   // Front
+                    { x: 80, y: 50 },    // Middle
+                    { x: 160, y: 100 },  // Front
                   ];
 
                   const pos = positions[visualPosition];
@@ -498,7 +498,7 @@ export default function OpseraLanding() {
                       }}
                       whileHover={{ y: pos.y - 15, opacity: 1 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`[grid-area:stack] relative flex h-28 w-[20rem] -skew-y-[8deg] select-none items-center rounded-xl border backdrop-blur-sm px-5 py-3 cursor-pointer transition-colors duration-300
+                      className={`[grid-area:stack] relative flex h-36 w-[28rem] -skew-y-[8deg] select-none items-center rounded-2xl border backdrop-blur-sm px-7 py-4 cursor-pointer transition-colors duration-300
                         ${isSelected
                           ? 'bg-[#1a1a2e]/95 shadow-[0_0_40px_rgba(232,184,74,0.2)]'
                           : 'bg-[#1a1a2e]/60'
@@ -510,7 +510,7 @@ export default function OpseraLanding() {
                     >
                       {/* Gradient fade on right */}
                       <div
-                        className="absolute -right-1 top-[-5%] h-[110%] w-[18rem] pointer-events-none z-20 transition-opacity duration-500"
+                        className="absolute -right-1 top-[-5%] h-[110%] w-[24rem] pointer-events-none z-20 transition-opacity duration-500"
                         style={{
                           background: `linear-gradient(to left, #2D1B4E, transparent)`,
                           opacity: isSelected ? 0 : 0.6,
@@ -522,7 +522,7 @@ export default function OpseraLanding() {
                         <div className="absolute -top-2 -left-2 z-40">
                           <div className="relative">
                             <div className="absolute inset-0 bg-[#E8B84A] rounded-full blur-md opacity-50" />
-                            <div className="relative bg-gradient-to-r from-[#E8B84A] to-[#d4a43d] text-[#0a0612] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            <div className="relative bg-gradient-to-r from-[#E8B84A] to-[#d4a43d] text-[#0a0612] text-xs font-bold px-3 py-1 rounded-full">
                               NEW
                             </div>
                           </div>
@@ -534,9 +534,9 @@ export default function OpseraLanding() {
                           className="inline-block rounded-full p-2"
                           style={{ backgroundColor: `${agent.color}25` }}
                         >
-                          <IconComponent className="size-5" style={{ color: agent.color }} />
+                          <IconComponent className="size-7" style={{ color: agent.color }} />
                         </span>
-                        <p className="text-xl font-semibold" style={{ color: agent.color }}>{agent.name}</p>
+                        <p className="text-2xl font-semibold" style={{ color: agent.color }}>{agent.name}</p>
                       </div>
                     </motion.div>
                   );
@@ -691,6 +691,25 @@ export default function OpseraLanding() {
                               ))}
                             </div>
                           </div>
+
+                          {/* How does it work CTA */}
+                          <Link
+                            href={`/products?agent=${agent.id}#how-it-works`}
+                            className="mt-6 flex items-center justify-center gap-2 w-full py-3 rounded-xl font-medium text-sm border transition-all duration-200 hover:scale-[1.02]"
+                            style={{
+                              color: agent.color,
+                              borderColor: `${agent.color}40`,
+                              backgroundColor: `${agent.color}15`,
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = `${agent.color}30`;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = `${agent.color}15`;
+                            }}
+                          >
+                            How does {agent.name} work? <MoveRight className="w-4 h-4" />
+                          </Link>
                         </motion.div>
                       </motion.div>
                     )}

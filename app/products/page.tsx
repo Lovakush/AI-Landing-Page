@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { useState, useEffect, useRef, forwardRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { MoveRight, Sparkles, Zap, Target, Users, TrendingUp, BarChart3, Bot, Check, X, Network, GitBranch, Workflow, Cpu, Activity } from 'lucide-react';
 import Chatbot from '@/components/ui/chatbot';
 import Navbar from '@/components/ui/Navbar';
@@ -21,7 +22,7 @@ const getBrandName = (category: string): string => {
   switch (category) {
     case 'category1': return 'Mark';
     case 'category2': return 'Consuelo';
-    case 'category3': return 'Argeo';
+    case 'category3': return 'Argo';
     default: return 'Our Product';
   }
 };
@@ -140,10 +141,10 @@ const RobotConsuelo = ({ size = 80 }: { size?: number }) => (
   </svg>
 );
 
-const RobotArgeo = ({ size = 80 }: { size?: number }) => (
+const RobotArgo = ({ size = 80 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="15" y="22" width="50" height="42" rx="10" fill="#06B6D4" />
-    <rect x="15" y="22" width="50" height="42" rx="10" fill="url(#argeoGrad)" opacity="0.4" />
+    <rect x="15" y="22" width="50" height="42" rx="10" fill="url(#ArgoGrad)" opacity="0.4" />
     <circle cx="40" cy="12" r="5" fill="#06B6D4" />
     <rect x="38" y="12" width="4" height="12" fill="#06B6D4" />
     <circle cx="29" cy="40" r="8" fill="white" opacity="0.15" />
@@ -155,7 +156,7 @@ const RobotArgeo = ({ size = 80 }: { size?: number }) => (
     <rect x="24" y="52" width="12" height="4" rx="2" fill="white" opacity="0.4" />
     <rect x="44" y="52" width="12" height="4" rx="2" fill="white" opacity="0.4" />
     <defs>
-      <linearGradient id="argeoGrad" x1="15" y1="22" x2="65" y2="64">
+      <linearGradient id="ArgoGrad" x1="15" y1="22" x2="65" y2="64">
         <stop stopColor="white" />
         <stop offset="1" stopColor="white" stopOpacity="0" />
       </linearGradient>
@@ -166,7 +167,7 @@ const RobotArgeo = ({ size = 80 }: { size?: number }) => (
 const getCategoryRobot = (category: string, size = 80) => {
   if (category === 'category1') return <RobotMark size={size} />;
   if (category === 'category2') return <RobotConsuelo size={size} />;
-  return <RobotArgeo size={size} />;
+  return <RobotArgo size={size} />;
 };
 
 const products = [
@@ -237,7 +238,7 @@ const products = [
   {
     id: 9, category: 'category3', icon: Workflow, color: '#06B6D4', colorIntensity: 0.8,
     name: 'Full Sales Agent', tagline: 'End-to-end sales automation',
-    description: 'The complete Argeo solution combining lead generation, meeting management, and pipeline tracking. Your complete autonomous sales team working 24/7.',
+    description: 'The complete Argo solution combining lead generation, meeting management, and pipeline tracking. Your complete autonomous sales team working 24/7.',
     features: ['Lead Generation', 'Meeting Scheduling', 'Pipeline Management', 'Win Rate Analytics'],
     price: '$1,199/mo',
     ctaType: 'waitlist',
@@ -245,6 +246,7 @@ const products = [
 ];
 
 export default function ProductsPage() {
+  const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState('category1');
   const [wordIndex, setWordIndex] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null);
@@ -257,6 +259,29 @@ export default function ProductsPage() {
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
+
+  // Handle URL query params (e.g. /products?agent=argo#how-it-works)
+  useEffect(() => {
+    const agent = searchParams.get('agent');
+    if (agent) {
+      const agentCategoryMap: Record<string, string> = {
+        argo: 'category3',
+        mark: 'category1',
+        consuelo: 'category2',
+      };
+      const category = agentCategoryMap[agent.toLowerCase()];
+      if (category) {
+        setSelectedCategory(category);
+        // Wait for the product details to render, then scroll to the hash
+        setTimeout(() => {
+          const hash = window.location.hash?.replace('#', '');
+          if (hash) {
+            document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 500);
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -1027,7 +1052,7 @@ const ProductDetailsSection = forwardRef<
           </div>
         </motion.div>
 
-        <motion.div className="mb-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
+        <motion.div id="how-it-works" className="mb-28 scroll-mt-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
           <div className="grid grid-cols-3 gap-14 items-start">
             <div className="col-span-1">
               <h3 className="text-4xl font-light text-white mb-4">How does<div className="text-4xl font-semibold mt-1" style={{ color: product.color }}>{getBrandName(product.category)} work?</div></h3>
