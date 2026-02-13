@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform, animate, useInView, AnimatePresence } 
 import { useRef, MouseEvent, useEffect, useState, useMemo } from 'react';
 import { ShaderAnimation } from "@/components/ui/shader-lines";
 import RadialOrbitalTimeline from "@/components/ui/radial-orbital-timeline";
-import { Users, Target, Box, Bot, Zap, ScanSearch, Rocket, MoveRight, Brain, BookOpen, Lightbulb } from 'lucide-react';
+import { Users, Target, Box, Bot, Zap, ScanSearch, Rocket, MoveRight, Brain, BookOpen, Lightbulb, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import Chatbot from '@/components/ui/chatbot';
 import Navbar from '@/components/ui/Navbar';
@@ -140,6 +140,7 @@ export default function OpseraLanding() {
   const [archHovered, setArchHovered] = useState<number | null>(null);
   const [archRevealed, setArchRevealed] = useState(-1);
   const [archCycled, setArchCycled] = useState(false);
+  const [archSlide, setArchSlide] = useState(0);
 
   const archPreview = archRevealed === -1;
   const archComplete = archRevealed >= 3;
@@ -158,6 +159,13 @@ export default function OpseraLanding() {
   // Columns & crown visible in preview (dimmed) and when showAutonomous
   const columnsVisible = archPreview || showAutonomous;
   const columnsOpacity = archPreview ? 0.4 : (showAutonomous ? 1 : 0);
+
+  const archLayers = [
+    { title: 'Data Integration', desc: 'We break data silos by unifying information across your enterprise apps, cloud storage, and ERPs under a single roof.' },
+    { title: 'AI Reasoning', desc: 'Your unified data powers intelligent solutions through LLMs and machine learning, enabling smarter decision-making at scale.' },
+    { title: 'Model Training', desc: 'Continuous improvement, data enrichment, and training deliver sharper insights into how your enterprise operates with each iteration.' },
+    { title: 'Autonomous Action', desc: 'Self-orchestrating agentic workflows run analytics, enable automations, and deliver intelligence grounded in your enterprise data.' },
+  ];
 
   const lastScrollY = useRef(0);
 
@@ -189,6 +197,14 @@ export default function OpseraLanding() {
     }, 10000);
     return () => clearInterval(interval);
   }, [showAgentDetails]);
+
+  // Initialize architecture for mobile (no hover, start on slide 0)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setArchRevealed(0);
+      setArchHovered(0);
+    }
+  }, []);
 
   // Auto-advance products every 25 seconds
   useEffect(() => {
@@ -254,7 +270,7 @@ export default function OpseraLanding() {
             className="flex flex-col items-center gap-6"
           >
             {/* Main Heading with Animated Word */}
-            <h1 className="text-5xl md:text-6xl lg:text-7xl tracking-tighter font-light text-white">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tighter font-light text-white">
               <span>Operations made</span>
               <div className="relative w-full h-[1.2em]">
                 {heroWords.map((word, index) => (
@@ -333,7 +349,7 @@ export default function OpseraLanding() {
       </section>
 
       {/* Products Section - Built on Reality */}
-      <section className="relative py-24 px-6 overflow-hidden min-h-[700px]" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2D1B4E 50%, #3d2a5f 100%)" }}>
+      <section className="relative py-12 sm:py-16 lg:py-24 px-4 sm:px-6 overflow-x-clip min-h-[600px] lg:min-h-[700px]" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2D1B4E 50%, #3d2a5f 100%)" }}>
         {/* Purple glow effects */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#A855F7]/15 rounded-full blur-[150px]" />
@@ -348,41 +364,42 @@ export default function OpseraLanding() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-6 lg:mb-16"
           >
-            <h3 className="text-4xl md:text-5xl lg:text-6xl font-light">
+            <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light">
               <span className="text-white">Built on reality, </span>
               <span className="italic text-[#E8B84A]">not AI hype</span>
             </h3>
           </motion.div>
 
-          {/* Interactive Layout - Orbit on right, info on left */}
-          <div className="relative min-h-[600px] flex items-center">
-            {/* The Orbit - Always positioned on the right */}
+          {/* Interactive Layout - Orbit on right, info on left (desktop) / stacked (mobile) */}
+          <div className="relative flex flex-col lg:flex-row items-center lg:items-center lg:min-h-[600px]">
+            {/* The Orbit */}
             <div
-              className="w-full"
+              className="w-full lg:w-full scale-[0.7] sm:scale-[0.8] md:scale-[0.9] lg:scale-100 origin-center"
               style={{
-                transform: 'translateX(30%) scale(1.1)',
-                transformOrigin: 'center center',
+                transform: undefined,
               }}
             >
-              <RadialOrbitalTimeline
-                timelineData={productTimelineData}
-                selectedId={selectedProduct}
-                onSelectNode={handleProductSelect}
-                isCompact={false}
-              />
+              <div className="lg:translate-x-[30%] lg:scale-110 transition-transform">
+                <RadialOrbitalTimeline
+                  timelineData={productTimelineData}
+                  selectedId={selectedProduct}
+                  onSelectNode={handleProductSelect}
+                  isCompact={false}
+                />
+              </div>
             </div>
 
-            {/* Left Side - Product Info & KPIs (always visible) */}
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[45%]">
+            {/* Product Info & KPIs */}
+            <div className="w-full lg:absolute lg:left-0 lg:top-1/2 lg:-translate-y-1/2 lg:w-[45%] -mt-16 sm:-mt-8 lg:mt-0">
               {selectedProduct && selectedProductData && (
-                <div className="space-y-6">
-                  {/* Product Title */}
-                  <div>
+                <div className="space-y-4 lg:space-y-6">
+                  {/* Product Title & Description */}
+                  <div className="text-center lg:text-left">
                     <motion.h4
                       key={`title-${selectedProduct}`}
-                      className="text-3xl md:text-4xl font-semibold text-white mb-3"
+                      className="text-2xl sm:text-3xl md:text-4xl font-semibold text-white mb-2 lg:mb-3"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
@@ -391,7 +408,7 @@ export default function OpseraLanding() {
                     </motion.h4>
                     <motion.p
                       key={`desc-${selectedProduct}`}
-                      className="text-base text-white/70 leading-relaxed"
+                      className="text-sm sm:text-base text-white/70 leading-relaxed max-w-md mx-auto lg:mx-0"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.15 }}
@@ -400,24 +417,24 @@ export default function OpseraLanding() {
                     </motion.p>
                   </div>
 
-                  {/* KPI Cards - Stacked Vertically */}
-                  <div className="flex flex-col gap-3">
+                  {/* KPI Cards - Horizontal on mobile, vertical on desktop */}
+                  <div className="flex flex-row lg:flex-col gap-1.5 sm:gap-2 lg:gap-3">
                     {selectedProductData.kpis?.map((kpi, index) => (
                       <motion.div
                         key={`kpi-${selectedProduct}-${index}`}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2 + index * 0.1 }}
-                        className="group relative bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 overflow-hidden cursor-pointer hover:bg-white/10 hover:border-white/20 transition-all duration-300"
+                        className="group relative bg-white/5 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 lg:p-4 border border-white/10 overflow-hidden cursor-pointer hover:bg-white/10 hover:border-white/20 transition-all duration-300 flex-1 lg:flex-none"
                       >
                         {/* Shine effect on hover */}
                         <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12" />
 
-                        <div className="relative flex items-center gap-4">
-                          <div className="text-3xl md:text-4xl font-bold text-[#E8B84A]">
+                        <div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-0.5 lg:gap-4">
+                          <div className="text-base sm:text-lg lg:text-4xl font-bold text-[#E8B84A] leading-tight">
                             {kpi.value}
                           </div>
-                          <div className="text-sm text-white/60">
+                          <div className="text-[10px] sm:text-xs lg:text-sm text-white/60 leading-tight">
                             {kpi.label}
                           </div>
                         </div>
@@ -432,7 +449,7 @@ export default function OpseraLanding() {
       </section>
 
       {/* AI Agents Showcase Section - New Launches */}
-      <section className="relative py-32 px-6 overflow-hidden" style={{ background: "linear-gradient(180deg, #3d2a5f 0%, #2D1B4E 15%, #2D1B4E 100%)" }}>
+      <section className="relative py-16 md:py-32 px-4 sm:px-6 overflow-hidden" style={{ background: "linear-gradient(180deg, #3d2a5f 0%, #2D1B4E 15%, #2D1B4E 100%)" }}>
 
         {/* Purple glow effects */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -448,119 +465,221 @@ export default function OpseraLanding() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-8 md:mb-16"
           >
-            <h3 className="text-4xl md:text-5xl lg:text-6xl font-light mb-4">
+            <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light mb-3 md:mb-4">
               <span className="text-white">New </span>
               <span className="italic text-[#E8B84A]">Launches</span>
             </h3>
-            <p className="text-lg text-white/50 max-w-2xl mx-auto">
+            <p className="text-base md:text-lg text-white/50 max-w-2xl mx-auto">
               Domain-specific AI agents for Sales, Marketing, and HR
             </p>
           </motion.div>
 
           {/* Interactive Layout: Stacked Cards on Left, Dashboard on Right */}
-          <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[500px]">
-            {/* Left - Stacked Display Cards */}
+          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center min-h-0 lg:min-h-[500px]">
+            {/* Left - Stacked Display Cards (Desktop) / Swipe Carousel (Mobile) */}
             <motion.div
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8 }}
-              className="flex items-center justify-start"
+              className="w-full"
             >
-              <div className="grid [grid-template-areas:'stack'] place-items-center">
-                {aiAgentsData.map((agent, index) => {
-                  const isSelected = selectedAgent === agent.id;
-                  const IconComponent = agent.icon;
-
-                  // Stack positions like the reference:
-                  // Position 0 (back): x=0, y=0
-                  // Position 1 (middle): x=64, y=40
-                  // Position 2 (front): x=128, y=80
-                  // Selected card always goes to front (position 2)
-                  const selectedIndex = aiAgentsData.findIndex(a => a.id === selectedAgent);
-
-                  let visualPosition: number;
-                  if (isSelected) {
-                    visualPosition = 2; // Front position
-                  } else {
-                    // Distribute other cards in remaining positions (0 and 1)
-                    const otherCards = aiAgentsData.filter(a => a.id !== selectedAgent);
-                    const otherIndex = otherCards.findIndex(a => a.id === agent.id);
-                    visualPosition = otherIndex; // 0 or 1
-                  }
-
-                  const positions = [
-                    { x: 0, y: 0 },      // Back
-                    { x: 80, y: 50 },    // Middle
-                    { x: 160, y: 100 },  // Front
-                  ];
-
-                  const pos = positions[visualPosition];
-
-                  return (
-                    <motion.div
-                      key={agent.id}
-                      onClick={() => setSelectedAgent(agent.id)}
-                      initial={false}
-                      animate={{
-                        x: pos.x,
-                        y: pos.y,
-                        zIndex: visualPosition + 1,
-                        opacity: isSelected ? 1 : 0.6,
-                      }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 400,
-                        damping: 35,
-                        mass: 0.8,
-                      }}
-                      whileHover={{ y: pos.y - 15, opacity: 1 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`[grid-area:stack] relative flex h-36 w-[28rem] -skew-y-[8deg] select-none items-center rounded-2xl border backdrop-blur-sm px-7 py-4 cursor-pointer transition-colors duration-300
-                        ${isSelected
-                          ? 'bg-[#1a1a2e]/95 shadow-[0_0_40px_rgba(232,184,74,0.2)]'
-                          : 'bg-[#1a1a2e]/60'
-                        }
-                      `}
-                      style={{
-                        borderColor: isSelected ? `${agent.color}40` : 'rgba(255,255,255,0.08)',
-                      }}
-                    >
-                      {/* Gradient fade on right */}
-                      <div
-                        className="absolute -right-1 top-[-5%] h-[110%] w-[24rem] pointer-events-none z-20 transition-opacity duration-500"
-                        style={{
-                          background: `linear-gradient(to left, #2D1B4E, transparent)`,
-                          opacity: isSelected ? 0 : 0.6,
-                        }}
-                      />
-
-                      {/* NEW badge */}
-                      {agent.id === 'argo' && (
-                        <div className="absolute -top-2 -left-2 z-40">
-                          <div className="relative">
-                            <div className="absolute inset-0 bg-[#E8B84A] rounded-full blur-md opacity-50" />
-                            <div className="relative bg-gradient-to-r from-[#E8B84A] to-[#d4a43d] text-[#0a0612] text-xs font-bold px-3 py-1 rounded-full">
-                              NEW
+              {/* Mobile: Single-card swipe carousel */}
+              <div className="lg:hidden">
+                <div
+                  className="relative overflow-hidden touch-pan-y"
+                  onTouchStart={(e) => {
+                    const touch = e.touches[0];
+                    (e.currentTarget as any)._touchStartX = touch.clientX;
+                  }}
+                  onTouchEnd={(e) => {
+                    const startX = (e.currentTarget as any)._touchStartX;
+                    if (startX === undefined) return;
+                    const endX = e.changedTouches[0].clientX;
+                    const diff = startX - endX;
+                    if (Math.abs(diff) > 50) {
+                      const currentIndex = aiAgentsData.findIndex(a => a.id === selectedAgent);
+                      if (diff > 0 && currentIndex < aiAgentsData.length - 1) {
+                        setSelectedAgent(aiAgentsData[currentIndex + 1].id);
+                      } else if (diff < 0 && currentIndex > 0) {
+                        setSelectedAgent(aiAgentsData[currentIndex - 1].id);
+                      }
+                    }
+                  }}
+                >
+                  <AnimatePresence mode="wait">
+                    {aiAgentsData.map((agent) => {
+                      if (agent.id !== selectedAgent) return null;
+                      const IconComponent = agent.icon;
+                      return (
+                        <motion.div
+                          key={agent.id}
+                          initial={{ opacity: 0, x: 60 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -60 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                          className="relative flex items-center rounded-2xl border backdrop-blur-sm px-5 py-4 bg-[#1a1a2e]/95"
+                          style={{ borderColor: `${agent.color}40` }}
+                        >
+                          {/* NEW badge */}
+                          {agent.id === 'argo' && (
+                            <div className="absolute -top-2 -left-1 z-40">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-[#E8B84A] rounded-full blur-md opacity-50" />
+                                <div className="relative bg-gradient-to-r from-[#E8B84A] to-[#d4a43d] text-[#0a0612] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                  NEW
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-3">
+                            <span
+                              className="inline-block rounded-full p-2"
+                              style={{ backgroundColor: `${agent.color}25` }}
+                            >
+                              <IconComponent className="size-5" style={{ color: agent.color }} />
+                            </span>
+                            <div>
+                              <p className="text-lg font-semibold" style={{ color: agent.color }}>{agent.name}</p>
+                              <p className="text-xs text-white/50">{agent.role}</p>
                             </div>
                           </div>
-                        </div>
-                      )}
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+                </div>
 
-                      <div className="relative z-30 flex items-center gap-3">
-                        <span
-                          className="inline-block rounded-full p-2"
-                          style={{ backgroundColor: `${agent.color}25` }}
-                        >
-                          <IconComponent className="size-7" style={{ color: agent.color }} />
-                        </span>
-                        <p className="text-2xl font-semibold" style={{ color: agent.color }}>{agent.name}</p>
-                      </div>
-                    </motion.div>
-                  );
-                })}
+                {/* Swipe navigation: arrows + dots */}
+                <div className="flex items-center justify-center gap-4 mt-3">
+                  <button
+                    onClick={() => {
+                      const idx = aiAgentsData.findIndex(a => a.id === selectedAgent);
+                      if (idx > 0) setSelectedAgent(aiAgentsData[idx - 1].id);
+                    }}
+                    className="p-1 text-white/30 hover:text-white/70 transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <div className="flex gap-2">
+                    {aiAgentsData.map((agent) => (
+                      <button
+                        key={agent.id}
+                        onClick={() => setSelectedAgent(agent.id)}
+                        className="transition-all duration-300 rounded-full"
+                        style={{
+                          width: selectedAgent === agent.id ? '24px' : '8px',
+                          height: '8px',
+                          backgroundColor: selectedAgent === agent.id ? agent.color : 'rgba(255,255,255,0.2)',
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => {
+                      const idx = aiAgentsData.findIndex(a => a.id === selectedAgent);
+                      if (idx < aiAgentsData.length - 1) setSelectedAgent(aiAgentsData[idx + 1].id);
+                    }}
+                    className="p-1 text-white/30 hover:text-white/70 transition-colors"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <p className="text-center text-white/25 text-[10px] mt-1.5 tracking-wide">Swipe to browse</p>
+              </div>
+
+              {/* Desktop: Stacked cards */}
+              <div className="hidden lg:flex items-center justify-start">
+                <div className="grid [grid-template-areas:'stack'] place-items-center">
+                  {aiAgentsData.map((agent, index) => {
+                    const isSelected = selectedAgent === agent.id;
+                    const IconComponent = agent.icon;
+
+                    const selectedIndex = aiAgentsData.findIndex(a => a.id === selectedAgent);
+
+                    let visualPosition: number;
+                    if (isSelected) {
+                      visualPosition = 2;
+                    } else {
+                      const otherCards = aiAgentsData.filter(a => a.id !== selectedAgent);
+                      const otherIndex = otherCards.findIndex(a => a.id === agent.id);
+                      visualPosition = otherIndex;
+                    }
+
+                    const positions = [
+                      { x: 0, y: 0 },
+                      { x: 80, y: 50 },
+                      { x: 160, y: 100 },
+                    ];
+
+                    const pos = positions[visualPosition];
+
+                    return (
+                      <motion.div
+                        key={agent.id}
+                        onClick={() => setSelectedAgent(agent.id)}
+                        initial={false}
+                        animate={{
+                          x: pos.x,
+                          y: pos.y,
+                          zIndex: visualPosition + 1,
+                          opacity: isSelected ? 1 : 0.6,
+                        }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 35,
+                          mass: 0.8,
+                        }}
+                        whileHover={{ y: pos.y - 15, opacity: 1 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`[grid-area:stack] relative flex h-36 w-[28rem] -skew-y-[8deg] select-none items-center rounded-2xl border backdrop-blur-sm px-7 py-4 cursor-pointer transition-colors duration-300
+                          ${isSelected
+                            ? 'bg-[#1a1a2e]/95 shadow-[0_0_40px_rgba(232,184,74,0.2)]'
+                            : 'bg-[#1a1a2e]/60'
+                          }
+                        `}
+                        style={{
+                          borderColor: isSelected ? `${agent.color}40` : 'rgba(255,255,255,0.08)',
+                        }}
+                      >
+                        {/* Gradient fade on right */}
+                        <div
+                          className="absolute -right-1 top-[-5%] h-[110%] w-[24rem] pointer-events-none z-20 transition-opacity duration-500"
+                          style={{
+                            background: `linear-gradient(to left, #2D1B4E, transparent)`,
+                            opacity: isSelected ? 0 : 0.6,
+                          }}
+                        />
+
+                        {/* NEW badge */}
+                        {agent.id === 'argo' && (
+                          <div className="absolute -top-2 -left-2 z-40">
+                            <div className="relative">
+                              <div className="absolute inset-0 bg-[#E8B84A] rounded-full blur-md opacity-50" />
+                              <div className="relative bg-gradient-to-r from-[#E8B84A] to-[#d4a43d] text-[#0a0612] text-xs font-bold px-3 py-1 rounded-full">
+                                NEW
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="relative z-30 flex items-center gap-3">
+                          <span
+                            className="inline-block rounded-full p-2"
+                            style={{ backgroundColor: `${agent.color}25` }}
+                          >
+                            <IconComponent className="size-7" style={{ color: agent.color }} />
+                          </span>
+                          <p className="text-2xl font-semibold" style={{ color: agent.color }}>{agent.name}</p>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
               </div>
             </motion.div>
 
@@ -570,7 +689,7 @@ export default function OpseraLanding() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex flex-col gap-4"
+              className="flex flex-col gap-3 sm:gap-4 w-full"
             >
               {selectedAgent && (() => {
                 const agent = aiAgentsData.find(a => a.id === selectedAgent)!;
@@ -597,30 +716,30 @@ export default function OpseraLanding() {
                         <img
                           src={agent.dashboardImg}
                           alt={`${agent.name} Dashboard`}
-                          className="w-full h-[350px] object-cover"
+                          className="w-full h-[180px] sm:h-[240px] md:h-[300px] lg:h-[350px] object-cover"
                         />
                         {/* Overlay gradient */}
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0612]/80 via-transparent to-transparent" />
 
                         {/* Agent info overlay at bottom with glassmorphism backdrop */}
-                        <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-3 md:p-4">
                           <div
-                            className="rounded-xl p-4 backdrop-blur-md border"
+                            className="rounded-xl p-2.5 sm:p-3 md:p-4 backdrop-blur-md border"
                             style={{
                               backgroundColor: 'rgba(10, 6, 18, 0.6)',
                               borderColor: `${agent.color}30`,
                             }}
                           >
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2.5 sm:gap-3">
                               <div
-                                className="w-10 h-10 rounded-lg flex items-center justify-center"
+                                className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0"
                                 style={{ backgroundColor: agent.color }}
                               >
-                                <agent.icon className="w-5 h-5 text-white" />
+                                <agent.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                               </div>
-                              <div>
-                                <h4 className="text-lg font-bold text-white">{agent.name}</h4>
-                                <p className="text-xs" style={{ color: agent.color }}>{agent.role}</p>
+                              <div className="min-w-0">
+                                <h4 className="text-sm sm:text-base md:text-lg font-bold text-white">{agent.name}</h4>
+                                <p className="text-[10px] sm:text-xs" style={{ color: agent.color }}>{agent.role}</p>
                               </div>
                             </div>
                           </div>
@@ -634,7 +753,7 @@ export default function OpseraLanding() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
                       onClick={() => setShowAgentDetails(true)}
-                      className="w-full py-3 rounded-xl font-medium text-white border transition-all duration-300 hover:scale-[1.02]"
+                      className="w-full py-2.5 sm:py-3 rounded-xl font-medium text-sm sm:text-base text-white border transition-all duration-300 hover:scale-[1.02]"
                       style={{
                         backgroundColor: `${agent.color}15`,
                         borderColor: `${agent.color}40`,
@@ -742,22 +861,22 @@ export default function OpseraLanding() {
       </section>
 
       {/* Smooth transition from AI Agents to Market Positioning */}
-      <div className="h-64" style={{ background: "linear-gradient(to bottom, #2D1B4E 0%, #3d2a5f 15%, #6b4e9b 35%, #b8a5d4 55%, #e8e0f0 75%, white 100%)" }} />
+      <div className="h-32 md:h-64" style={{ background: "linear-gradient(to bottom, #2D1B4E 0%, #3d2a5f 15%, #6b4e9b 35%, #b8a5d4 55%, #e8e0f0 75%, white 100%)" }} />
 
       {/* Market Positioning Section - The Intelligence Matrix */}
-      <section className="relative py-32 px-6 bg-gradient-to-b from-white to-[#f5f0ff]">
+      <section className="relative py-16 md:py-32 px-4 sm:px-6 bg-gradient-to-b from-white to-[#f5f0ff]">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-20"
+            className="text-center mb-10 md:mb-20"
           >
-            <h3 className="text-5xl md:text-6xl font-light text-[#2D1B4E] mb-6 tracking-tight font-[family-name:var(--font-space-grotesk)]">
+            <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-[#2D1B4E] mb-4 md:mb-6 tracking-tight font-[family-name:var(--font-space-grotesk)]">
               The Intelligence Gap, Solved.
             </h3>
-            <p className="text-xl text-[#2D1B4E]/60 max-w-3xl mx-auto font-light font-[family-name:var(--font-inter)] leading-relaxed">
+            <p className="text-base md:text-lg text-[#2D1B4E]/60 max-w-3xl mx-auto font-light font-[family-name:var(--font-inter)] leading-relaxed">
               Too fast for enterprise suites. Too powerful for generic bots.
               <br className="hidden md:block" />
               <span className="text-[#2D1B4E] font-medium"> SIA exists in the sweet spot of execution.</span>
@@ -771,7 +890,7 @@ export default function OpseraLanding() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8 }}
-              className="relative aspect-[4/3] md:aspect-[16/9] bg-[#2D1B4E] rounded-3xl overflow-hidden shadow-2xl border border-[#2D1B4E]/10 group"
+              className="relative aspect-[4/3] md:aspect-[16/9] bg-[#2D1B4E] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-[#2D1B4E]/10 group"
             >
               {/* Scan Line Effect */}
               <motion.div
@@ -782,7 +901,7 @@ export default function OpseraLanding() {
               />
 
               {/* Grid Lines */}
-              <div className="absolute inset-0 p-8 md:p-12 z-0">
+              <div className="absolute inset-0 p-4 sm:p-8 md:p-12 z-0">
                 <svg className="w-full h-full opacity-20" width="100%" height="100%">
                   <defs>
                     <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -821,20 +940,20 @@ export default function OpseraLanding() {
                 </svg>
 
                 {/* Axis Labels */}
-                <div className="absolute bottom-4 left-16 right-0 text-white/40 text-xs tracking-widest font-mono flex justify-between uppercase">
+                <div className="absolute bottom-2 sm:bottom-4 left-8 sm:left-16 right-2 sm:right-0 text-white/40 text-[9px] sm:text-xs tracking-wider sm:tracking-widest font-mono flex justify-between uppercase">
                   <span>Months to Value</span>
                   <span>Days to Value</span>
                 </div>
-                <div className="absolute left-14 top-8 text-white/40 text-xs tracking-widest font-mono uppercase pointer-events-none">
+                <div className="absolute left-5 sm:left-14 top-4 sm:top-8 text-white/40 text-[9px] sm:text-xs tracking-wider sm:tracking-widest font-mono uppercase pointer-events-none">
                   <span>High Capability</span>
                 </div>
-                <div className="absolute left-28 bottom-14 text-white/40 text-xs tracking-widest font-mono uppercase pointer-events-none">
+                <div className="absolute left-10 sm:left-28 bottom-8 sm:bottom-14 text-white/40 text-[9px] sm:text-xs tracking-wider sm:tracking-widest font-mono uppercase pointer-events-none">
                   <span>Low Capability</span>
                 </div>
               </div>
 
               {/* Data Points */}
-              <div className="absolute inset-0 p-8 md:p-12 z-10">
+              <div className="absolute inset-0 p-4 sm:p-8 md:p-12 z-10">
 
                 {/* Competitor: Legacy ERP (High Capability, Slow Time) - Top Left */}
                 <motion.div
@@ -846,9 +965,9 @@ export default function OpseraLanding() {
                 >
                   <div className="relative flex items-center justify-center">
                     <div className="absolute w-full h-full bg-white/20 rounded-full blur-sm" />
-                    <div className="w-4 h-4 bg-gradient-to-br from-white/60 to-white/30 rounded-full ring-2 ring-white/10" />
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-br from-white/60 to-white/30 rounded-full ring-2 ring-white/10" />
                   </div>
-                  <div className="mt-3 text-xs text-white/70 font-mono whitespace-nowrap -ml-4">Legacy ERP</div>
+                  <div className="mt-2 sm:mt-3 text-[9px] sm:text-xs text-white/70 font-mono whitespace-nowrap -ml-3 sm:-ml-4">Legacy ERP</div>
                 </motion.div>
 
                 {/* Competitor: Consulting (Mid Capability, Slow Time) - Mid Left */}
@@ -861,9 +980,9 @@ export default function OpseraLanding() {
                 >
                   <div className="relative flex items-center justify-center">
                     <div className="absolute w-full h-full bg-white/20 rounded-full blur-sm" />
-                    <div className="w-4 h-4 bg-gradient-to-br from-white/60 to-white/30 rounded-full ring-2 ring-white/10" />
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-br from-white/60 to-white/30 rounded-full ring-2 ring-white/10" />
                   </div>
-                  <div className="mt-3 text-xs text-white/70 font-mono whitespace-nowrap -ml-4">Consulting Firms</div>
+                  <div className="mt-2 sm:mt-3 text-[9px] sm:text-xs text-white/70 font-mono whitespace-nowrap -ml-3 sm:-ml-4">Consulting Firms</div>
                 </motion.div>
 
                 {/* Competitor: Generic AI (Low Capability, Fast Time) - Bottom Right */}
@@ -876,9 +995,9 @@ export default function OpseraLanding() {
                 >
                   <div className="relative flex items-center justify-center">
                     <div className="absolute w-full h-full bg-white/20 rounded-full blur-sm" />
-                    <div className="w-4 h-4 bg-gradient-to-br from-white/60 to-white/30 rounded-full ring-2 ring-white/10" />
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-br from-white/60 to-white/30 rounded-full ring-2 ring-white/10" />
                   </div>
-                  <div className="mt-3 text-xs text-white/70 font-mono whitespace-nowrap -ml-8">Generic AI Bots</div>
+                  <div className="mt-2 sm:mt-3 text-[9px] sm:text-xs text-white/70 font-mono whitespace-nowrap -ml-6 sm:-ml-8">Generic AI Bots</div>
                 </motion.div>
 
                 {/* OPSERA: The Hero (High Capability, Fast Time) - Top Right */}
@@ -887,7 +1006,7 @@ export default function OpseraLanding() {
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ type: "spring", stiffness: 260, damping: 20, delay: 1.8 }}
-                  className="absolute top-[20%] right-[15%]"
+                  className="absolute top-[20%] right-[12%] sm:right-[15%]"
                 >
                   <div className="relative flex items-center justify-center">
                     {/* Pulsing Rings */}
@@ -895,23 +1014,33 @@ export default function OpseraLanding() {
                     <div className="absolute w-[200%] h-[200%] border border-[#E8B84A]/30 rounded-full animate-[spin_10s_linear_infinite]" />
 
                     {/* Main Orb */}
-                    <div className="w-6 h-6 bg-gradient-to-br from-[#E8B84A] to-[#E8A87C] rounded-full shadow-[0_0_20px_rgba(232,184,74,0.6)] z-20 relative ring-4 ring-[#2D1B4E]/50" />
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-[#E8B84A] to-[#E8A87C] rounded-full shadow-[0_0_20px_rgba(232,184,74,0.6)] z-20 relative ring-2 sm:ring-4 ring-[#2D1B4E]/50" />
 
-                    {/* Badge */}
+                    {/* Badge — below on mobile, left on desktop */}
                     <motion.div
                       initial={{ opacity: 0, x: -10 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: 2.2 }}
-                      className="absolute right-full mr-4 bg-white/10 backdrop-blur-md border border-[#E8B84A]/30 text-[#E8B84A] px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shadow-lg"
+                      className="hidden sm:block absolute right-full mr-4 bg-white/10 backdrop-blur-md border border-[#E8B84A]/30 text-[#E8B84A] px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shadow-lg"
                     >
                       30-Day Deployment
                     </motion.div>
                   </div>
-                  <div className="mt-4 text-sm text-white font-bold tracking-widest text-center flex flex-col items-center gap-1">
+                  <div className="mt-2 sm:mt-4 text-xs sm:text-sm text-white font-bold tracking-widest text-center flex flex-col items-center gap-1">
                     SIA
-                    <span className="w-1 h-8 bg-gradient-to-b from-[#E8B84A] to-transparent opacity-50 absolute -bottom-10" />
+                    <span className="w-1 h-6 sm:h-8 bg-gradient-to-b from-[#E8B84A] to-transparent opacity-50 absolute -bottom-7 sm:-bottom-10" />
                   </div>
+                  {/* Badge — below SIA on mobile */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 2.2 }}
+                    className="sm:hidden mt-8 bg-white/10 backdrop-blur-md border border-[#E8B84A]/30 text-[#E8B84A] px-2 py-1 rounded-md text-[9px] font-bold whitespace-nowrap shadow-lg text-center"
+                  >
+                    30-Day Deployment
+                  </motion.div>
                 </motion.div>
 
               </div>
@@ -921,7 +1050,7 @@ export default function OpseraLanding() {
       </section>
 
       {/* Smooth transition from Market to Technology */}
-      <div className="h-64" style={{ background: "linear-gradient(to bottom, #f5f0ff 0%, #e0d5f0 20%, #b8a5d4 40%, #6b4e9b 65%, #3d2a5f 80%, #2D1B4E 100%)" }} />
+      <div className="h-32 md:h-64" style={{ background: "linear-gradient(to bottom, #f5f0ff 0%, #e0d5f0 20%, #b8a5d4 40%, #6b4e9b 65%, #3d2a5f 80%, #2D1B4E 100%)" }} />
 
       {/* Technology Stack Section - 3D Platform with Bars */}
       <section className="relative py-16 md:py-24 lg:py-32 px-4 sm:px-6 bg-[#2D1B4E] overflow-hidden">
@@ -942,22 +1071,17 @@ export default function OpseraLanding() {
           </motion.div>
 
           {/* Isometric 3D Architecture Visualization */}
-          <div className="relative max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-6 md:gap-8 lg:gap-12">
+          <div className="relative max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-4 lg:gap-12">
 
-            {/* Left column — interactive layer headers */}
-            <div className="flex flex-row lg:flex-col justify-center gap-0 w-full lg:w-56 shrink-0 order-2 lg:order-1 overflow-x-auto">
-              {[
-                { title: 'Data Integration', desc: 'We break data silos by unifying information across your enterprise apps, cloud storage, and ERPs under a single roof.' },
-                { title: 'AI Reasoning', desc: 'Your unified data powers intelligent solutions through LLMs and machine learning, enabling smarter decision-making at scale.' },
-                { title: 'Model Training', desc: 'Continuous improvement, data enrichment, and training deliver sharper insights into how your enterprise operates with each iteration.' },
-                { title: 'Autonomous Action', desc: 'Self-orchestrating agentic workflows run analytics, enable automations, and deliver intelligence grounded in your enterprise data.' },
-              ].map((item, i) => {
+            {/* Desktop left column — interactive layer headers (hidden on mobile) */}
+            <div className="hidden lg:flex flex-col justify-center gap-0 w-56 shrink-0 order-1">
+              {archLayers.map((item, i) => {
                 const isRevealed = archPreview || i <= archRevealed;
                 const isHovered = archHovered === i;
                 return (
                   <div
                     key={item.title}
-                    className="cursor-pointer group flex-1 lg:flex-none min-w-0"
+                    className="cursor-pointer group"
                     onMouseEnter={() => {
                       setArchHovered(i);
                       setArchRevealed(prev => Math.max(prev, i));
@@ -972,10 +1096,10 @@ export default function OpseraLanding() {
                     }}
                   >
                     {i > 0 && (
-                      <div className="hidden lg:block w-full h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                      <div className="w-full h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
                     )}
-                    <div className="py-3 lg:py-4 px-2 lg:px-0 transition-all duration-300 text-center lg:text-left">
-                      <span className={`text-[10px] sm:text-xs lg:text-sm font-semibold tracking-[2px] lg:tracking-[3px] uppercase font-[family-name:var(--font-space-grotesk)] transition-colors duration-300 whitespace-nowrap ${
+                    <div className="py-4 transition-all duration-300 text-left">
+                      <span className={`text-sm font-semibold tracking-[3px] uppercase font-[family-name:var(--font-space-grotesk)] transition-colors duration-300 whitespace-nowrap ${
                         isRevealed ? (archPreview ? 'text-white/50' : 'text-white/80') : 'text-white/30'
                       } ${isHovered ? '!text-[#E8B84A]' : ''}`}>
                         {item.title}
@@ -987,7 +1111,7 @@ export default function OpseraLanding() {
                             animate={{ height: 'auto', opacity: 1, marginTop: 8 }}
                             exit={{ height: 0, opacity: 0, marginTop: 0 }}
                             transition={{ duration: 0.3, ease: 'easeInOut' }}
-                            className="hidden lg:block text-xs text-white/40 font-light leading-relaxed overflow-hidden"
+                            className="text-xs text-white/40 font-light leading-relaxed overflow-hidden"
                           >
                             {item.desc}
                           </motion.p>
@@ -1505,13 +1629,104 @@ export default function OpseraLanding() {
               </div>
               </motion.div>
             </div>
+            {/* Mobile: touch swipe overlay for slide navigation */}
+            <div
+              className="absolute inset-0 lg:hidden z-10"
+              onTouchStart={(e) => {
+                (e.currentTarget as any)._touchStartX = e.touches[0].clientX;
+              }}
+              onTouchEnd={(e) => {
+                const startX = (e.currentTarget as any)._touchStartX;
+                if (startX === undefined) return;
+                const diff = startX - e.changedTouches[0].clientX;
+                if (Math.abs(diff) > 50) {
+                  const next = diff > 0
+                    ? Math.min(archSlide + 1, archLayers.length - 1)
+                    : Math.max(archSlide - 1, 0);
+                  setArchSlide(next);
+                  setArchHovered(next);
+                  setArchRevealed(prev => Math.max(prev, next));
+                }
+              }}
+            />
           </div>
+
+            {/* Mobile: Slide content below visualization */}
+            <div className="lg:hidden w-full order-3">
+              <div className="text-center px-4">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`arch-slide-${archSlide}`}
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -30 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <h4 className="text-lg sm:text-xl font-semibold text-[#E8B84A] tracking-wide uppercase font-[family-name:var(--font-space-grotesk)] mb-2">
+                      {archLayers[archSlide].title}
+                    </h4>
+                    <p className="text-sm text-white/50 font-light leading-relaxed max-w-md mx-auto">
+                      {archLayers[archSlide].desc}
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Navigation: arrows + dots */}
+                <div className="flex items-center justify-center gap-4 mt-5">
+                  <button
+                    onClick={() => {
+                      if (archSlide > 0) {
+                        const next = archSlide - 1;
+                        setArchSlide(next);
+                        setArchHovered(next);
+                        setArchRevealed(prev => Math.max(prev, next));
+                      }
+                    }}
+                    className="p-1 text-white/30 hover:text-white/70 transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <div className="flex gap-2">
+                    {archLayers.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          setArchSlide(i);
+                          setArchHovered(i);
+                          setArchRevealed(prev => Math.max(prev, i));
+                        }}
+                        className="transition-all duration-300 rounded-full"
+                        style={{
+                          width: archSlide === i ? '24px' : '8px',
+                          height: '8px',
+                          backgroundColor: archSlide === i ? '#E8B84A' : 'rgba(255,255,255,0.2)',
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (archSlide < archLayers.length - 1) {
+                        const next = archSlide + 1;
+                        setArchSlide(next);
+                        setArchHovered(next);
+                        setArchRevealed(prev => Math.max(prev, next));
+                      }
+                    }}
+                    className="p-1 text-white/30 hover:text-white/70 transition-colors"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+                <p className="text-white/25 text-[10px] mt-2 tracking-wide">Swipe to explore</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* The Grand Finale - CTA Section */}
-      <section id="cta" className="relative py-48 px-6 bg-gradient-to-b from-[#2D1B4E] via-[#3d2a5f] to-[#2D1B4E] overflow-hidden">
+      <section id="cta" className="relative py-20 md:py-48 px-4 sm:px-6 bg-gradient-to-b from-[#2D1B4E] via-[#3d2a5f] to-[#2D1B4E] overflow-hidden">
         {/* Energy Orb Background Effect */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] rounded-full blur-[120px] opacity-20 animate-pulse pointer-events-none" />
 
@@ -1522,7 +1737,7 @@ export default function OpseraLanding() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 1 }}
           >
-            <h3 className="text-6xl md:text-8xl font-light text-white mb-10 tracking-tight font-[family-name:var(--font-space-grotesk)] leading-tight">
+            <h3 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-light text-white mb-6 md:mb-10 tracking-tight font-[family-name:var(--font-space-grotesk)] leading-tight">
               Start seeing your
               <br />
               operations clearly.
@@ -1536,7 +1751,7 @@ export default function OpseraLanding() {
               onClick={() => setShowAccessModal(true)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="relative group bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] text-[#2D1B4E] font-bold px-16 py-6 text-xl rounded-full shadow-[0_0_40px_rgba(232,184,74,0.4)] hover:shadow-[0_0_80px_rgba(232,184,74,0.6)] transition-all duration-300 overflow-hidden"
+              className="relative group bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] text-[#2D1B4E] font-bold px-8 sm:px-16 py-4 sm:py-6 text-base sm:text-xl rounded-full shadow-[0_0_40px_rgba(232,184,74,0.4)] hover:shadow-[0_0_80px_rgba(232,184,74,0.6)] transition-all duration-300 overflow-hidden"
             >
               <span className="relative z-10">Join the Waitlist</span>
               {/* Shine Animation */}
