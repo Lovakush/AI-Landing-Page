@@ -2,7 +2,6 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import Chatbot from '@/components/ui/chatbot';
-<<<<<<< Updated upstream
 import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
@@ -702,10 +701,6 @@ function TetrisAnimation({ onSubtitleTrigger, onPieceChange }: { onSubtitleTrigg
     </div>
   );
 }
-=======
-import { useEffect, useState, useRef } from 'react';
-import Navbar from '@/components/ui/Navbar';
->>>>>>> Stashed changes
 
 export default function AboutPage() {
   const [activePanel, setActivePanel] = useState<'why' | 'how' | 'what' | null>(null);
@@ -737,12 +732,7 @@ export default function AboutPage() {
   };
 
   return (
-<<<<<<< Updated upstream
     <div ref={containerRef} className="bg-[#0d0015] min-h-screen">
-=======
-    <div className="bg-gradient-to-b from-white via-[#faf5ff] to-white min-h-screen w-full overflow-x-hidden">
-      {/* Header/Navbar */}
->>>>>>> Stashed changes
       <Navbar/>
 
       <section className="pt-24 md:pt-32 pb-12 md:pb-20 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" style={{ background: 'linear-gradient(180deg, #0d0015 0%, #1a0a2e 50%, #2D1B4E 100%)' }}>
