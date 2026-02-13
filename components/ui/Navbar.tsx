@@ -15,15 +15,15 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-20">
 
           {/* Logo */}
-     <Link href="/" className="flex-shrink-0">
-  <Image
-    src="/sia-logo.png"
-    alt="SIA Logo"
-    width={800}
-    height={400}
-    className="h-32 w-auto brightness-0 invert"
-  />
-</Link>
+          <Link href="/" className="flex-shrink-0">
+            <Image
+              src="/sia-globe-v2.png"
+              alt="SIA Logo"
+              width={200}
+              height={200}
+              className="h-12 w-auto mix-blend-lighten"
+            />
+          </Link>
 
 
          {/* Right Side (Nav + CTA) */}
