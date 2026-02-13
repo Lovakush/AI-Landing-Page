@@ -375,7 +375,7 @@ export default function ProductsPage() {
           filter: 'blur(60px)',
         }} />
 
-        {}
+        {/* Interactive glow that follows category */}
         <motion.div
           style={{
             position: 'absolute',
@@ -390,7 +390,7 @@ export default function ProductsPage() {
         />
       </div>
 
-      {}
+      {/* Floating particle dots */}
       <div className="relative">
         <FloatingDots />
 
@@ -489,11 +489,11 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      {}
+      {/* ─── Orbital Interactive Display ─── */}
       <section className="relative z-10 py-24 px-6" data-products-section>
         <div className="max-w-6xl mx-auto">
 
-          {}
+          {/* SIMPLIFIED & CLASSY Category Pills */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -526,7 +526,7 @@ export default function ProductsPage() {
                     } : {}}
                     whileTap={{ scale: 0.97 }}
                   >
-                    {}
+                    {/* Active state - solid gradient background (COMPLETELY STATIC) */}
                     {isActive && (
                       <motion.div
                         layoutId="activePill"
@@ -539,7 +539,7 @@ export default function ProductsPage() {
                       />
                     )}
 
-                    {}
+                    {/* Hover glow for inactive buttons */}
                     {!isActive && (
                       <motion.div
                         className="absolute inset-0 rounded-full -z-10"
@@ -558,7 +558,7 @@ export default function ProductsPage() {
               })}
             </div>
 
-            {}
+            {/* Floating indicator dots */}
             <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex gap-2">
               {categories.map((cat, idx) => (
                 <motion.div
@@ -603,10 +603,10 @@ export default function ProductsPage() {
             </p>
           </motion.div>
 
-          {}
+          {/* TWO-COLUMN LAYOUT: Pilot Left, Orbital Right */}
           <div className="grid grid-cols-2 gap-12 items-center">
 
-            {}
+            {/* LEFT SIDE - Agentic & Classy Pilot CTA */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -614,9 +614,9 @@ export default function ProductsPage() {
               transition={{ duration: 0.6 }}
               className="relative group"
             >
-              {}
+              {/* Premium glass card with sophisticated backdrop */}
               <div className="relative">
-                {}
+                {/* Floating aura effect */}
                 <motion.div
                   className="absolute -inset-4 rounded-3xl opacity-40"
                   style={{
@@ -736,7 +736,7 @@ export default function ProductsPage() {
                       </div>
                     </div>
 
-                    {}
+                    {/* Elegant title */}
                     <motion.h3
                       className="text-3xl font-light mb-3 tracking-tight"
                       style={{
@@ -753,13 +753,13 @@ export default function ProductsPage() {
                       Join our Pilot Program
                     </motion.h3>
 
-                    {}
+                    {/* Refined description */}
                     <p className="text-white/70 leading-relaxed mb-2">
                       Experience autonomous AI agents working in harmony.{' '}
                       <span className="text-white font-medium">First 20 companies</span> receive exclusive access.
                     </p>
 
-                    {}
+                    {/* Premium features list */}
                     <div className="flex flex-wrap gap-3 mb-8">
                       {[
                         'Exclusive Access',
@@ -779,7 +779,7 @@ export default function ProductsPage() {
                       ))}
                     </div>
 
-                    {}
+                    {/* Sophisticated stats grid */}
                     <div className="grid grid-cols-3 gap-4 mb-8">
                       {[
                         { icon: Users, value: '20', label: 'Companies Only', sublabel: 'Spots Remaining' },
@@ -793,7 +793,7 @@ export default function ProductsPage() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.5 + idx * 0.1 }}
                         >
-                          {}
+                          {/* Card background */}
                           <div
                             className="p-4 rounded-xl relative overflow-hidden"
                             style={{
@@ -801,7 +801,7 @@ export default function ProductsPage() {
                               border: '1px solid rgba(232,184,74,0.15)',
                             }}
                           >
-                            {}
+                            {/* Hover glow */}
                             <motion.div
                               className="absolute inset-0 opacity-0 group-hover/stat:opacity-100 transition-opacity"
                               style={{
@@ -817,7 +817,7 @@ export default function ProductsPage() {
                             <div className="text-xs font-medium text-white/70 relative z-10">{stat.label}</div>
                             <div className="text-xs text-white/40 relative z-10">{stat.sublabel}</div>
 
-                            {}
+                            {/* Corner accent */}
                             <div
                               className="absolute top-0 right-0 w-12 h-12 opacity-20"
                               style={{
@@ -830,7 +830,7 @@ export default function ProductsPage() {
                       ))}
                     </div>
 
-                    {}
+                    {/* Premium CTA button */}
                     <motion.button
                       onClick={() => setShowPilotOverlay(true)}
                       className="w-full relative group/btn overflow-hidden"
@@ -840,7 +840,7 @@ export default function ProductsPage() {
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
                     >
-                      {}
+                      {/* Button glow */}
                       <motion.div
                         className="absolute inset-0 rounded-xl blur-lg"
                         style={{
@@ -856,7 +856,7 @@ export default function ProductsPage() {
                         }}
                       />
 
-                      {}
+                      {/* Button surface */}
                       <div
                         className="relative px-8 py-4 rounded-xl flex items-center justify-between overflow-hidden"
                         style={{
@@ -864,7 +864,7 @@ export default function ProductsPage() {
                           boxShadow: '0 4px 20px rgba(232,184,74,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
                         }}
                       >
-                        {}
+                        {/* Animated shine */}
                         <motion.div
                           className="absolute inset-0"
                           style={{
@@ -902,7 +902,7 @@ export default function ProductsPage() {
                       </div>
                     </motion.button>
 
-                    {}
+                    {/* Elegant footer */}
                     <motion.div
                       className="mt-6 pt-5 border-t border-white/5 flex items-center justify-between"
                       initial={{ opacity: 0 }}
@@ -915,7 +915,7 @@ export default function ProductsPage() {
                       </div>
                       
                       <div className="flex items-center gap-2">
-                        {}
+                        {/* Avatar stack */}
                         <div className="flex -space-x-2">
                           {[...Array(4)].map((_, i) => (
                             <motion.div
@@ -940,12 +940,12 @@ export default function ProductsPage() {
             </motion.div>
 
 
-            {}
+            {/* RIGHT SIDE - ORBITAL VISUALIZATION */}
             <div className="relative">
               <div className="flex items-center justify-center" style={{ minHeight: '420px' }}>
                 <div className="relative" style={{ width: '420px', height: '420px' }}>
 
-                  {}
+                  {/* Empty Central Circle */}
                   <motion.div
                     className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20"
                     initial={{ scale: 0 }}
@@ -977,7 +977,7 @@ export default function ProductsPage() {
                     </div>
                   </motion.div>
 
-                  {}
+                  {/* Orbital rings */}
                   {[0, 1].map((ringIndex) => {
                     const radius = 108 + ringIndex * 36;
                     return (
@@ -1004,7 +1004,7 @@ export default function ProductsPage() {
                     );
                   })}
 
-                  {}
+                  {/* Agent Nodes */}
                   {filteredProducts.map((product, index) => {
                     const totalProducts = filteredProducts.length;
                     const angleOffset = (index / totalProducts) * Math.PI * 2 - Math.PI / 2;
@@ -1053,7 +1053,7 @@ export default function ProductsPage() {
                     );
                   })}
 
-                  {}
+                  {/* Communication Lines */}
                   <svg className="absolute inset-0 w-full h-full pointer-events-none">
                     <defs>
                       <linearGradient id={`commGrad-${selectedCategory}`}>
@@ -1130,7 +1130,7 @@ export default function ProductsPage() {
                     })}
                   </svg>
 
-                  {}
+                  {/* Hover Info Box */}
                   <AnimatePresence>
                     {hoveredProduct !== null && (
                       <motion.div
@@ -1195,7 +1195,7 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      {}
+      {/* ─── ENHANCED Pilot Project Overlay Modal ─── */}
       <AnimatePresence>
         {showPilotOverlay && (
           <motion.div
@@ -1205,7 +1205,7 @@ export default function ProductsPage() {
             exit={{ opacity: 0 }}
             onClick={closePilotOverlay}
           >
-            {}
+            {/* Enhanced backdrop */}
             <motion.div
               className="absolute inset-0 bg-black/80 backdrop-blur-xl"
               initial={{ opacity: 0 }}
@@ -1226,7 +1226,7 @@ export default function ProductsPage() {
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               onClick={(e) => e.stopPropagation()}
             >
-              {}
+              {/* Enhanced close button */}
               <button
                 onClick={closePilotOverlay}
                 className="absolute top-5 right-5 w-11 h-11 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/15 transition-all z-20 group"
@@ -1238,7 +1238,7 @@ export default function ProductsPage() {
                 <X className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
               </button>
 
-              {}
+              {/* Ambient glow layers */}
               <div
                 className="absolute -top-20 -right-20 w-96 h-96 rounded-full blur-3xl opacity-20 pointer-events-none"
                 style={{ background: 'radial-gradient(circle, #E8B84A, transparent)' }}
@@ -1248,10 +1248,10 @@ export default function ProductsPage() {
                 style={{ background: 'radial-gradient(circle, #E8A87C, transparent)' }}
               />
 
-              {}
+              {/* Inner step switcher */}
               <AnimatePresence mode="wait">
 
-                {}
+                {/* ── AGENTIC INFO STEP ── */}
                 {pilotStep === 'info' && (
                   <motion.div
                     key="info"
@@ -1260,7 +1260,7 @@ export default function ProductsPage() {
                     exit={{ opacity: 0, x: 30 }}
                     transition={{ duration: 0.3 }}
                   >
-                    {}
+                    {/* AI Neural Network Background */}
                     <svg className="absolute inset-0 w-full h-full opacity-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
                       <defs>
                         <pattern id="neural-grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -1374,13 +1374,13 @@ export default function ProductsPage() {
                               boxShadow: '0 8px 32px rgba(232,184,74,0.15)',
                             }}
                           >
-                            {}
+                            {/* Animated corner brackets */}
                             <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
                             <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
                             <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
                             <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
 
-                            {}
+                            {/* Scanning line effect */}
                             <motion.div
                               className="absolute inset-0 opacity-0 group-hover/card:opacity-100"
                               style={{
@@ -1396,7 +1396,7 @@ export default function ProductsPage() {
                               }}
                             />
 
-                            {}
+                            {/* Icon with pulse */}
                             <motion.div
                               className="mb-2"
                               animate={{
@@ -1417,7 +1417,7 @@ export default function ProductsPage() {
                             <div className="text-xs font-semibold text-white mb-1.5">{item.label}</div>
                             <p className="text-xs text-white/60 leading-snug">{item.desc}</p>
 
-                            {}
+                            {/* Data stream indicator */}
                             <div className="absolute top-4 right-4 flex gap-1">
                               {[...Array(3)].map((_, i) => (
                                 <motion.div
@@ -1440,7 +1440,7 @@ export default function ProductsPage() {
                         ))}
                       </div>
 
-                      {}
+                      {/* Enhanced info grid with tech styling */}
                       <motion.div
                         className="p-4 rounded-xl mb-6 relative overflow-hidden"
                         style={{
@@ -1451,7 +1451,7 @@ export default function ProductsPage() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.4 }}
                       >
-                        {}
+                        {/* Tech grid overlay */}
                         <div className="absolute inset-0 opacity-30" style={{
                           backgroundImage: 'linear-gradient(rgba(232,184,74,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(232,184,74,0.1) 1px, transparent 1px)',
                           backgroundSize: '20px 20px',
@@ -1490,7 +1490,7 @@ export default function ProductsPage() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.7 }}
                         >
-                          {}
+                          {/* Animated glow */}
                           <motion.div
                             className="absolute inset-0 rounded-xl blur-xl"
                             style={{ background: 'linear-gradient(135deg, #E8B84A, #E8A87C)', opacity: 0.4 }}
@@ -1510,7 +1510,7 @@ export default function ProductsPage() {
                               boxShadow: '0 4px 20px rgba(232,184,74,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
                             }}
                           >
-                            {}
+                            {/* Shine effect */}
                             <motion.div
                               className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20"
                               animate={{ x: ['-200%', '200%'] }}
@@ -1545,7 +1545,7 @@ export default function ProductsPage() {
                 )}
 
 
-                {}
+                {/* ── EMAIL STEP ── */}
                 {pilotStep === 'email' && (
                   <motion.div
                     key="email"
@@ -1555,7 +1555,7 @@ export default function ProductsPage() {
                     transition={{ duration: 0.3 }}
                     className="px-10 py-12"
                   >
-                    {}
+                    {/* Back button */}
                     <button
                       onClick={() => { setPilotStep('info'); setPilotError(''); }}
                       className="flex items-center gap-2 text-white/50 hover:text-white text-sm mb-10 transition-colors group"
@@ -1565,7 +1565,7 @@ export default function ProductsPage() {
                     </button>
 
                     <div className="max-w-md mx-auto">
-                      {}
+                      {/* Enhanced icon badge */}
                       <motion.div
                         className="w-16 h-16 rounded-2xl flex items-center justify-center mb-8 mx-auto relative"
                         style={{
@@ -1577,7 +1577,7 @@ export default function ProductsPage() {
                         animate={{ scale: 1, rotate: 0 }}
                         transition={{ type: 'spring', stiffness: 200, damping: 15 }}
                       >
-                        {}
+                        {/* Animated glow */}
                         <motion.div
                           className="absolute inset-0 rounded-2xl"
                           style={{
@@ -1626,7 +1626,7 @@ export default function ProductsPage() {
                         the pilot kicks off in March 2026 — no spam, ever.
                       </motion.p>
 
-                      {}
+                      {/* Enhanced email input */}
                       <motion.div
                         className="relative mb-4"
                         initial={{ opacity: 0, y: 20 }}
@@ -1655,7 +1655,7 @@ export default function ProductsPage() {
                           autoFocus
                         />
                         
-                        {}
+                        {/* Enhanced live typing indicator */}
                         {pilotEmail && !pilotError && (
                           <motion.div
                             className="absolute right-5 top-1/2 -translate-y-1/2"
@@ -1684,7 +1684,7 @@ export default function ProductsPage() {
                         )}
                       </motion.div>
 
-                      {}
+                      {/* Enhanced validation error */}
                       <AnimatePresence>
                         {pilotError && (
                           <motion.div
@@ -1705,7 +1705,7 @@ export default function ProductsPage() {
                         )}
                       </AnimatePresence>
 
-                      {}
+                      {/* Enhanced submit button */}
                       <motion.button
                         onClick={handlePilotSubmit}
                         disabled={pilotSubmitting}
@@ -1761,7 +1761,7 @@ export default function ProductsPage() {
                   </motion.div>
                 )}
 
-                {}
+                {/* ── SUCCESS STEP ── */}
                 {pilotStep === 'success' && (
                   <motion.div
                     key="success"
@@ -1771,9 +1771,9 @@ export default function ProductsPage() {
                     transition={{ duration: 0.3 }}
                     className="px-10 py-20 flex flex-col items-center text-center"
                   >
-                    {}
+                    {/* Enhanced pulsing check mark */}
                     <div className="relative mb-10">
-                      {}
+                      {/* Outer pulse rings */}
                       {[0, 1, 2].map((i) => (
                         <motion.div
                           key={i}
@@ -1794,7 +1794,7 @@ export default function ProductsPage() {
                         />
                       ))}
 
-                      {}
+                      {/* Main icon container */}
                       <motion.div
                         className="relative w-24 h-24 rounded-full flex items-center justify-center"
                         style={{
@@ -1898,7 +1898,7 @@ export default function ProductsPage() {
         )}
       </AnimatePresence>
 
-      {}
+      {/* ─── Product Detail Section ─── */}
       <AnimatePresence mode="wait">
         {selectedProduct && (
           <ProductDetailsSection
@@ -1923,7 +1923,7 @@ export default function ProductsPage() {
         </div>
       )}
 
-      </div>{}
+      </div>{/* end dots wrapper */}
 
       <Footer />
       <Chatbot />
@@ -1931,7 +1931,7 @@ export default function ProductsPage() {
   );
 }
 
-
+// ─── Agentic Node Component ───
 function AgenticNode({ product, isActive, index, size = 144 }: {
   product: typeof products[0];
   isActive: boolean;
@@ -1971,7 +1971,7 @@ function AgenticNode({ product, isActive, index, size = 144 }: {
           />
         )}
 
-        {}
+        {/* Corner brackets */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100">
           {[
             "M5,5 L20,5 M5,5 L5,20", "M95,5 L80,5 M95,5 L95,20",

@@ -15,15 +15,15 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-20">
 
           {/* Logo */}
-     <Link href="/" className="flex-shrink-0">
-  <Image
-    src="/sia-logo.png"
-    alt="SIA Logo"
-    width={800}
-    height={400}
-    className="h-32 w-auto brightness-0 invert"
-  />
-</Link>
+          <Link href="/" className="flex-shrink-0">
+            <Image
+              src="/sia-globe-v2.png"
+              alt="SIA Logo"
+              width={200}
+              height={200}
+              className="h-12 w-auto mix-blend-lighten"
+            />
+          </Link>
 
 
          {/* Right Side (Nav + CTA) */}
@@ -53,10 +53,11 @@ const Navbar = () => {
     </Link>
   </div>
 
-  {/* CTA Button */}
+  {/* CTA Button - hidden for now
   <button className="bg-gradient-to-r from-[#f0b849] to-[#f5d687] hover:from-[#f5d687] hover:to-[#f0b849] text-[#0a0a1a] font-semibold px-8 py-3 rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-yellow-500/20">
     Get Started
   </button>
+  */}
 </div>
 
 
@@ -121,12 +122,14 @@ const Navbar = () => {
               About Us
             </Link>
 
+            {/* Get Started - hidden for now
             <button
               onClick={() => setIsOpen(false)}
               className="w-full mt-4 bg-gradient-to-r from-[#f0b849] to-[#f5d687] text-[#0a0a1a] font-semibold px-6 py-3 rounded-full"
             >
               Get Started
             </button>
+            */}
           </div>
         </div>
       )}

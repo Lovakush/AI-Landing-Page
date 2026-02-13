@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, useScroll, useTransform, animate, useInView } from 'framer-motion';
+import { motion, useScroll, useTransform, animate, useInView, AnimatePresence } from 'framer-motion';
 import { useRef, MouseEvent, useEffect, useState, useMemo } from 'react';
 import { ShaderAnimation } from "@/components/ui/shader-lines";
 import RadialOrbitalTimeline from "@/components/ui/radial-orbital-timeline";
@@ -10,6 +10,7 @@ import Chatbot from '@/components/ui/chatbot';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
 import SIADashboard from '@/components/ui/SIADashboard';
+import WaitlistModal from '@/components/ui/WaitlistModal';
 
 
 const CountUp = ({ to, duration = 2, suffix = "", prefix = "" }: { to: number, duration?: number, suffix?: string, prefix?: string }) => {
@@ -100,7 +101,7 @@ const aiAgentsData = [
     shortDesc: 'Only work deals that close',
     description: 'Prospects sound great until they don\'t. Argo scores & disputes every lead so your team stops chasing ghosts and only works deals that close.',
     features: ['Lead Generation', 'Product Matching', 'Machine Learning', 'Next-Best-Action'],
-    color: '#E8B84A',
+    color: '#06B6D4',
     icon: Target,
     dashboardImg: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
   },
@@ -122,7 +123,7 @@ const aiAgentsData = [
     shortDesc: 'Screens 1000 resumes by 9am',
     description: 'Great talent hides before lunch. Consuelo screens 1000 resumes by 9am, scores soft skills and flags who to call first — bias-free.',
     features: ['Resume Parser', 'Smart Filter', 'AI Soft-Skills Test', 'Hiring Insights'],
-    color: '#06B6D4',
+    color: '#E8B84A',
     icon: Users,
     dashboardImg: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
   },
@@ -135,10 +136,29 @@ export default function OpseraLanding() {
   const [selectedAgent, setSelectedAgent] = useState<string | null>('argo');
   const [showAgentDetails, setShowAgentDetails] = useState(false);
   const [showAccessModal, setShowAccessModal] = useState(false);
-  const [email, setEmail] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [showSuccess, setShowSuccess] = useState(false);
   const [navVisible, setNavVisible] = useState(true);
+  const [archHovered, setArchHovered] = useState<number | null>(null);
+  const [archRevealed, setArchRevealed] = useState(-1);
+  const [archCycled, setArchCycled] = useState(false);
+
+  const archPreview = archRevealed === -1;
+  const archComplete = archRevealed >= 3;
+
+  const getLayerOpacity = (idx: number) => {
+    if (archPreview) return 0.4;
+    if (!archComplete) return archRevealed >= idx ? 1 : 0;
+    if (archHovered === null) return 1;
+    return archHovered >= idx ? 1 : 0;
+  };
+
+  const showAutonomous = !archPreview && (
+    archHovered === 3 || (archComplete && archHovered === null)
+  );
+
+  // Columns & crown visible in preview (dimmed) and when showAutonomous
+  const columnsVisible = archPreview || showAutonomous;
+  const columnsOpacity = archPreview ? 0.4 : (showAutonomous ? 1 : 0);
+
   const lastScrollY = useRef(0);
 
   // Auto-hide navbar on scroll
@@ -278,7 +298,7 @@ export default function OpseraLanding() {
                   whileTap={{ scale: 0.95 }}
                   className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#6B4E9B] to-[#2D1B4E] text-white font-semibold px-6 py-3 rounded-full text-sm shadow-[0_0_30px_rgba(107,78,155,0.4)] hover:shadow-[0_0_50px_rgba(107,78,155,0.6)] transition-all"
                 >
-                  Read our launch article <MoveRight className="w-4 h-4" />
+                  Our Story <MoveRight className="w-4 h-4" />
                 </motion.button>
               </Link>
             </div>
@@ -447,7 +467,7 @@ export default function OpseraLanding() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8 }}
-              className="flex items-center justify-center"
+              className="flex items-center justify-start"
             >
               <div className="grid [grid-template-areas:'stack'] place-items-center">
                 {aiAgentsData.map((agent, index) => {
@@ -473,8 +493,8 @@ export default function OpseraLanding() {
 
                   const positions = [
                     { x: 0, y: 0 },      // Back
-                    { x: 64, y: 40 },    // Middle
-                    { x: 128, y: 80 },   // Front
+                    { x: 80, y: 50 },    // Middle
+                    { x: 160, y: 100 },  // Front
                   ];
 
                   const pos = positions[visualPosition];
@@ -498,7 +518,7 @@ export default function OpseraLanding() {
                       }}
                       whileHover={{ y: pos.y - 15, opacity: 1 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`[grid-area:stack] relative flex h-28 w-[20rem] -skew-y-[8deg] select-none items-center rounded-xl border backdrop-blur-sm px-5 py-3 cursor-pointer transition-colors duration-300
+                      className={`[grid-area:stack] relative flex h-36 w-[28rem] -skew-y-[8deg] select-none items-center rounded-2xl border backdrop-blur-sm px-7 py-4 cursor-pointer transition-colors duration-300
                         ${isSelected
                           ? 'bg-[#1a1a2e]/95 shadow-[0_0_40px_rgba(232,184,74,0.2)]'
                           : 'bg-[#1a1a2e]/60'
@@ -510,7 +530,7 @@ export default function OpseraLanding() {
                     >
                       {/* Gradient fade on right */}
                       <div
-                        className="absolute -right-1 top-[-5%] h-[110%] w-[18rem] pointer-events-none z-20 transition-opacity duration-500"
+                        className="absolute -right-1 top-[-5%] h-[110%] w-[24rem] pointer-events-none z-20 transition-opacity duration-500"
                         style={{
                           background: `linear-gradient(to left, #2D1B4E, transparent)`,
                           opacity: isSelected ? 0 : 0.6,
@@ -522,7 +542,7 @@ export default function OpseraLanding() {
                         <div className="absolute -top-2 -left-2 z-40">
                           <div className="relative">
                             <div className="absolute inset-0 bg-[#E8B84A] rounded-full blur-md opacity-50" />
-                            <div className="relative bg-gradient-to-r from-[#E8B84A] to-[#d4a43d] text-[#0a0612] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            <div className="relative bg-gradient-to-r from-[#E8B84A] to-[#d4a43d] text-[#0a0612] text-xs font-bold px-3 py-1 rounded-full">
                               NEW
                             </div>
                           </div>
@@ -534,9 +554,9 @@ export default function OpseraLanding() {
                           className="inline-block rounded-full p-2"
                           style={{ backgroundColor: `${agent.color}25` }}
                         >
-                          <IconComponent className="size-5" style={{ color: agent.color }} />
+                          <IconComponent className="size-7" style={{ color: agent.color }} />
                         </span>
-                        <p className="text-xl font-semibold" style={{ color: agent.color }}>{agent.name}</p>
+                        <p className="text-2xl font-semibold" style={{ color: agent.color }}>{agent.name}</p>
                       </div>
                     </motion.div>
                   );
@@ -691,6 +711,25 @@ export default function OpseraLanding() {
                               ))}
                             </div>
                           </div>
+
+                          {/* How does it work CTA */}
+                          <Link
+                            href={`/products?agent=${agent.id}#how-it-works`}
+                            className="mt-6 flex items-center justify-center gap-2 w-full py-3 rounded-xl font-medium text-sm border transition-all duration-200 hover:scale-[1.02]"
+                            style={{
+                              color: agent.color,
+                              borderColor: `${agent.color}40`,
+                              backgroundColor: `${agent.color}15`,
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = `${agent.color}30`;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = `${agent.color}15`;
+                            }}
+                          >
+                            How does {agent.name} work? <MoveRight className="w-4 h-4" />
+                          </Link>
                         </motion.div>
                       </motion.div>
                     )}
@@ -885,143 +924,588 @@ export default function OpseraLanding() {
       <div className="h-64" style={{ background: "linear-gradient(to bottom, #f5f0ff 0%, #e0d5f0 20%, #b8a5d4 40%, #6b4e9b 65%, #3d2a5f 80%, #2D1B4E 100%)" }} />
 
       {/* Technology Stack Section - 3D Platform with Bars */}
-      <section className="relative py-32 px-6 bg-[#2D1B4E] overflow-hidden">
+      <section className="relative py-16 md:py-24 lg:py-32 px-4 sm:px-6 bg-[#2D1B4E] overflow-hidden">
         <div className="max-w-6xl mx-auto relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="mb-10 md:mb-16 text-center lg:text-left"
           >
-            <h3 className="text-5xl md:text-6xl font-light text-white mb-6 tracking-tight font-[family-name:var(--font-space-grotesk)]">
+            <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-white mb-4 md:mb-6 tracking-tight font-[family-name:var(--font-space-grotesk)]">
               Robust architecture
             </h3>
-            <p className="text-xl text-white/40 max-w-2xl mx-auto font-light font-[family-name:var(--font-inter)]">
+            <p className="text-base md:text-lg lg:text-xl text-white/40 max-w-2xl font-light font-[family-name:var(--font-inter)] mx-auto lg:mx-0">
               From raw data to autonomous action
             </p>
           </motion.div>
 
-          {/* 3D Platform Scene */}
-          <div className="relative max-w-4xl mx-auto">
-            {/* Platform with perspective */}
-            <div
-              className="relative mx-auto rounded-2xl p-8 md:p-12"
-              style={{
-                background: "linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%)",
-                boxShadow: "0 40px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.05)"
-              }}
-            >
-              {/* Grid overlay */}
-              <div
-                className="absolute inset-0 rounded-2xl opacity-20 pointer-events-none"
-                style={{
-                  backgroundImage: "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
-                  backgroundSize: "30px 30px"
-                }}
-              />
+          {/* Isometric 3D Architecture Visualization */}
+          <div className="relative max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-6 md:gap-8 lg:gap-12">
 
-              {/* Bars Container */}
-              <div className="relative flex items-end justify-center gap-3 md:gap-5 h-[320px] md:h-[380px]">
-                {[
-                  { height: 35, label: "Connect", desc: "Data ingestion" },
-                  { height: 50, label: "Process", desc: "ETL pipeline" },
-                  { height: 70, label: "Analyze", desc: "AI reasoning", highlight: true },
-                  { height: 85, label: "Learn", desc: "Model training", highlight: true },
-                  { height: 100, label: "Execute", desc: "Automation", highlight: true },
-                  { height: 80, label: "Monitor", desc: "Observability" },
-                  { height: 55, label: "Optimize", desc: "Continuous improvement" },
-                ].map((bar, idx) => (
-                  <motion.button
-                    key={bar.label}
-                    initial={{ height: 0, opacity: 0 }}
-                    whileInView={{ height: `${bar.height}%`, opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.1 * idx, ease: "easeOut" }}
-                    whileHover={{ scale: 1.05, y: -8 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="group relative flex-1 max-w-[70px] md:max-w-[80px] cursor-pointer"
-                    style={{ height: `${bar.height}%` }}
+            {/* Left column — interactive layer headers */}
+            <div className="flex flex-row lg:flex-col justify-center gap-0 w-full lg:w-56 shrink-0 order-2 lg:order-1 overflow-x-auto">
+              {[
+                { title: 'Data Integration', desc: 'We break data silos by unifying information across your enterprise apps, cloud storage, and ERPs under a single roof.' },
+                { title: 'AI Reasoning', desc: 'Your unified data powers intelligent solutions through LLMs and machine learning, enabling smarter decision-making at scale.' },
+                { title: 'Model Training', desc: 'Continuous improvement, data enrichment, and training deliver sharper insights into how your enterprise operates with each iteration.' },
+                { title: 'Autonomous Action', desc: 'Self-orchestrating agentic workflows run analytics, enable automations, and deliver intelligence grounded in your enterprise data.' },
+              ].map((item, i) => {
+                const isRevealed = archPreview || i <= archRevealed;
+                const isHovered = archHovered === i;
+                return (
+                  <div
+                    key={item.title}
+                    className="cursor-pointer group flex-1 lg:flex-none min-w-0"
+                    onMouseEnter={() => {
+                      setArchHovered(i);
+                      setArchRevealed(prev => Math.max(prev, i));
+                    }}
+                    onMouseLeave={() => {
+                      if (archComplete && !archCycled) setArchCycled(true);
+                      setArchHovered(null);
+                    }}
+                    onClick={() => {
+                      setArchHovered(i);
+                      setArchRevealed(prev => Math.max(prev, i));
+                    }}
                   >
-                    {/* Bar */}
-                    <div
-                      className={`
-                        w-full h-full rounded-t-lg relative overflow-hidden transition-all duration-300
-                        ${bar.highlight
-                          ? "bg-gradient-to-t from-[#E8B84A] via-[#d4a843] to-[#c9a03d] shadow-[0_0_30px_rgba(232,184,74,0.3)]"
-                          : "bg-gradient-to-t from-[#3a3a42] via-[#4a4a52] to-[#5a5a62]"
-                        }
-                        group-hover:shadow-[0_0_40px_rgba(232,184,74,0.5)]
-                      `}
-                    >
-                      {/* Metallic shine effect */}
-                      <div
-                        className="absolute inset-0 opacity-40"
-                        style={{
-                          background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 30%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 70%, transparent 100%)"
-                        }}
-                      />
-
-                      {/* Left edge highlight */}
-                      <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-white/40 via-white/20 to-transparent" />
-
-                      {/* Top cap */}
-                      <div
-                        className={`absolute top-0 left-0 right-0 h-3 rounded-t-lg ${bar.highlight ? "bg-[#f5cc5a]" : "bg-[#6a6a72]"}`}
-                        style={{
-                          boxShadow: bar.highlight ? "0 -2px 10px rgba(232,184,74,0.5)" : "none"
-                        }}
-                      />
+                    {i > 0 && (
+                      <div className="hidden lg:block w-full h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                    )}
+                    <div className="py-3 lg:py-4 px-2 lg:px-0 transition-all duration-300 text-center lg:text-left">
+                      <span className={`text-[10px] sm:text-xs lg:text-sm font-semibold tracking-[2px] lg:tracking-[3px] uppercase font-[family-name:var(--font-space-grotesk)] transition-colors duration-300 whitespace-nowrap ${
+                        isRevealed ? (archPreview ? 'text-white/50' : 'text-white/80') : 'text-white/30'
+                      } ${isHovered ? '!text-[#E8B84A]' : ''}`}>
+                        {item.title}
+                      </span>
+                      <AnimatePresence>
+                        {isHovered && (
+                          <motion.p
+                            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                            animate={{ height: 'auto', opacity: 1, marginTop: 8 }}
+                            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                            transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            className="hidden lg:block text-xs text-white/40 font-light leading-relaxed overflow-hidden"
+                          >
+                            {item.desc}
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
                     </div>
-
-                    {/* Reflection */}
-                    <div
-                      className={`
-                        absolute -bottom-8 left-0 right-0 h-8 rounded-b-lg opacity-20 blur-sm
-                        ${bar.highlight
-                          ? "bg-gradient-to-b from-[#E8B84A] to-transparent"
-                          : "bg-gradient-to-b from-[#4a4a52] to-transparent"
-                        }
-                      `}
-                    />
-
-                    {/* Label */}
-                    <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 text-center whitespace-nowrap">
-                      <p className={`text-[10px] md:text-xs font-medium ${bar.highlight ? "text-[#E8B84A]" : "text-white/50"} group-hover:text-white transition-colors`}>
-                        {bar.label}
-                      </p>
-                    </div>
-
-                    {/* Hover tooltip */}
-                    <div className="absolute -top-16 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                      <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg px-3 py-2 whitespace-nowrap">
-                        <p className="text-white text-xs font-medium">{bar.label}</p>
-                        <p className="text-white/60 text-[10px]">{bar.desc}</p>
-                      </div>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-
-              {/* Platform edge glow */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#E8B84A]/30 to-transparent" />
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Flow description */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.8 }}
-              className="flex items-center justify-center gap-4 mt-20 text-sm"
+            {/* Visualization */}
+            <div className="relative flex-1 w-full order-1 lg:order-2">
+            <div
+              className="relative flex items-center justify-center scale-[0.45] sm:scale-[0.55] md:scale-[0.7] lg:scale-[0.85] xl:scale-100 origin-center h-[300px] sm:h-[360px] md:h-[440px] lg:h-[520px] xl:h-[560px]"
+              style={{ perspective: '1200px' }}
             >
-              <span className="text-white/40">Your Data</span>
-              <span className="text-white/20">→</span>
-              <span className="text-[#E8B84A] font-medium">AI Processing Pipeline</span>
-              <span className="text-white/20">→</span>
-              <span className="text-white/40">Autonomous Action</span>
-            </motion.div>
+              {/* Hover float wrapper — outer div for y animation only */}
+              <motion.div
+                whileHover={{ y: -12 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+              >
+                {/* Scene container — isometric rotation, never touched by framer-motion */}
+                <div
+                  style={{
+                    transformStyle: 'preserve-3d',
+                    transform: 'rotateX(55deg) rotateZ(-45deg)',
+                    position: 'relative',
+                    width: '400px',
+                    height: '400px',
+                  }}
+                >
+                {/* ═══════ Shadow under base ═══════ */}
+                <div className="absolute pointer-events-none" style={{
+                  left: '50%', top: '50%',
+                  transform: 'translate(-50%, -50%) translateZ(-5px)',
+                  width: '420px', height: '420px',
+                  background: 'radial-gradient(ellipse, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.12) 50%, transparent 70%)',
+                  filter: 'blur(20px)',
+                }} />
+
+                {/* ═══════ Layer 1: Source Systems (base) ═══════ */}
+                <div
+                  className="absolute"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    transform: `translate(-50%, -50%) translateZ(${archComplete && archHovered === 0 ? 20 : 0}px)`,
+                    transition: 'transform 0.4s ease',
+                    width: '400px',
+                    height: '400px',
+                    transformStyle: 'preserve-3d',
+                  }}
+                >
+                  {/* Left side face — edges appear first (no delay) */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: getLayerOpacity(0) }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="absolute top-0 bottom-0 left-0 overflow-hidden"
+                    style={{
+                      width: '56px',
+                      transform: 'rotateY(90deg)',
+                      transformOrigin: 'left',
+                      background: 'linear-gradient(180deg, #18182e 0%, #0e0e1e 100%)',
+                      borderTop: '1px solid rgba(255,255,255,0.06)',
+                      borderBottom: '1px solid rgba(255,255,255,0.04)',
+                      borderLeft: '1px solid rgba(255,255,255,0.06)',
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-15" style={{
+                      background: 'linear-gradient(0deg, transparent 0%, rgba(255,255,255,0.12) 30%, transparent 60%)',
+                    }} />
+                    <div className="absolute inset-0 flex items-center justify-center" style={{ transform: 'scaleX(-1)' }}>
+                      <span className="text-[12px] text-white/50 font-semibold tracking-[2px] uppercase whitespace-nowrap"
+                        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(-360deg)' }}
+                      >
+                        Enterprise Source Systems &amp; ETL
+                      </span>
+                    </div>
+                  </motion.div>
+
+                  {/* Right side face — edges appear first (no delay) */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: getLayerOpacity(0) }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="absolute left-0 right-0 bottom-0 overflow-hidden"
+                    style={{
+                      height: '56px',
+                      transform: 'rotateX(90deg)',
+                      transformOrigin: 'bottom',
+                      background: 'linear-gradient(180deg, #12122a 0%, #0a0a18 100%)',
+                      borderLeft: '1px solid rgba(255,255,255,0.06)',
+                      borderRight: '1px solid rgba(255,255,255,0.04)',
+                      borderBottom: '1px solid rgba(255,255,255,0.04)',
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-10" style={{
+                      background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 20%, transparent 40%, rgba(255,255,255,0.05) 60%, transparent 80%)',
+                    }} />
+                    <div className="absolute inset-0 flex items-center justify-center gap-2 px-4" style={{ transform: 'scaleY(-1)' }}>
+                      {['CRM', 'ERP', 'Databases', "API's", 'Webhooks'].map((label) => (
+                        <span
+                          key={label}
+                          className="text-[10px] text-white/45 font-medium tracking-wide whitespace-nowrap rounded-full px-2.5 py-1"
+                          style={{
+                            background: 'rgba(255,255,255,0.06)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                          }}
+                        >
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  </motion.div>
+
+                  {/* Top face — surface appears second (delay 0.3s) */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: getLayerOpacity(0) }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    className="absolute inset-0 rounded-lg overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(135deg, #1c1c2e 0%, #2a2a40 25%, #1e1e32 50%, #2c2c44 75%, #1a1a2c 100%)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-20 pointer-events-none" style={{
+                      backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)',
+                    }} />
+                    <div className="absolute inset-0 opacity-30 pointer-events-none" style={{
+                      background: 'linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.08) 55%, transparent 70%)',
+                    }} />
+                    <div className="absolute inset-0 opacity-15 pointer-events-none" style={{
+                      backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+                      backgroundSize: '40px 40px',
+                    }} />
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-white/20 via-white/10 to-transparent" />
+                    <div className="absolute top-0 left-0 bottom-0 w-[1px] bg-gradient-to-b from-white/20 via-white/10 to-transparent" />
+                  </motion.div>
+                </div>
+
+                {/* ═══════ Layer 2: AI Reasoning & Model Training ═══════ */}
+                <div
+                  className="absolute"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    transform: `translate(-50%, -50%) translateZ(${archComplete && archHovered === 1 ? 90 : 70}px)`,
+                    transition: 'transform 0.4s ease',
+                    width: '320px',
+                    height: '320px',
+                    transformStyle: 'preserve-3d',
+                  }}
+                >
+                  {/* Left side face */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: getLayerOpacity(1) }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="absolute top-2 bottom-0 left-0 overflow-hidden"
+                    style={{
+                      width: '24px',
+                      transform: 'rotateY(90deg)',
+                      transformOrigin: 'left',
+                      background: 'linear-gradient(180deg, #2a1245 0%, #1e0a38 50%, #160830 100%)',
+                      borderTop: '1px solid rgba(168,85,247,0.3)',
+                      borderBottom: '1px solid rgba(168,85,247,0.15)',
+                      borderLeft: '1px solid rgba(168,85,247,0.3)',
+                      boxShadow: 'inset 0 0 12px rgba(168,85,247,0.1), inset 0 1px 0 rgba(255,255,255,0.06)',
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-30" style={{
+                      backgroundImage: 'linear-gradient(180deg, rgba(200,160,255,0.12) 0%, transparent 30%, rgba(200,160,255,0.08) 70%, transparent 100%)',
+                    }} />
+                    <div className="absolute inset-0 flex items-center justify-center" style={{ transform: 'scaleX(-1)' }}>
+                      <span className="text-[10px] text-purple-300/50 font-semibold tracking-[2px] uppercase whitespace-nowrap"
+                        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(-360deg)' }}
+                      >
+                        AI Reasoning &amp; Model Training
+                      </span>
+                    </div>
+                  </motion.div>
+
+                  {/* Right side face */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: getLayerOpacity(1) }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="absolute left-0 right-2 bottom-0 overflow-hidden"
+                    style={{
+                      height: '24px',
+                      transform: 'rotateX(90deg)',
+                      transformOrigin: 'bottom',
+                      background: 'linear-gradient(90deg, #2a1245 0%, #1e0a38 50%, #160830 100%)',
+                      borderLeft: '1px solid rgba(168,85,247,0.3)',
+                      borderRight: '1px solid rgba(168,85,247,0.15)',
+                      borderBottom: '1px solid rgba(168,85,247,0.15)',
+                      boxShadow: 'inset 0 0 12px rgba(168,85,247,0.1), inset 0 1px 0 rgba(255,255,255,0.06)',
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-30" style={{
+                      backgroundImage: 'linear-gradient(90deg, rgba(200,160,255,0.12) 0%, transparent 30%, rgba(200,160,255,0.08) 70%, transparent 100%)',
+                    }} />
+                  </motion.div>
+
+                  {/* Top face */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: getLayerOpacity(1) }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="absolute inset-0 rounded-xl overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(120,60,200,0.15) 0%, rgba(168,85,247,0.2) 30%, rgba(140,70,220,0.12) 60%, rgba(168,85,247,0.18) 100%)',
+                      border: '1px solid rgba(168,85,247,0.25)',
+                      backdropFilter: 'blur(8px)',
+                      boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.1), 0 0 30px rgba(168,85,247,0.1)',
+                    }}
+                  >
+                    {/* Glass refraction highlight */}
+                    <div className="absolute inset-0 opacity-40 pointer-events-none" style={{
+                      background: 'linear-gradient(135deg, transparent 20%, rgba(200,160,255,0.15) 40%, rgba(255,255,255,0.1) 50%, rgba(200,160,255,0.1) 60%, transparent 80%)',
+                    }} />
+                    {/* Grid texture */}
+                    <div className="absolute inset-0 pointer-events-none" style={{
+                      backgroundImage: 'linear-gradient(rgba(168,85,247,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,0.12) 1px, transparent 1px)',
+                      backgroundSize: '40px 40px',
+                    }} />
+                    {/* Grid cubes with labels - scattered on the surface */}
+                    {[
+                      { label: 'LLM', x: 24, y: 20 },
+                      { label: 'RAG', x: 230, y: 50 },
+                      { label: 'AI Agents', x: 10, y: 240 },
+                      { label: 'ML', x: 100, y: 130 },
+                      { label: 'Fine-Tuning', x: 200, y: 180 },
+                    ].map((item) => (
+                      <div
+                        key={item.label}
+                        className="absolute rounded-md flex items-center justify-center"
+                        style={{
+                          left: `${item.x}px`,
+                          top: `${item.y}px`,
+                          width: item.label.length > 3 ? '80px' : '50px',
+                          height: '36px',
+                          background: 'linear-gradient(135deg, rgba(168,85,247,0.2) 0%, rgba(120,60,200,0.15) 100%)',
+                          border: '1px solid rgba(168,85,247,0.3)',
+                          boxShadow: '0 0 12px rgba(168,85,247,0.15), inset 0 1px 1px rgba(255,255,255,0.08)',
+                        }}
+                      >
+                        <span className="text-[9px] text-purple-300/70 font-bold tracking-[1px] uppercase transition-opacity duration-300"
+                          style={{ opacity: columnsVisible ? 0 : 1 }}
+                        >
+                          {item.label}
+                        </span>
+                      </div>
+                    ))}
+                    {/* Edge highlights */}
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-purple-400/30 via-purple-300/15 to-transparent" />
+                    <div className="absolute top-0 left-0 bottom-0 w-[1px] bg-gradient-to-b from-purple-400/30 via-purple-300/15 to-transparent" />
+                  </motion.div>
+                </div>
+
+                {/* ═══════ Layer 3: Golden Orbit Arcs — single SVG paths ═══════ */}
+                {(() => {
+                  const arcs = [
+                    'M 49 38 Q 152 0 255 68',
+                    'M 255 68 Q 305 120 240 198',
+                    'M 240 198 Q 183 218 125 148',
+                    'M 125 148 Q 32 93 49 38',
+                    'M 255 68 Q 230 85 125 148',
+                    'M 50 258 Q 100 148 49 38',
+                    'M 50 258 Q 30 190 125 148',
+                  ];
+                  return (
+                    <div
+                      className="absolute pointer-events-none"
+                      style={{
+                        left: '50%',
+                        top: '50%',
+                        marginLeft: '-160px',
+                        marginTop: '-160px',
+                        width: '320px',
+                        height: '320px',
+                        transform: 'translateZ(72px)',
+                      }}
+                    >
+                    <motion.svg
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: (() => {
+                        if (archPreview) return 0.4;
+                        if (!archComplete) return archRevealed >= 2 ? 1 : 0;
+                        if (archHovered === null) return 0;
+                        return archHovered >= 2 && archHovered < 3 ? 1 : 0;
+                      })() }}
+                      transition={{ duration: 0.8 }}
+                      className="absolute inset-0 pointer-events-none"
+                      viewBox="0 0 320 320"
+                      overflow="visible"
+                      style={{
+                        width: '320px',
+                        height: '320px',
+                      }}
+                    >
+                      <defs>
+                        <filter id="arcGlow" x="-30%" y="-30%" width="160%" height="160%">
+                          <feGaussianBlur stdDeviation="3" result="blur" />
+                          <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                          </feMerge>
+                        </filter>
+                        <filter id="arcGlowStrong" x="-30%" y="-30%" width="160%" height="160%">
+                          <feGaussianBlur stdDeviation="5" result="blur" />
+                          <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                          </feMerge>
+                        </filter>
+                      </defs>
+
+                      {/* Static golden glow arcs — 1 path = 1 arc */}
+                      {arcs.map((d, i) => (
+                        <path key={`glow-${i}`} d={d} fill="none" stroke="rgba(232,184,74,0.3)" strokeWidth="1.5" filter="url(#arcGlow)" />
+                      ))}
+
+                      {/* Animated traveling particles along each arc */}
+                      {arcs.map((d, i) => (
+                        <motion.path
+                          key={`particle-${i}`}
+                          d={d}
+                          fill="none"
+                          stroke="rgba(255,230,150,0.9)"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          filter="url(#arcGlowStrong)"
+                          pathLength={1000}
+                          strokeDasharray="40 960"
+                          initial={{ strokeDashoffset: 0 }}
+                          animate={{ strokeDashoffset: -1000 }}
+                          transition={{ duration: 3 + i * 0.2, repeat: Infinity, ease: 'linear', delay: i * 0.4 }}
+                        />
+                      ))}
+
+                      {/* Endpoint halos moved to separate 3D-positioned divs below */}
+                    </motion.svg>
+                    </div>
+                  );
+                })()}
+
+                {/* Ambient glow beneath platform */}
+                <motion.div
+                  className="absolute rounded-full pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: archPreview ? 0.2 : (getLayerOpacity(0) > 0 ? (archComplete ? 1 : 0.4) : 0) }}
+                  transition={{ duration: 1 }}
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%) translateZ(-15px)',
+                    width: '480px',
+                    height: '480px',
+                    background: 'radial-gradient(circle, rgba(168,85,247,0.05) 0%, rgba(255,255,255,0.02) 40%, transparent 60%)',
+                    filter: 'blur(25px)',
+                  }}
+                />
+
+                {/* ═══════ Golden 3D columns — grow from textboxes on Autonomous Action ═══════ */}
+                <div
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: '-160px',
+                    marginTop: '-160px',
+                    transform: `translateZ(${archCycled && archHovered === 3 ? 90 : 70}px)`,
+                    transition: 'transform 0.4s ease',
+                    width: '320px',
+                    height: '320px',
+                    transformStyle: 'preserve-3d',
+                  }}
+                >
+                  {[
+                    { x: 24, y: 20, tw: 50, colH: 190, label: 'Marketing' },
+                    { x: 230, y: 50, tw: 50, colH: 110, label: 'Procurement' },
+                    { x: 10, y: 240, tw: 80, colH: 155, label: 'Accounting' },
+                    { x: 100, y: 130, tw: 50, colH: 230, label: 'Human Resource' },
+                    { x: 200, y: 180, tw: 80, colH: 75, label: 'Sales' },
+                  ].map((col, i) => (
+                    <div
+                      key={i}
+                      className="absolute"
+                      style={{
+                        left: `${col.x}px`,
+                        top: `${col.y}px`,
+                        width: `${col.tw}px`,
+                        height: '36px',
+                        transformStyle: 'preserve-3d',
+                        transform: `scaleZ(${columnsVisible ? 1 : 0})`,
+                        opacity: columnsOpacity,
+                        transition: 'transform 1.2s linear, opacity 0.15s linear',
+                      }}
+                    >
+                      {/* Top cap */}
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          transform: `translateZ(${col.colH}px)`,
+                          background: 'linear-gradient(135deg, rgba(232,184,74,0.55) 0%, rgba(232,184,74,0.38) 100%)',
+                          border: '2px solid rgba(232,184,74,0.6)',
+                          boxShadow: '0 0 18px rgba(232,184,74,0.25)',
+                        }}
+                      />
+                      {/* Left visible face */}
+                      <div
+                        className="absolute top-0 left-0 overflow-hidden"
+                        style={{
+                          width: `${col.colH}px`,
+                          height: '36px',
+                          transform: `translateZ(${col.colH}px) rotateY(90deg)`,
+                          transformOrigin: 'left',
+                          background: 'linear-gradient(to right, rgba(232,184,74,0.45), rgba(232,184,74,0.22))',
+                          borderLeft: '2px solid rgba(232,184,74,0.55)',
+                          borderTop: '2px solid rgba(232,184,74,0.45)',
+                          borderBottom: '2px solid rgba(232,184,74,0.30)',
+                        }}
+                      >
+                        <span
+                          className="absolute whitespace-nowrap font-semibold uppercase"
+                          style={{
+                            fontSize: '10px',
+                            color: 'rgba(255,235,170,0.95)',
+                            textShadow: '0 0 8px rgba(232,184,74,0.6)',
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, -50%) scaleX(-1)',
+                            letterSpacing: '1.5px',
+                            opacity: columnsVisible ? (archPreview ? 0.4 : 1) : 0,
+                            transition: 'opacity 0.5s ease',
+                            transitionDelay: (!archPreview && showAutonomous) ? '1.2s' : '0s',
+                          }}
+                        >
+                          {col.label}
+                        </span>
+                      </div>
+                      {/* Bottom visible face */}
+                      <div
+                        className="absolute bottom-0 left-0"
+                        style={{
+                          width: `${col.tw}px`,
+                          height: `${col.colH}px`,
+                          transform: `translateZ(${col.colH}px) rotateX(90deg)`,
+                          transformOrigin: 'bottom',
+                          background: 'linear-gradient(to top, rgba(232,184,74,0.40), rgba(232,184,74,0.18))',
+                          borderBottom: '2px solid rgba(232,184,74,0.50)',
+                          borderLeft: '2px solid rgba(232,184,74,0.30)',
+                          borderRight: '2px solid rgba(232,184,74,0.30)',
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* ═══════ Crown ring above columns with traveling particle ═══════ */}
+                <div
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: '-160px',
+                    marginTop: '-160px',
+                    width: '320px',
+                    height: '320px',
+                    transform: `translateZ(${archCycled && archHovered === 3 ? 330 : 310}px)`,
+                    transition: 'transform 0.4s ease',
+                  }}
+                >
+                  <motion.svg
+                    initial={{ opacity: archPreview ? 0.4 : 0 }}
+                    animate={{ opacity: columnsOpacity }}
+                    transition={{ duration: 0.5, delay: (!archPreview && showAutonomous) ? 1.2 : 0 }}
+                    className="absolute inset-0 pointer-events-none"
+                    viewBox="0 0 320 320"
+                    overflow="visible"
+                    style={{ width: '320px', height: '320px' }}
+                  >
+                    <defs>
+                      <filter id="crownGlow" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation="4" result="blur" />
+                        <feMerge>
+                          <feMergeNode in="blur" />
+                          <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                      </filter>
+                    </defs>
+                    <circle cx="140" cy="150" r="135" fill="none" stroke="rgba(232,184,74,0.25)" strokeWidth="1.5" filter="url(#crownGlow)" />
+                    <motion.circle
+                      cx="140"
+                      cy="150"
+                      r="135"
+                      fill="none"
+                      stroke="rgba(255,230,150,0.9)"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      filter="url(#crownGlow)"
+                      pathLength={1000}
+                      strokeDasharray="40 960"
+                      initial={{ strokeDashoffset: 0 }}
+                      animate={{ strokeDashoffset: -1000 }}
+                      transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
+                    />
+                  </motion.svg>
+                </div>
+
+              </div>
+              </motion.div>
+            </div>
+          </div>
           </div>
         </div>
       </section>
@@ -1049,12 +1533,12 @@ export default function OpseraLanding() {
             </h3>
 
             <motion.button
-              onClick={() => { setShowAccessModal(true); setErrorMessage(''); setShowSuccess(false); }}
+              onClick={() => setShowAccessModal(true)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="relative group bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] text-[#2D1B4E] font-bold px-16 py-6 text-xl rounded-full shadow-[0_0_40px_rgba(232,184,74,0.4)] hover:shadow-[0_0_80px_rgba(232,184,74,0.6)] transition-all duration-300 overflow-hidden"
             >
-              <span className="relative z-10">Request Access</span>
+              <span className="relative z-10">Join the Waitlist</span>
               {/* Shine Animation */}
               <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12 group-hover:animate-[shine_1s_ease-in-out_infinite]" />
             </motion.button>
@@ -1062,153 +1546,7 @@ export default function OpseraLanding() {
         </div>
 
         {/* Request Access Modal */}
-        {showAccessModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm"
-            onClick={() => setShowAccessModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative max-w-md w-full rounded-2xl p-8 border"
-              style={{
-                backgroundColor: '#1a1a2e',
-                borderColor: 'rgba(232, 184, 74, 0.3)',
-                boxShadow: '0 0 60px rgba(232, 184, 74, 0.2)',
-              }}
-            >
-              {/* Close button */}
-              <button
-                onClick={() => { setShowAccessModal(false); setShowSuccess(false); }}
-                className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-
-              {showSuccess ? (
-                <div className="text-center py-4">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <h4 className="text-2xl font-bold text-white mb-2">You're on the list!</h4>
-                  <p className="text-white/60 text-sm mb-6">
-                    We'll be in touch soon. Keep an eye on your inbox.
-                  </p>
-                  <motion.button
-                    onClick={() => { setShowAccessModal(false); setShowSuccess(false); }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 rounded-xl font-semibold text-[#2D1B4E] bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] hover:shadow-[0_0_30px_rgba(232,184,74,0.4)] transition-all"
-                  >
-                    Done
-                  </motion.button>
-                </div>
-              ) : (
-                <>
-                  {/* Header */}
-                  <div className="text-center mb-6">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] flex items-center justify-center">
-                      <Rocket className="w-8 h-8 text-[#2D1B4E]" />
-                    </div>
-                    <h4 className="text-2xl font-bold text-white mb-2">Request Access</h4>
-                    <p className="text-white/60 text-sm">
-                      Enter your email to join the waitlist and be among the first to experience SIA.
-                    </p>
-                  </div>
-
-                  {/* Email Input */}
-                  <form
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      setErrorMessage('');
-                      try {
-                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
-                        const res = await fetch(`${apiUrl}/api/waitlist/join/`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ email }),
-                        });
-                        if (!res.ok) {
-                          const errorData = await res.json().catch(() => null);
-                          let message = res.status === 400 ? 'Email already registered.' : 'Something went wrong. Please try again.';
-                          if (errorData) {
-                            const emailErr = errorData.email;
-                            if (Array.isArray(emailErr) && emailErr[0]) {
-                              message = emailErr[0];
-                            } else if (typeof emailErr === 'string') {
-                              message = emailErr;
-                            } else if (typeof errorData.error === 'string') {
-                              message = errorData.error;
-                            } else if (typeof errorData.detail === 'string') {
-                              message = errorData.detail;
-                            }
-                          }
-                          setErrorMessage(message);
-                          return;
-                        }
-                        setShowSuccess(true);
-                        setEmail('');
-                      } catch (err) {
-                        console.error('Waitlist error:', err);
-                        setErrorMessage('Could not connect to the server. Please check if the backend is running.');
-                      }
-                    }}
-                    className="space-y-4"
-                  >
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-white/70 mb-2">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          setErrorMessage('');
-                        }}
-                        placeholder="you@company.com"
-                        required
-                        className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-white/30 focus:outline-none transition-all ${
-                          errorMessage
-                            ? 'border-red-500/60 focus:border-red-500/80 focus:ring-2 focus:ring-red-500/20'
-                            : 'border-white/10 focus:border-[#E8B84A]/50 focus:ring-2 focus:ring-[#E8B84A]/20'
-                        }`}
-                      />
-                      {errorMessage && (
-                        <p className="text-red-400 text-sm mt-2">{errorMessage}</p>
-                      )}
-                    </div>
-
-                    <motion.button
-                      type="submit"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full py-3 rounded-xl font-semibold text-[#2D1B4E] bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] hover:shadow-[0_0_30px_rgba(232,184,74,0.4)] transition-all"
-                    >
-                      Join Waitlist
-                    </motion.button>
-                  </form>
-
-                  {/* Footer note */}
-                  <p className="text-center text-white/40 text-xs mt-4">
-                    We respect your privacy. No spam, ever.
-                  </p>
-                </>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
+        <WaitlistModal isOpen={showAccessModal} onClose={() => setShowAccessModal(false)} />
       </section>
 
       <Footer />

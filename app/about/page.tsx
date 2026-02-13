@@ -2,9 +2,114 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import Chatbot from '@/components/ui/chatbot';
+<<<<<<< Updated upstream
 import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
+
+function WaitlistForm() {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('loading');
+    setErrorMsg('');
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+      const res = await fetch(`${apiUrl}/api/waitlist/join/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        let message = res.status === 400 ? 'Email already registered.' : 'Something went wrong. Please try again.';
+        if (errorData) {
+          const emailErr = errorData.email;
+          if (Array.isArray(emailErr) && emailErr[0]) {
+            message = emailErr[0];
+          } else if (typeof emailErr === 'string') {
+            message = emailErr;
+          } else if (typeof errorData.error === 'string') {
+            message = errorData.error;
+          } else if (typeof errorData.detail === 'string') {
+            message = errorData.detail;
+          }
+        }
+        setErrorMsg(message);
+        setStatus('error');
+        return;
+      }
+
+      setStatus('success');
+      setEmail('');
+    } catch (err) {
+      console.error('Waitlist error:', err);
+      setErrorMsg('Could not connect to the server. Please try again later.');
+      setStatus('error');
+    }
+  };
+
+  if (status === 'success') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="max-w-md mx-auto flex items-center gap-3 px-6 py-4 rounded-full border border-[#E8B84A]/30 bg-[#E8B84A]/10 mb-6"
+      >
+        <span className="text-white text-sm font-semibold">You&apos;re on the list! We&apos;ll be in touch soon.</span>
+      </motion.div>
+    );
+  }
+
+  return (
+    <>
+      <motion.form
+        onSubmit={handleSubmit}
+        className="max-w-md mx-auto flex flex-col sm:flex-row items-center gap-4 justify-center mb-2"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); if (status === 'error') setStatus('idle'); }}
+          placeholder="you@company.com"
+          required
+          className={`w-full px-5 py-3 rounded-full bg-white/5 border text-white placeholder:text-white/40 outline-none text-base transition-all ${
+            status === 'error'
+              ? 'border-red-500/60 focus:border-red-500/80 focus:ring-2 focus:ring-red-500/20'
+              : 'border-white/20 focus:border-[#E8B84A] focus:ring-2 focus:ring-[#E8B84A]/20'
+          }`}
+          aria-label="Email address"
+        />
+        <motion.button
+          type="submit"
+          disabled={status === 'loading'}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-bold px-9 py-4 rounded-full text-base whitespace-nowrap"
+          style={{
+            background: 'linear-gradient(135deg, #E8B84A, #E8A87C)',
+            color: '#2D1B4E',
+            boxShadow: '0 0 40px rgba(232,184,74,0.4)',
+          }}
+        >
+          {status === 'loading' ? 'Joining...' : 'Join Waitlist'}
+        </motion.button>
+      </motion.form>
+      {status === 'error' && (
+        <p className="text-red-400 text-sm text-center mb-4">{errorMsg}</p>
+      )}
+    </>
+  );
+}
 
 const tetrisPieces = [
   {
@@ -183,9 +288,9 @@ function TetrisAnimation({ onSubtitleTrigger, onPieceChange }: { onSubtitleTrigg
 
       const rect = sectionRef.current.getBoundingClientRect();
       const windowHeight = window.innerHeight;
-      const isMidPage = rect.top <= windowHeight * 0.5 && rect.top >= windowHeight * 0.3;
+      const isInView = rect.top <= windowHeight * 0.5 && rect.bottom >= windowHeight * 0.5;
 
-      if (isMidPage && !sectionActivated) {
+      if (isInView) {
         setSectionActivated(true);
         setScrollLocked(true);
         dropPiece(0);
@@ -597,6 +702,10 @@ function TetrisAnimation({ onSubtitleTrigger, onPieceChange }: { onSubtitleTrigg
     </div>
   );
 }
+=======
+import { useEffect, useState, useRef } from 'react';
+import Navbar from '@/components/ui/Navbar';
+>>>>>>> Stashed changes
 
 export default function AboutPage() {
   const [activePanel, setActivePanel] = useState<'why' | 'how' | 'what' | null>(null);
@@ -605,32 +714,10 @@ export default function AboutPage() {
   const [currentPiece, setCurrentPiece] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Body background to prevent white flash + smooth scroll snap via CSS
+  // Body background to prevent white flash
   useEffect(() => {
-    document.body.style.background = '#0c0118';
-
-    const style = document.createElement('style');
-    style.textContent = `
-      html {
-        scroll-snap-type: y proximity;
-        scroll-behavior: smooth;
-      }
-      @media (prefers-reduced-motion: no-preference) {
-        html {
-          scroll-padding-top: 0px;
-        }
-      }
-      section[data-snap] {
-        scroll-snap-align: start;
-        scroll-snap-stop: normal;
-      }
-    `;
-    document.head.appendChild(style);
-
-    return () => {
-      document.body.style.background = '';
-      style.remove();
-    };
+    document.body.style.background = '#0d0015';
+    return () => { document.body.style.background = ''; };
   }, []);
 
   const showPanel = (panel: 'why' | 'how' | 'what') => {
@@ -650,10 +737,15 @@ export default function AboutPage() {
   };
 
   return (
-    <div ref={containerRef} className="min-h-screen" style={{ background: 'linear-gradient(160deg, #12041a 0%, #1e0835 30%, #2a0d4a 55%, #160228 80%, #0c0118 100%)' }}>
+<<<<<<< Updated upstream
+    <div ref={containerRef} className="bg-[#0d0015] min-h-screen">
+=======
+    <div className="bg-gradient-to-b from-white via-[#faf5ff] to-white min-h-screen w-full overflow-x-hidden">
+      {/* Header/Navbar */}
+>>>>>>> Stashed changes
       <Navbar/>
 
-      <section className="pt-24 md:pt-32 pb-12 md:pb-20 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" data-snap>
+      <section className="pt-24 md:pt-32 pb-12 md:pb-20 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" style={{ background: 'linear-gradient(180deg, #0d0015 0%, #1a0a2e 50%, #2D1B4E 100%)' }}>
         <motion.div
           className="max-w-7xl mx-auto w-full"
           initial={{ opacity: 0, y: 50 }}
@@ -890,7 +982,7 @@ export default function AboutPage() {
         </motion.div>
       </section>
 
-      <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 relative overflow-hidden min-h-screen flex items-center" data-snap>
+      <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 relative overflow-hidden min-h-screen flex items-center" style={{ background: 'linear-gradient(180deg, #2D1B4E 0%, #3d2a5f 50%, #2D1B4E 100%)' }}>
         <div className="max-w-7xl mx-auto relative z-10 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
             <motion.div
@@ -973,7 +1065,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" data-snap>
+      <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" style={{ background: 'linear-gradient(180deg, #2D1B4E 0%, #1a0a2e 50%, #2D1B4E 100%)' }}>
         <div className="max-w-6xl mx-auto w-full">
           <motion.div
             className="text-center mb-12 md:mb-20"
@@ -1041,7 +1133,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" data-snap>
+      <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" style={{ background: 'linear-gradient(180deg, #2D1B4E 0%, #3d2a5f 50%, #2D1B4E 100%)' }}>
         <div className="max-w-7xl mx-auto w-full">
           <motion.div
             className="text-center mb-10 md:mb-16"
@@ -1308,36 +1400,8 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 relative overflow-hidden min-h-screen flex items-center" data-snap>
-        <div className="max-w-4xl mx-auto relative z-10 w-full">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-            {[
-              {
-                label: 'Vision',
-                text: 'A future where businesses of any size can act with the intelligence, intent, and speed once reserved for the few.',
-              },
-              {
-                label: 'Mission',
-                text: "To help growing businesses grow faster and operate smarter — by making tomorrow's technologies accessible today.",
-              },
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                className="p-8 md:p-12 rounded-3xl border border-white/8 bg-white/3 backdrop-blur-xl hover:bg-white/5 transition-all duration-300"
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, delay: idx * 0.2 }}
-              >
-                <div className="text-xs font-semibold tracking-widest text-[#E8B84A] uppercase mb-6">{item.label}</div>
-                <h3 className="text-2xl font-light text-white leading-relaxed">{item.text}</h3>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      <section id="cta" className="relative z-10 py-16 md:py-28 px-6 min-h-screen flex items-center" data-snap>
+      <section id="cta" className="relative z-10 py-16 md:py-28 px-6 min-h-screen flex items-center" style={{ background: 'linear-gradient(180deg, #2D1B4E 0%, #1a0a2e 50%, #0d0015 100%)' }}>
         <div className="max-w-4xl mx-auto text-center w-full">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -1351,33 +1415,7 @@ export default function AboutPage() {
             <p className="text-lg text-white/45 mb-10">
               Join the waitlist to be the first to know when we launch.
             </p>
-            <motion.form
-              className="max-w-md mx-auto flex flex-col sm:flex-row items-center gap-4 justify-center mb-6"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <input
-                type="email"
-                placeholder="you@company.com"
-                className="w-full px-5 py-3 rounded-full bg-white/5 border border-white/20 text-white placeholder:text-white/40 outline-none text-base focus:border-[#E8B84A] focus:ring-2 focus:ring-[#E8B84A]/20 transition-all"
-                aria-label="Email address"
-              />
-              <motion.button
-                type="submit"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-bold px-9 py-4 rounded-full text-base whitespace-nowrap"
-                style={{
-                  background: 'linear-gradient(135deg, #E8B84A, #E8A87C)',
-                  color: '#2D1B4E',
-                  boxShadow: '0 0 40px rgba(232,184,74,0.4)',
-                }}
-              >
-                Join Waitlist
-              </motion.button>
-            </motion.form>
+            <WaitlistForm />
           </motion.div>
         </div>
       </section>
