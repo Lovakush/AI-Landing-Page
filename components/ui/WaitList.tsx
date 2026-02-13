@@ -221,8 +221,41 @@ export default function WaitlistSection() {
     setStatus("loading");
     setErrorMsg("");
 
-    await new Promise((r) => setTimeout(r, 1400));
-    setStatus("success");
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+      const res = await fetch(`${apiUrl}/api/waitlist/join/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        let message = res.status === 400 ? 'Email already registered.' : 'Something went wrong. Please try again.';
+        if (errorData) {
+          const emailErr = errorData.email;
+          if (Array.isArray(emailErr) && emailErr[0]) {
+            message = emailErr[0];
+          } else if (typeof emailErr === 'string') {
+            message = emailErr;
+          } else if (typeof errorData.error === 'string') {
+            message = errorData.error;
+          } else if (typeof errorData.detail === 'string') {
+            message = errorData.detail;
+          }
+        }
+        setErrorMsg(message);
+        setStatus("error");
+        return;
+      }
+
+      setStatus("success");
+      setEmail("");
+    } catch (err) {
+      console.error('Waitlist error:', err);
+      setErrorMsg("Could not connect to the server. Please try again later.");
+      setStatus("error");
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
