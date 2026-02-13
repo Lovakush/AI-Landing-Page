@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-/* ─── CREATIVE AI ENGINE ANIMATION ─── */
+
 function MarketingNetwork() {
   return (
     <div className="relative w-[400px] h-[400px] flex items-center justify-center">
-      {/* Outer pulsing glow */}
+      {}
       <motion.div
         animate={{ 
           scale: [1, 1.2, 1],
@@ -21,7 +21,7 @@ function MarketingNetwork() {
         className="absolute w-80 h-80 rounded-full bg-gradient-to-r from-[#E8B84A]/30 via-purple-500/30 to-[#E8B84A]/30 blur-3xl"
       />
 
-      {/* Rotating orbit rings */}
+      {}
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
@@ -38,7 +38,7 @@ function MarketingNetwork() {
         <div className="absolute inset-0 rounded-full border border-purple-400/20" />
       </motion.div>
 
-      {/* Floating particles/nodes */}
+      {}
       {[...Array(8)].map((_, i) => {
         const angle = (i * 360) / 8;
         const radius = 140;
@@ -69,7 +69,7 @@ function MarketingNetwork() {
         );
       })}
 
-      {/* Energy beams radiating */}
+      {}
       {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
         <motion.div
           key={`beam-${i}`}
@@ -88,7 +88,7 @@ function MarketingNetwork() {
         />
       ))}
 
-      {/* Data flow particles */}
+      {}
       {[...Array(12)].map((_, i) => (
         <motion.div
           key={`particle-${i}`}
@@ -118,7 +118,7 @@ function MarketingNetwork() {
         </motion.div>
       ))}
 
-      {/* Central core with enhanced styling */}
+      {}
       <motion.div
         animate={{ 
           scale: [1, 1.05, 1],
@@ -137,14 +137,14 @@ function MarketingNetwork() {
                    backdrop-blur-xl border-2 border-[#E8B84A]/60
                    bg-gradient-to-br from-[#E8B84A]/30 via-purple-600/20 to-[#E8B84A]/30"
       >
-        {/* Inner glow ring */}
+        {}
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
           className="absolute inset-2 rounded-full border border-[#E8B84A]/40"
         />
         
-        {/* Text */}
+        {}
         <div className="relative z-10">
           <motion.div
             animate={{ opacity: [0.7, 1, 0.7] }}
@@ -159,7 +159,7 @@ function MarketingNetwork() {
           </motion.div>
         </div>
 
-        {/* Hexagon overlay */}
+        {}
         <motion.div
           animate={{ rotate: -360 }}
           transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
@@ -176,7 +176,7 @@ function MarketingNetwork() {
         </motion.div>
       </motion.div>
 
-      {/* Corner accent elements */}
+      {}
       {[0, 90, 180, 270].map((rotation, i) => (
         <motion.div
           key={`corner-${i}`}
@@ -222,38 +222,26 @@ export default function WaitlistSection() {
     setErrorMsg("");
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
-      const res = await fetch(`${apiUrl}/api/waitlist/join/`, {
+      const response = await fetch('/api/waitlist/join', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ email }),
       });
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
-        let message = res.status === 400 ? 'Email already registered.' : 'Something went wrong. Please try again.';
-        if (errorData) {
-          const emailErr = errorData.email;
-          if (Array.isArray(emailErr) && emailErr[0]) {
-            message = emailErr[0];
-          } else if (typeof emailErr === 'string') {
-            message = emailErr;
-          } else if (typeof errorData.error === 'string') {
-            message = errorData.error;
-          } else if (typeof errorData.detail === 'string') {
-            message = errorData.detail;
-          }
-        }
-        setErrorMsg(message);
-        setStatus("error");
-        return;
-      }
+      const data = await response.json();
 
-      setStatus("success");
-      setEmail("");
-    } catch (err) {
-      console.error('Waitlist error:', err);
-      setErrorMsg("Could not connect to the server. Please try again later.");
+      if (response.ok && data.success) {
+        setStatus("success");
+        setEmail(""); // Clear the input
+      } else {
+        setErrorMsg(data.message || "Something went wrong. Please try again.");
+        setStatus("error");
+      }
+    } catch (error) {
+      console.error('Waitlist submission error:', error);
+      setErrorMsg("Network error. Please check your connection and try again.");
       setStatus("error");
     }
   };
@@ -265,14 +253,14 @@ export default function WaitlistSection() {
 
   return (
     <section className="relative w-full overflow-hidden py-28 px-6">
-      {/* Subtle ambient glows */}
+      {}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/4 w-[400px] h-[400px] bg-[#E8B84A] opacity-5 blur-[120px] rounded-full" />
         <div className="absolute bottom-0 right-1/3 w-[300px] h-[300px] bg-purple-600 opacity-5 blur-[100px] rounded-full" />
       </div>
 
       <div className="max-w-6xl mx-auto relative z-10 flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
-        {/* LEFT SIDE - CONTENT */}
+        {}
         <div className="flex-1 max-w-xl">
           <h2 className="text-4xl md:text-5xl font-light leading-tight text-white mb-5">
             Be first to run on{" "}
@@ -315,15 +303,16 @@ export default function WaitlistSection() {
                       value={email}
                       onChange={handleChange}
                       placeholder="your@email.com"
-                      className="flex-1 px-5 py-3.5 rounded-xl text-sm text-white placeholder-white/30 bg-white/5 border border-white/10 outline-none focus:border-[#E8B84A]/40 transition-all"
+                      disabled={status === "loading"}
+                      className="flex-1 px-5 py-3.5 rounded-xl text-sm text-white placeholder-white/30 bg-white/5 border border-white/10 outline-none focus:border-[#E8B84A]/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     />
 
                     <motion.button
                       type="submit"
                       disabled={status === "loading"}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      className="px-7 py-3.5 rounded-xl text-sm font-semibold text-[#050508] whitespace-nowrap bg-gradient-to-r from-[#E8B84A] to-[#E8A87C]"
+                      whileHover={status === "loading" ? {} : { scale: 1.03 }}
+                      whileTap={status === "loading" ? {} : { scale: 0.97 }}
+                      className="px-7 py-3.5 rounded-xl text-sm font-semibold text-[#050508] whitespace-nowrap bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {status === "loading"
                         ? "Joining..."
@@ -332,9 +321,13 @@ export default function WaitlistSection() {
                   </div>
 
                   {status === "error" && (
-                    <p className="text-xs text-red-400 px-1">
+                    <motion.p 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-xs text-red-400 px-1"
+                    >
                       {errorMsg}
-                    </p>
+                    </motion.p>
                   )}
 
                   <p className="text-xs px-1 text-white/30">
@@ -347,7 +340,7 @@ export default function WaitlistSection() {
           </motion.form>
         </div>
 
-        {/* RIGHT SIDE - ANIMATION */}
+        {}
         <motion.div
           initial={{ opacity: 0, x: 40 }}
           whileInView={{ opacity: 1, x: 0 }}

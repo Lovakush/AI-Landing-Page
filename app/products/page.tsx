@@ -1,8 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
-import { useState, useEffect, useRef, forwardRef, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, useRef, forwardRef } from 'react';
 import { MoveRight, Sparkles, Zap, Target, Users, TrendingUp, BarChart3, Bot, Check, X, Network, GitBranch, Workflow, Cpu, Activity } from 'lucide-react';
 import Chatbot from '@/components/ui/chatbot';
 import Navbar from '@/components/ui/Navbar';
@@ -13,16 +12,16 @@ import BookADemo from "@/components/ui/BookaDemo";
 const dynamicWords = ["Marketing", "Human Resources", "Sales", "Advertising", "Job Postings", "Lead Generation"];
 
 const categories = [
-  { id: 'category1', label: 'Marketing', color: '#A855F7' },
-  { id: 'category2', label: 'Human Resources', color: '#E8B84A' },
-  { id: 'category3', label: 'Sales', color: '#06B6D4' },
+  { id: 'category1', label: 'Marketing', color: '#A855F7', gradient: 'linear-gradient(135deg, #A855F7, #C084FC)' },
+  { id: 'category2', label: 'Human Resources', color: '#E8B84A', gradient: 'linear-gradient(135deg, #E8B84A, #F59E0B)' },
+  { id: 'category3', label: 'Sales', color: '#06B6D4', gradient: 'linear-gradient(135deg, #06B6D4, #22D3EE)' },
 ];
 
 const getBrandName = (category: string): string => {
   switch (category) {
     case 'category1': return 'Mark';
     case 'category2': return 'Consuelo';
-    case 'category3': return 'Argo';
+    case 'category3': return 'Argeo';
     default: return 'Our Product';
   }
 };
@@ -30,7 +29,6 @@ const getBrandName = (category: string): string => {
 // ─── Floating Particle Dots ───
 const FloatingDots = () => {
   const dots = [
-    // Original set
     { size: 6, x: '8%',  y: '15%', duration: 18, delay: 0,    color: 'rgba(168,85,247,0.55)',  driftX: 28,  driftY: -22 },
     { size: 4, x: '18%', y: '72%', duration: 24, delay: 3,    color: 'rgba(232,184,74,0.45)',  driftX: -18, driftY: 32  },
     { size: 8, x: '82%', y: '20%', duration: 20, delay: 5,    color: 'rgba(168,85,247,0.35)',  driftX: -30, driftY: 18  },
@@ -46,7 +44,6 @@ const FloatingDots = () => {
     { size: 4, x: '25%', y: '25%', duration: 27, delay: 11,   color: 'rgba(168,85,247,0.45)',  driftX: -12, driftY: 30  },
     { size: 7, x: '55%', y: '35%', duration: 35, delay: 15,   color: 'rgba(6,182,212,0.25)',   driftX: 22,  driftY: -14 },
     { size: 3, x: '88%', y: '52%', duration: 16, delay: 0.5,  color: 'rgba(232,184,74,0.50)',  driftX: -16, driftY: 20  },
-    // Extra density
     { size: 5, x: '3%',  y: '38%', duration: 29, delay: 13,   color: 'rgba(168,85,247,0.35)',  driftX: 30,  driftY: 15  },
     { size: 4, x: '96%', y: '80%', duration: 17, delay: 2.5,  color: 'rgba(6,182,212,0.40)',   driftX: -22, driftY: -18 },
     { size: 6, x: '38%', y: '5%',  duration: 31, delay: 14,   color: 'rgba(232,184,74,0.30)',  driftX: 18,  driftY: 28  },
@@ -141,10 +138,10 @@ const RobotConsuelo = ({ size = 80 }: { size?: number }) => (
   </svg>
 );
 
-const RobotArgo = ({ size = 80 }: { size?: number }) => (
+const RobotArgeo = ({ size = 80 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="15" y="22" width="50" height="42" rx="10" fill="#06B6D4" />
-    <rect x="15" y="22" width="50" height="42" rx="10" fill="url(#ArgoGrad)" opacity="0.4" />
+    <rect x="15" y="22" width="50" height="42" rx="10" fill="url(#argeoGrad)" opacity="0.4" />
     <circle cx="40" cy="12" r="5" fill="#06B6D4" />
     <rect x="38" y="12" width="4" height="12" fill="#06B6D4" />
     <circle cx="29" cy="40" r="8" fill="white" opacity="0.15" />
@@ -156,7 +153,7 @@ const RobotArgo = ({ size = 80 }: { size?: number }) => (
     <rect x="24" y="52" width="12" height="4" rx="2" fill="white" opacity="0.4" />
     <rect x="44" y="52" width="12" height="4" rx="2" fill="white" opacity="0.4" />
     <defs>
-      <linearGradient id="ArgoGrad" x1="15" y1="22" x2="65" y2="64">
+      <linearGradient id="argeoGrad" x1="15" y1="22" x2="65" y2="64">
         <stop stopColor="white" />
         <stop offset="1" stopColor="white" stopOpacity="0" />
       </linearGradient>
@@ -167,7 +164,7 @@ const RobotArgo = ({ size = 80 }: { size?: number }) => (
 const getCategoryRobot = (category: string, size = 80) => {
   if (category === 'category1') return <RobotMark size={size} />;
   if (category === 'category2') return <RobotConsuelo size={size} />;
-  return <RobotArgo size={size} />;
+  return <RobotArgeo size={size} />;
 };
 
 const products = [
@@ -238,7 +235,7 @@ const products = [
   {
     id: 9, category: 'category3', icon: Workflow, color: '#06B6D4', colorIntensity: 0.8,
     name: 'Full Sales Agent', tagline: 'End-to-end sales automation',
-    description: 'The complete Argo solution combining lead generation, meeting management, and pipeline tracking. Your complete autonomous sales team working 24/7.',
+    description: 'The complete Argeo solution combining lead generation, meeting management, and pipeline tracking. Your complete autonomous sales team working 24/7.',
     features: ['Lead Generation', 'Meeting Scheduling', 'Pipeline Management', 'Win Rate Analytics'],
     price: '$1,199/mo',
     ctaType: 'waitlist',
@@ -246,15 +243,6 @@ const products = [
 ];
 
 export default function ProductsPage() {
-  return (
-    <Suspense>
-      <ProductsPageContent />
-    </Suspense>
-  );
-}
-
-function ProductsPageContent() {
-  const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState('category1');
   const [wordIndex, setWordIndex] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null);
@@ -262,34 +250,15 @@ function ProductsPageContent() {
   const [navVisible, setNavVisible] = useState(true);
   const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
   const [showPilotOverlay, setShowPilotOverlay] = useState(false);
+  const [pilotStep, setPilotStep] = useState<'info' | 'email' | 'success'>('info');
+  const [pilotEmail, setPilotEmail] = useState('');
+  const [pilotSubmitting, setPilotSubmitting] = useState(false);
+  const [pilotError, setPilotError] = useState('');
   const productDetailsRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-
-  // Handle URL query params (e.g. /products?agent=argo#how-it-works)
-  useEffect(() => {
-    const agent = searchParams.get('agent');
-    if (agent) {
-      const agentCategoryMap: Record<string, string> = {
-        argo: 'category3',
-        mark: 'category1',
-        consuelo: 'category2',
-      };
-      const category = agentCategoryMap[agent.toLowerCase()];
-      if (category) {
-        setSelectedCategory(category);
-        // Wait for the product details to render, then scroll to the hash
-        setTimeout(() => {
-          const hash = window.location.hash?.replace('#', '');
-          if (hash) {
-            document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        }, 500);
-      }
-    }
-  }, [searchParams]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -330,6 +299,48 @@ function ProductsPageContent() {
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [mouseX, mouseY]);
+
+  const closePilotOverlay = () => {
+    setShowPilotOverlay(false);
+    setTimeout(() => {
+      setPilotStep('info');
+      setPilotEmail('');
+      setPilotError('');
+    }, 350);
+  };
+
+  const handlePilotSubmit = async () => {
+    if (!pilotEmail.trim()) {
+      setPilotError('Please enter your email address.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pilotEmail.trim())) {
+      setPilotError('Please enter a valid email address.');
+      return;
+    }
+
+    setPilotSubmitting(true);
+    setPilotError('');
+
+    try {
+      const res = await fetch('/api/pilot-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: pilotEmail.trim() }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setPilotError(data.error ?? 'Something went wrong. Please try again.');
+      } else {
+        setPilotStep('success');
+      }
+    } catch {
+      setPilotError('Network error — please check your connection and try again.');
+    } finally {
+      setPilotSubmitting(false);
+    }
+  };
 
   const filteredProducts = products.filter(p => p.category === selectedCategory);
   const activeCategory = categories.find(c => c.id === selectedCategory)!;
@@ -379,13 +390,12 @@ function ProductsPageContent() {
         />
       </div>
 
-      {/* Floating particle dots — absolute within this wrapper, stops before footer */}
+      {/* Floating particle dots */}
       <div className="relative">
         <FloatingDots />
 
-      {/* ─── Hero Section with Floating Dots ─── */}
+      {/* ─── Hero Section ─── */}
       <section className="relative z-10 min-h-screen flex items-center justify-center px-6 text-center pt-24">
-
         <div className="max-w-4xl mx-auto relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -419,7 +429,6 @@ function ProductsPageContent() {
                 }}
               />
 
-              {/* Secondary sharper inner pulse */}
               <motion.span
                 aria-hidden="true"
                 className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
@@ -484,43 +493,90 @@ function ProductsPageContent() {
       <section className="relative z-10 py-24 px-6" data-products-section>
         <div className="max-w-6xl mx-auto">
 
-          {/* Category Pills */}
+          {/* SIMPLIFIED & CLASSY Category Pills */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="flex justify-center mb-8"
+            className="flex justify-center mb-16 relative"
           >
             <div
-              className="inline-flex items-center gap-1 p-1.5 rounded-full"
+              className="relative inline-flex items-center gap-3 p-2 rounded-full"
               style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(12px)',
+                background: 'linear-gradient(135deg, rgba(20,15,30,0.95), rgba(30,20,40,0.95))',
+                border: '2px solid rgba(255,255,255,0.15)',
+                backdropFilter: 'blur(24px)',
+                boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 60px ${activeCategory.color}20`,
               }}
             >
-              {categories.map((cat) => (
-                <button
+              {categories.map((cat) => {
+                const isActive = selectedCategory === cat.id;
+                return (
+                  <motion.button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className="relative px-10 py-4 rounded-full text-base font-bold transition-all z-10"
+                    style={{
+                      color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.6)',
+                      textShadow: isActive ? `0 0 20px ${cat.color}80` : 'none',
+                    }}
+                    whileHover={!isActive ? { 
+                      color: 'rgba(255,255,255,0.9)',
+                      scale: 1.02,
+                    } : {}}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    {/* Active state - solid gradient background (COMPLETELY STATIC) */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="activePill"
+                        className="absolute inset-0 rounded-full -z-10"
+                        style={{
+                          background: cat.gradient,
+                          boxShadow: `0 0 30px ${cat.color}60, inset 0 1px 0 rgba(255,255,255,0.2)`,
+                        }}
+                        transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                      />
+                    )}
+
+                    {/* Hover glow for inactive buttons */}
+                    {!isActive && (
+                      <motion.div
+                        className="absolute inset-0 rounded-full -z-10"
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
+                        style={{
+                          background: `${cat.color}15`,
+                          border: `1px solid ${cat.color}30`,
+                        }}
+                      />
+                    )}
+
+                    <span className="relative z-10 tracking-wide">{cat.label}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            {/* Floating indicator dots */}
+            <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex gap-2">
+              {categories.map((cat, idx) => (
+                <motion.div
                   key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className="relative px-7 py-3 rounded-full text-sm font-semibold transition-all duration-300 z-10"
+                  className="w-1.5 h-1.5 rounded-full"
                   style={{
-                    color: selectedCategory === cat.id ? 'white' : 'rgba(255,255,255,0.45)',
+                    background: selectedCategory === cat.id ? cat.color : 'rgba(255,255,255,0.2)',
                   }}
-                >
-                  {selectedCategory === cat.id && (
-                    <motion.div
-                      layoutId="activePill"
-                      className="absolute inset-0 rounded-full -z-10"
-                      style={{
-                        backgroundColor: cat.color,
-                        boxShadow: `0 0 24px ${cat.color}55`,
-                      }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    />
-                  )}
-                  {cat.label}
-                </button>
+                  animate={selectedCategory === cat.id ? {
+                    scale: [1, 1.5, 1],
+                    opacity: [0.5, 1, 0.5],
+                  } : {}}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: idx * 0.2,
+                  }}
+                />
               ))}
             </div>
           </motion.div>
@@ -530,12 +586,19 @@ function ProductsPageContent() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-12"
+            className="text-center mb-16"
           >
             <h2 className="text-5xl font-light text-white mb-4">
-              Explore our <span className="font-semibold" style={{ color: activeCategory.color }}>ecosystem</span>
+              Explore our{' '}
+              <span 
+                className="font-semibold"
+                style={{ color: activeCategory.color }}
+              >
+                ecosystem
+              </span>
             </h2>
-            <p className="text-lg text-white/45">
+            
+            <p className="text-lg text-white/60 max-w-2xl mx-auto">
               Interactive view of how our AI agents work together
             </p>
           </motion.div>
@@ -543,50 +606,345 @@ function ProductsPageContent() {
           {/* TWO-COLUMN LAYOUT: Pilot Left, Orbital Right */}
           <div className="grid grid-cols-2 gap-12 items-center">
 
-            {/* LEFT SIDE - Pilot Program CTA */}
+            {/* LEFT SIDE - Agentic & Classy Pilot CTA */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="p-8 rounded-2xl relative overflow-hidden"
-              style={{
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(20,10,30,0.8))',
-                border: '1px solid rgba(232,184,74,0.3)',
-                boxShadow: '0 10px 40px rgba(232,184,74,0.15)',
-              }}
+              className="relative group"
             >
-              <div
-                className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-20"
-                style={{ background: 'radial-gradient(circle, #E8B84A, transparent)' }}
-              />
+              {/* Premium glass card with sophisticated backdrop */}
+              <div className="relative">
+                {/* Floating aura effect */}
+                <motion.div
+                  className="absolute -inset-4 rounded-3xl opacity-40"
+                  style={{
+                    background: `radial-gradient(circle at 30% 50%, ${activeCategory.color}30, transparent 70%)`,
+                    filter: 'blur(40px)',
+                  }}
+                  animate={{
+                    opacity: [0.3, 0.5, 0.3],
+                    scale: [1, 1.05, 1],
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
 
-              <div className="relative z-10">
-                <h3 className="text-3xl font-bold text-white mb-3">
-                  Join our Pilot Program!
-                </h3>
-                <p className="text-white/70 mb-6 leading-relaxed">
-                  Be among the first to experience our AI agents working together. Limited spots available for early adopters.
-                </p>
-                <motion.button
-                  onClick={() => setShowPilotOverlay(true)}
-                  className="px-8 py-3.5 rounded-lg font-semibold text-black flex items-center gap-2 group"
-                  style={{ background: 'linear-gradient(135deg, #E8B84A, #E8A87C)' }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                {/* Main card */}
+                <div
+                  className="relative p-10 rounded-3xl overflow-hidden backdrop-blur-xl"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(20,15,30,0.6), rgba(30,20,40,0.8))',
+                    border: '1px solid rgba(232,184,74,0.25)',
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+                  }}
                 >
-                  See Details
-                  <MoveRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </motion.button>
+                  {/* Elegant gradient overlay */}
+                  <div
+                    className="absolute inset-0 opacity-20"
+                    style={{
+                      background: `linear-gradient(135deg, transparent 0%, ${activeCategory.color}15 50%, transparent 100%)`,
+                    }}
+                  />
+
+                  {/* Animated grid pattern */}
+                  <svg className="absolute inset-0 w-full h-full opacity-5" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+                        <path d="M 30 0 L 0 0 0 30" fill="none" stroke="white" strokeWidth="0.5"/>
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)" />
+                  </svg>
+
+                  <div className="relative z-10">
+                    {/* Premium header with AI badge */}
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center gap-4">
+                        {/* Sophisticated icon */}
+                        <motion.div
+                          className="w-16 h-16 rounded-2xl flex items-center justify-center relative"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(232,184,74,0.15), rgba(232,184,74,0.05))',
+                            border: '1px solid rgba(232,184,74,0.3)',
+                            boxShadow: '0 8px 24px rgba(232,184,74,0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
+                          }}
+                          whileHover={{ scale: 1.05, rotate: [0, -5, 5, 0] }}
+                          transition={{ duration: 0.4 }}
+                        >
+                          {/* Orbiting particles */}
+                          {[0, 120, 240].map((angle, i) => (
+                            <motion.div
+                              key={i}
+                              className="absolute w-1.5 h-1.5 rounded-full"
+                              style={{
+                                background: '#E8B84A',
+                                top: '50%',
+                                left: '50%',
+                              }}
+                              animate={{
+                                x: [
+                                  Math.cos((angle * Math.PI) / 180) * 28,
+                                  Math.cos(((angle + 360) * Math.PI) / 180) * 28,
+                                ],
+                                y: [
+                                  Math.sin((angle * Math.PI) / 180) * 28,
+                                  Math.sin(((angle + 360) * Math.PI) / 180) * 28,
+                                ],
+                              }}
+                              transition={{
+                                duration: 3,
+                                repeat: Infinity,
+                                ease: 'linear',
+                                delay: i * 0.33,
+                              }}
+                            />
+                          ))}
+                          <Sparkles className="w-8 h-8 relative z-10" style={{ color: '#E8B84A' }} />
+                        </motion.div>
+
+                        <div>
+                          <motion.div
+                            className="px-3 py-1 rounded-full text-xs font-semibold mb-1 inline-flex items-center gap-1.5"
+                            style={{
+                              background: 'rgba(232,184,74,0.15)',
+                              border: '1px solid rgba(232,184,74,0.3)',
+                              color: '#E8B84A',
+                            }}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                          >
+                            <motion.div
+                              className="w-1.5 h-1.5 rounded-full bg-green-400"
+                              animate={{
+                                boxShadow: [
+                                  '0 0 0 0 rgba(74,222,128,0.7)',
+                                  '0 0 0 4px rgba(74,222,128,0)',
+                                ],
+                              }}
+                              transition={{ duration: 1.5, repeat: Infinity }}
+                            />
+                            ELITE ACCESS • PILOT PROGRAM
+                          </motion.div>
+                          <div className="text-xs text-white/40 font-medium">Limited to 20 Organizations</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Elegant title */}
+                    <motion.h3
+                      className="text-3xl font-light mb-3 tracking-tight"
+                      style={{
+                        background: 'linear-gradient(135deg, #FFFFFF 0%, #E8B84A 50%, #FFFFFF 100%)',
+                        backgroundClip: 'text',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundSize: '200% auto',
+                      }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      Join our Pilot Program
+                    </motion.h3>
+
+                    {/* Refined description */}
+                    <p className="text-white/70 leading-relaxed mb-2">
+                      Experience autonomous AI agents working in harmony.{' '}
+                      <span className="text-white font-medium">First 20 companies</span> receive exclusive access.
+                    </p>
+
+                    {/* Premium features list */}
+                    <div className="flex flex-wrap gap-3 mb-8">
+                      {[
+                        'Exclusive Access',
+                        'Premium Support',
+                        'Early Advantage'
+                      ].map((feature, idx) => (
+                        <motion.div
+                          key={feature}
+                          className="flex items-center gap-1.5 text-xs text-white/60"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.4 + idx * 0.1 }}
+                        >
+                          <Check className="w-3 h-3" style={{ color: '#E8B84A' }} />
+                          {feature}
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Sophisticated stats grid */}
+                    <div className="grid grid-cols-3 gap-4 mb-8">
+                      {[
+                        { icon: Users, value: '20', label: 'Companies Only', sublabel: 'Spots Remaining' },
+                        { icon: Zap, value: '67%', label: 'Special Pricing', sublabel: 'Early Adopter' },
+                        { icon: Target, value: 'Mar', label: 'Launch Date', sublabel: '2026' },
+                      ].map((stat, idx) => (
+                        <motion.div
+                          key={idx}
+                          className="relative group/stat"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.5 + idx * 0.1 }}
+                        >
+                          {/* Card background */}
+                          <div
+                            className="p-4 rounded-xl relative overflow-hidden"
+                            style={{
+                              background: 'linear-gradient(135deg, rgba(232,184,74,0.05), rgba(232,184,74,0.02))',
+                              border: '1px solid rgba(232,184,74,0.15)',
+                            }}
+                          >
+                            {/* Hover glow */}
+                            <motion.div
+                              className="absolute inset-0 opacity-0 group-hover/stat:opacity-100 transition-opacity"
+                              style={{
+                                background: `radial-gradient(circle at center, ${activeCategory.color}10, transparent)`,
+                              }}
+                            />
+
+                            <stat.icon 
+                              className="w-5 h-5 mb-3 relative z-10" 
+                              style={{ color: '#E8B84A', opacity: 0.8 }} 
+                            />
+                            <div className="text-2xl font-light text-white mb-1 relative z-10">{stat.value}</div>
+                            <div className="text-xs font-medium text-white/70 relative z-10">{stat.label}</div>
+                            <div className="text-xs text-white/40 relative z-10">{stat.sublabel}</div>
+
+                            {/* Corner accent */}
+                            <div
+                              className="absolute top-0 right-0 w-12 h-12 opacity-20"
+                              style={{
+                                background: `linear-gradient(135deg, ${activeCategory.color}40, transparent)`,
+                                borderRadius: '0 12px 0 0',
+                              }}
+                            />
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Premium CTA button */}
+                    <motion.button
+                      onClick={() => setShowPilotOverlay(true)}
+                      className="w-full relative group/btn overflow-hidden"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.8 }}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                    >
+                      {/* Button glow */}
+                      <motion.div
+                        className="absolute inset-0 rounded-xl blur-lg"
+                        style={{
+                          background: 'linear-gradient(135deg, #E8B84A, #E8A87C)',
+                          opacity: 0.3,
+                        }}
+                        animate={{
+                          opacity: [0.2, 0.4, 0.2],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                        }}
+                      />
+
+                      {/* Button surface */}
+                      <div
+                        className="relative px-8 py-4 rounded-xl flex items-center justify-between overflow-hidden"
+                        style={{
+                          background: 'linear-gradient(135deg, #E8B84A 0%, #E8A87C 100%)',
+                          boxShadow: '0 4px 20px rgba(232,184,74,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                        }}
+                      >
+                        {/* Animated shine */}
+                        <motion.div
+                          className="absolute inset-0"
+                          style={{
+                            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+                          }}
+                          animate={{
+                            x: ['-100%', '200%'],
+                          }}
+                          transition={{
+                            duration: 3,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                          }}
+                        />
+
+                        <span className="relative z-10 font-semibold text-black flex items-center gap-2">
+                          <span>Secure Your Position</span>
+                          <motion.span
+                            className="px-2 py-0.5 rounded-full text-xs bg-black/15 font-bold"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 1, type: 'spring' }}
+                          >
+                            6 MONTHS
+                          </motion.span>
+                        </span>
+
+                        <motion.div
+                          className="relative z-10"
+                          animate={{ x: [0, 4, 0] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        >
+                          <MoveRight className="w-5 h-5 text-black" />
+                        </motion.div>
+                      </div>
+                    </motion.button>
+
+                    {/* Elegant footer */}
+                    <motion.div
+                      className="mt-6 pt-5 border-t border-white/5 flex items-center justify-between"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1 }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                        <span className="text-xs text-white/50">No long-term commitment</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {/* Avatar stack */}
+                        <div className="flex -space-x-2">
+                          {[...Array(4)].map((_, i) => (
+                            <motion.div
+                              key={i}
+                              className="w-6 h-6 rounded-full border-2"
+                              style={{
+                                borderColor: '#1a1525',
+                                background: `linear-gradient(135deg, ${activeCategory.color}${60 + i * 10}, ${activeCategory.color}40)`,
+                              }}
+                              initial={{ scale: 0, x: -20 }}
+                              animate={{ scale: 1, x: 0 }}
+                              transition={{ delay: 1.1 + i * 0.1, type: 'spring' }}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs text-white/50">15+ applied</span>
+                      </div>
+                    </motion.div>
+                  </div>
+                </div>
               </div>
             </motion.div>
 
-            {/* RIGHT SIDE - ORBITAL VISUALIZATION (SMALLER) */}
+
+            {/* RIGHT SIDE - ORBITAL VISUALIZATION */}
             <div className="relative">
-              {/* ↓ Reduced from 600px to 420px */}
               <div className="flex items-center justify-center" style={{ minHeight: '420px' }}>
                 <div className="relative" style={{ width: '420px', height: '420px' }}>
-                  
+
                   {/* Empty Central Circle */}
                   <motion.div
                     className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20"
@@ -619,9 +977,9 @@ function ProductsPageContent() {
                     </div>
                   </motion.div>
 
-                  {/* Orbital rings — scaled down */}
+                  {/* Orbital rings */}
                   {[0, 1].map((ringIndex) => {
-                    const radius = 108 + ringIndex * 36; // was 150+50
+                    const radius = 108 + ringIndex * 36;
                     return (
                       <motion.div
                         key={ringIndex}
@@ -646,11 +1004,11 @@ function ProductsPageContent() {
                     );
                   })}
 
-                  {/* Agent Nodes — scaled down radius */}
+                  {/* Agent Nodes */}
                   {filteredProducts.map((product, index) => {
                     const totalProducts = filteredProducts.length;
                     const angleOffset = (index / totalProducts) * Math.PI * 2 - Math.PI / 2;
-                    const radius = 140; // was 200
+                    const radius = 140;
                     const x = Math.cos(angleOffset) * radius;
                     const y = Math.sin(angleOffset) * radius;
                     const isHovered = hoveredProduct === product.id;
@@ -661,7 +1019,7 @@ function ProductsPageContent() {
                         key={product.id}
                         className="absolute left-1/2 top-1/2"
                         style={{
-                          x: x - 52, // half of 104px node
+                          x: x - 52,
                           y: y - 52,
                         }}
                         initial={{ opacity: 0, scale: 0 }}
@@ -689,13 +1047,13 @@ function ProductsPageContent() {
                           product={product}
                           isActive={isHovered}
                           index={index}
-                          size={104} // smaller nodes
+                          size={104}
                         />
                       </motion.div>
                     );
                   })}
 
-                  {/* Communication Lines — recalculated for 420px canvas center=210 */}
+                  {/* Communication Lines */}
                   <svg className="absolute inset-0 w-full h-full pointer-events-none">
                     <defs>
                       <linearGradient id={`commGrad-${selectedCategory}`}>
@@ -709,7 +1067,7 @@ function ProductsPageContent() {
                       const totalProducts = filteredProducts.length;
                       const angleOffset = (index / totalProducts) * Math.PI * 2 - Math.PI / 2;
                       const radius = 140;
-                      const cx = 210; // center of 420px canvas
+                      const cx = 210;
                       const x1 = Math.cos(angleOffset) * radius + cx;
                       const y1 = Math.sin(angleOffset) * radius + cx;
 
@@ -772,7 +1130,7 @@ function ProductsPageContent() {
                     })}
                   </svg>
 
-                  {/* Hover Info Box — centered in orbital area, fully interactive */}
+                  {/* Hover Info Box */}
                   <AnimatePresence>
                     {hoveredProduct !== null && (
                       <motion.div
@@ -788,11 +1146,9 @@ function ProductsPageContent() {
                         exit={{ opacity: 0, scale: 0.8 }}
                         transition={{ duration: 0.2 }}
                         onMouseEnter={() => {
-                          // Cancel any pending hide when mouse enters the card
                           if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
                         }}
                         onMouseLeave={() => {
-                          // Hide when mouse leaves the card
                           hoverTimeoutRef.current = setTimeout(() => setHoveredProduct(null), 100);
                         }}
                       >
@@ -805,7 +1161,7 @@ function ProductsPageContent() {
                               <div className="p-5">
                                 <h4 className="text-white font-bold text-base mb-1">{product.name}</h4>
                                 <p className="text-white/60 text-xs mb-3">{product.tagline}</p>
-                                {/* Clickable CTA button */}
+                                <div className="text-white font-bold text-xl mb-3">{product.price}</div>
                                 <motion.button
                                   className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer"
                                   style={{ background: `${product.color}20`, border: `1px solid ${product.color}40` }}
@@ -839,7 +1195,7 @@ function ProductsPageContent() {
         </div>
       </section>
 
-      {/* ─── Pilot Project Overlay Modal ─── */}
+      {/* ─── ENHANCED Pilot Project Overlay Modal ─── */}
       <AnimatePresence>
         {showPilotOverlay && (
           <motion.div
@@ -847,55 +1203,696 @@ function ProductsPageContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setShowPilotOverlay(false)}
+            onClick={closePilotOverlay}
           >
-            <motion.div className="absolute inset-0 bg-black/70 backdrop-blur-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
+            {/* Enhanced backdrop */}
             <motion.div
-              className="relative max-w-3xl w-full rounded-2xl overflow-hidden"
+              className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            />
+
+            <motion.div
+              className="relative max-w-2xl w-full rounded-2xl overflow-hidden shadow-2xl"
               style={{
-                background: 'linear-gradient(135deg, rgba(10, 0, 20, 0.95), rgba(30, 10, 40, 0.95))',
-                border: '1px solid rgba(232,184,74,0.4)',
-                boxShadow: '0 20px 60px rgba(232,184,74,0.3)',
+                background: 'linear-gradient(135deg, rgba(10, 0, 20, 0.98), rgba(30, 10, 40, 0.98))',
+                border: '1px solid rgba(232,184,74,0.5)',
+                boxShadow: '0 25px 80px rgba(232,184,74,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
               }}
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
+              initial={{ scale: 0.9, y: 30, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.9, y: 30, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <button onClick={() => setShowPilotOverlay(false)} className="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all z-10">
-                <X className="w-5 h-5" />
+              {/* Enhanced close button */}
+              <button
+                onClick={closePilotOverlay}
+                className="absolute top-5 right-5 w-11 h-11 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/15 transition-all z-20 group"
+                style={{
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(10px)',
+                }}
+              >
+                <X className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
               </button>
-              <div className="relative px-8 pt-8 pb-6">
-                <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-20" style={{ background: 'radial-gradient(circle, #E8B84A, transparent)' }} />
-                <h2 className="text-3xl font-bold text-white mb-2 relative z-10">Join Our Pilot Project</h2>
-                <p className="text-white/60 text-base relative z-10">Lock in your competitive advantage with exclusive early access</p>
-              </div>
-              <div className="px-8 pb-8">
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  {[
-                    { val: '2 Years', label: 'Early Access Head Start', desc: 'Get first-mover advantage while competitors are still figuring out where to start' },
-                    { val: '67% Off', label: 'Brand Presence Discount', desc: 'Marketing & digital presence bundled at a fraction of standard rates' },
-                    { val: '€4,200', label: 'Complete Package', desc: 'Enterprise-grade AI infrastructure at SME pricing—10x less than competitors' },
-                  ].map((item) => (
-                    <div key={item.val} className="p-5 rounded-xl" style={{ background: 'rgba(232,184,74,0.08)', border: '1px solid rgba(232,184,74,0.2)' }}>
-                      <div className="text-2xl font-bold mb-1" style={{ color: '#E8B84A' }}>{item.val}</div>
-                      <div className="text-sm font-semibold text-white mb-2">{item.label}</div>
-                      <p className="text-xs text-white/60 leading-relaxed">{item.desc}</p>
+
+              {/* Ambient glow layers */}
+              <div
+                className="absolute -top-20 -right-20 w-96 h-96 rounded-full blur-3xl opacity-20 pointer-events-none"
+                style={{ background: 'radial-gradient(circle, #E8B84A, transparent)' }}
+              />
+              <div
+                className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full blur-3xl opacity-15 pointer-events-none"
+                style={{ background: 'radial-gradient(circle, #E8A87C, transparent)' }}
+              />
+
+              {/* Inner step switcher */}
+              <AnimatePresence mode="wait">
+
+                {/* ── AGENTIC INFO STEP ── */}
+                {pilotStep === 'info' && (
+                  <motion.div
+                    key="info"
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 30 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {/* AI Neural Network Background */}
+                    <svg className="absolute inset-0 w-full h-full opacity-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <pattern id="neural-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                          <circle cx="20" cy="20" r="1" fill="#E8B84A" opacity="0.3" />
+                          <line x1="20" y1="20" x2="40" y2="20" stroke="#E8B84A" strokeWidth="0.5" opacity="0.2" />
+                          <line x1="20" y1="20" x2="20" y2="40" stroke="#E8B84A" strokeWidth="0.5" opacity="0.2" />
+                        </pattern>
+                      </defs>
+                      <rect width="100%" height="100%" fill="url(#neural-grid)" />
+                    </svg>
+
+                    <div className="relative px-8 pt-8 pb-4">
+                      <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        {/* AI Badge */}
+                        <motion.div
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-3"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(232,184,74,0.2), rgba(232,184,74,0.1))',
+                            border: '1px solid rgba(232,184,74,0.3)',
+                          }}
+                          initial={{ y: -20, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          transition={{ delay: 0.2, type: 'spring' }}
+                        >
+                          <motion.div
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ background: '#E8B84A' }}
+                            animate={{
+                              scale: [1, 1.4, 1],
+                              opacity: [0.5, 1, 0.5],
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: Infinity,
+                            }}
+                          />
+                          <span className="text-xs font-bold tracking-wider" style={{ color: '#E8B84A' }}>
+                            AI-POWERED PILOT PROGRAM
+                          </span>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                          >
+                            <Bot className="w-3.5 h-3.5" style={{ color: '#E8B84A' }} />
+                          </motion.div>
+                        </motion.div>
+
+                        <h2 className="text-3xl font-bold mb-2 relative z-10">
+                          <span
+                            className="bg-clip-text text-transparent"
+                            style={{
+                              backgroundImage: 'linear-gradient(135deg, #FFFFFF 0%, #E8B84A 50%, #FFFFFF 100%)',
+                              backgroundSize: '200% auto',
+                            }}
+                          >
+                            Join Our Pilot Project
+                          </span>
+                        </h2>
+                        <p className="text-white/70 text-base relative z-10 flex items-center gap-2">
+                          Lock in your competitive advantage with exclusive early access
+                          <motion.span
+                            animate={{ x: [0, 4, 0] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          >
+                            →
+                          </motion.span>
+                        </p>
+                      </motion.div>
                     </div>
-                  ))}
-                </div>
-                <div className="p-4 rounded-xl mb-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <div className="grid grid-cols-4 gap-4 text-sm">
-                    {[['Duration','6 months'],['Start Date','March 2026'],['Spots Left','20 companies'],['Commitment','Active feedback']].map(([label,val]) => (
-                      <div key={label}><div className="text-white/50 text-xs mb-1">{label}</div><div className="text-white font-semibold">{val}</div></div>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <motion.button className="flex-1 px-6 py-3.5 rounded-lg font-semibold text-black text-sm" style={{ background: 'linear-gradient(135deg, #E8B84A, #E8A87C)' }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>Apply for Pilot Access</motion.button>
-                  <motion.button onClick={() => setShowPilotOverlay(false)} className="px-6 py-3.5 rounded-lg font-semibold text-white text-sm border border-white/20 hover:bg-white/5" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>Maybe Later</motion.button>
-                </div>
-              </div>
+
+                    <div className="px-8 pb-8">
+                      <div className="grid grid-cols-3 gap-4 mb-6">
+                        {[
+                          {
+                            val: '2 Years',
+                            label: 'Early Access Head Start',
+                            desc: 'Get first-mover advantage while competitors are still figuring out where to start',
+                            icon: TrendingUp,
+                          },
+                          {
+                            val: '67% Off',
+                            label: 'Brand Presence Discount',
+                            desc: 'Marketing & digital presence bundled at a fraction of standard rates',
+                            icon: Zap,
+                          },
+                          {
+                            val: '€4,200',
+                            label: 'Complete Package',
+                            desc: 'Enterprise-grade AI infrastructure at SME pricing—10x less than competitors',
+                            icon: Target,
+                          },
+                        ].map((item, idx) => (
+                          <motion.div
+                            key={item.val}
+                            className="p-4 rounded-xl relative overflow-hidden group/card cursor-pointer"
+                            style={{
+                              background: 'linear-gradient(135deg, rgba(232,184,74,0.08), rgba(232,184,74,0.03))',
+                              border: '1px solid rgba(232,184,74,0.2)',
+                              boxShadow: '0 4px 20px rgba(232,184,74,0.05)',
+                            }}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            whileHover={{
+                              scale: 1.02,
+                              borderColor: 'rgba(232,184,74,0.4)',
+                              boxShadow: '0 8px 32px rgba(232,184,74,0.15)',
+                            }}
+                          >
+                            {/* Animated corner brackets */}
+                            <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
+                            <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
+                            <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
+                            <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
+
+                            {/* Scanning line effect */}
+                            <motion.div
+                              className="absolute inset-0 opacity-0 group-hover/card:opacity-100"
+                              style={{
+                                background: 'linear-gradient(180deg, transparent, rgba(232,184,74,0.1), transparent)',
+                              }}
+                              animate={{
+                                y: ['-100%', '200%'],
+                              }}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: 'linear',
+                              }}
+                            />
+
+                            {/* Icon with pulse */}
+                            <motion.div
+                              className="mb-2"
+                              animate={{
+                                scale: [1, 1.05, 1],
+                              }}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                delay: idx * 0.3,
+                              }}
+                            >
+                              <item.icon className="w-5 h-5" style={{ color: '#E8B84A' }} />
+                            </motion.div>
+
+                            <div className="text-2xl font-bold mb-1.5" style={{ color: '#E8B84A' }}>
+                              {item.val}
+                            </div>
+                            <div className="text-xs font-semibold text-white mb-1.5">{item.label}</div>
+                            <p className="text-xs text-white/60 leading-snug">{item.desc}</p>
+
+                            {/* Data stream indicator */}
+                            <div className="absolute top-4 right-4 flex gap-1">
+                              {[...Array(3)].map((_, i) => (
+                                <motion.div
+                                  key={i}
+                                  className="w-0.5 h-3 rounded-full"
+                                  style={{ background: '#E8B84A' }}
+                                  animate={{
+                                    height: ['12px', '6px', '12px'],
+                                    opacity: [0.3, 1, 0.3],
+                                  }}
+                                  transition={{
+                                    duration: 1,
+                                    repeat: Infinity,
+                                    delay: i * 0.2,
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+
+                      {/* Enhanced info grid with tech styling */}
+                      <motion.div
+                        className="p-4 rounded-xl mb-6 relative overflow-hidden"
+                        style={{
+                          background: 'rgba(255,255,255,0.03)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                        }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.4 }}
+                      >
+                        {/* Tech grid overlay */}
+                        <div className="absolute inset-0 opacity-30" style={{
+                          backgroundImage: 'linear-gradient(rgba(232,184,74,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(232,184,74,0.1) 1px, transparent 1px)',
+                          backgroundSize: '20px 20px',
+                        }} />
+
+                        <div className="grid grid-cols-4 gap-4 text-sm relative z-10">
+                          {[
+                            ['Duration', '6 months', '⏱'],
+                            ['Start Date', 'March 2026', '📅'],
+                            ['Spots Left', '20 companies', '🎯'],
+                            ['Commitment', 'Active feedback', '💬'],
+                          ].map(([label, val, emoji], idx) => (
+                            <motion.div
+                              key={label}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.5 + idx * 0.1 }}
+                            >
+                              <div className="text-white/50 text-xs mb-1.5 flex items-center gap-1">
+                                <span>{emoji}</span>
+                                {label}
+                              </div>
+                              <div className="text-white font-semibold text-sm">{val}</div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+
+                      <div className="flex gap-3">
+                        <motion.button
+                          onClick={() => setPilotStep('email')}
+                          className="flex-1 relative group/btn overflow-hidden"
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.7 }}
+                        >
+                          {/* Animated glow */}
+                          <motion.div
+                            className="absolute inset-0 rounded-xl blur-xl"
+                            style={{ background: 'linear-gradient(135deg, #E8B84A, #E8A87C)', opacity: 0.4 }}
+                            animate={{
+                              opacity: [0.3, 0.5, 0.3],
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: Infinity,
+                            }}
+                          />
+
+                          <div
+                            className="relative px-6 py-3 rounded-xl font-bold text-black text-sm flex items-center justify-center gap-2 overflow-hidden"
+                            style={{
+                              background: 'linear-gradient(135deg, #E8B84A, #E8A87C)',
+                              boxShadow: '0 4px 20px rgba(232,184,74,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
+                            }}
+                          >
+                            {/* Shine effect */}
+                            <motion.div
+                              className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20"
+                              animate={{ x: ['-200%', '200%'] }}
+                              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                            />
+                            <span className="relative z-10">Apply for Pilot Access</span>
+                            <motion.div
+                              className="relative z-10"
+                              animate={{ x: [0, 4, 0] }}
+                              transition={{ duration: 1.5, repeat: Infinity }}
+                            >
+                              <MoveRight className="w-5 h-5" />
+                            </motion.div>
+                          </div>
+                        </motion.button>
+
+                        <motion.button
+                          onClick={closePilotOverlay}
+                          className="px-6 py-3 rounded-xl font-semibold text-white text-sm border hover:bg-white/10 transition-all"
+                          style={{ borderColor: 'rgba(255,255,255,0.2)' }}
+                          whileHover={{ scale: 1.01, borderColor: 'rgba(255,255,255,0.4)' }}
+                          whileTap={{ scale: 0.99 }}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.8 }}
+                        >
+                          Maybe Later
+                        </motion.button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+
+                {/* ── EMAIL STEP ── */}
+                {pilotStep === 'email' && (
+                  <motion.div
+                    key="email"
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -30 }}
+                    transition={{ duration: 0.3 }}
+                    className="px-10 py-12"
+                  >
+                    {/* Back button */}
+                    <button
+                      onClick={() => { setPilotStep('info'); setPilotError(''); }}
+                      className="flex items-center gap-2 text-white/50 hover:text-white text-sm mb-10 transition-colors group"
+                    >
+                      <MoveRight className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
+                      Back
+                    </button>
+
+                    <div className="max-w-md mx-auto">
+                      {/* Enhanced icon badge */}
+                      <motion.div
+                        className="w-16 h-16 rounded-2xl flex items-center justify-center mb-8 mx-auto relative"
+                        style={{
+                          background: 'rgba(232,184,74,0.15)',
+                          border: '1px solid rgba(232,184,74,0.4)',
+                          boxShadow: '0 8px 32px rgba(232,184,74,0.3)',
+                        }}
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                      >
+                        {/* Animated glow */}
+                        <motion.div
+                          className="absolute inset-0 rounded-2xl"
+                          style={{
+                            background: 'radial-gradient(circle, rgba(232,184,74,0.4), transparent)',
+                          }}
+                          animate={{
+                            scale: [1, 1.3, 1],
+                            opacity: [0.5, 0.8, 0.5],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                          }}
+                        />
+                        
+                        <svg
+                          className="w-8 h-8 relative z-10"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#E8B84A"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <rect x="2" y="4" width="20" height="16" rx="3" />
+                          <path d="M2 7l10 7 10-7" />
+                        </svg>
+                      </motion.div>
+
+                      <motion.h2
+                        className="text-3xl font-bold text-white mb-3 text-center"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        Reserve your spot
+                      </motion.h2>
+                      <motion.p
+                        className="text-white/60 text-sm mb-10 leading-relaxed text-center"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        Drop your work email below. We'll reach out personally before
+                        the pilot kicks off in March 2026 — no spam, ever.
+                      </motion.p>
+
+                      {/* Enhanced email input */}
+                      <motion.div
+                        className="relative mb-4"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <input
+                          type="email"
+                          value={pilotEmail}
+                          onChange={(e) => {
+                            setPilotEmail(e.target.value);
+                            if (pilotError) setPilotError('');
+                          }}
+                          onKeyDown={(e) => e.key === 'Enter' && handlePilotSubmit()}
+                          placeholder="you@company.com"
+                          className="w-full px-6 py-4 rounded-xl text-white text-base placeholder-white/30 outline-none transition-all"
+                          style={{
+                            background: 'rgba(255,255,255,0.08)',
+                            border: `2px solid ${pilotError ? 'rgba(239,68,68,0.6)' : pilotEmail ? 'rgba(232,184,74,0.5)' : 'rgba(255,255,255,0.15)'}`,
+                            boxShadow: pilotError
+                              ? '0 0 0 4px rgba(239,68,68,0.15)'
+                              : pilotEmail
+                              ? '0 0 0 4px rgba(232,184,74,0.15), 0 4px 20px rgba(232,184,74,0.1)'
+                              : 'none',
+                          }}
+                          autoFocus
+                        />
+                        
+                        {/* Enhanced live typing indicator */}
+                        {pilotEmail && !pilotError && (
+                          <motion.div
+                            className="absolute right-5 top-1/2 -translate-y-1/2"
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ type: 'spring', stiffness: 400 }}
+                          >
+                            <motion.div
+                              className="w-2.5 h-2.5 rounded-full"
+                              style={{ background: '#E8B84A' }}
+                              animate={{
+                                scale: [1, 1.3, 1],
+                                boxShadow: [
+                                  '0 0 0 0 rgba(232,184,74,0.7)',
+                                  '0 0 0 6px rgba(232,184,74,0)',
+                                  '0 0 0 0 rgba(232,184,74,0)',
+                                ],
+                              }}
+                              transition={{
+                                duration: 1.5,
+                                repeat: Infinity,
+                                ease: 'easeInOut',
+                              }}
+                            />
+                          </motion.div>
+                        )}
+                      </motion.div>
+
+                      {/* Enhanced validation error */}
+                      <AnimatePresence>
+                        {pilotError && (
+                          <motion.div
+                            className="mb-4 p-3 rounded-lg flex items-start gap-2"
+                            style={{
+                              background: 'rgba(239,68,68,0.1)',
+                              border: '1px solid rgba(239,68,68,0.3)',
+                            }}
+                            initial={{ opacity: 0, y: -10, height: 0 }}
+                            animate={{ opacity: 1, y: 0, height: 'auto' }}
+                            exit={{ opacity: 0, y: -10, height: 0 }}
+                          >
+                            <div className="w-5 h-5 rounded-full bg-red-400/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <X className="w-3 h-3 text-red-400" />
+                            </div>
+                            <p className="text-red-400 text-xs leading-relaxed">{pilotError}</p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Enhanced submit button */}
+                      <motion.button
+                        onClick={handlePilotSubmit}
+                        disabled={pilotSubmitting}
+                        className="w-full py-4 rounded-xl font-bold text-black text-base relative overflow-hidden"
+                        style={{
+                          background: 'linear-gradient(135deg, #E8B84A, #E8A87C)',
+                          opacity: pilotSubmitting ? 0.7 : 1,
+                          boxShadow: pilotSubmitting ? 'none' : '0 4px 20px rgba(232,184,74,0.4)',
+                        }}
+                        whileHover={!pilotSubmitting ? { 
+                          scale: 1.02, 
+                          boxShadow: '0 6px 30px rgba(232,184,74,0.5)' 
+                        } : {}}
+                        whileTap={!pilotSubmitting ? { scale: 0.98 } : {}}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                      >
+                        <AnimatePresence mode="wait">
+                          {pilotSubmitting ? (
+                            <motion.span
+                              key="loading"
+                              className="flex items-center justify-center gap-2"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                            >
+                              <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z" />
+                              </svg>
+                              Saving your spot…
+                            </motion.span>
+                          ) : (
+                            <motion.span
+                              key="idle"
+                              className="flex items-center justify-center gap-2 group"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                            >
+                              Apply for Pilot Access
+                              <MoveRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+                      </motion.button>
+
+                      <p className="text-white/30 text-xs text-center mt-5">
+                        By applying you agree to be contacted about our pilot program.
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* ── SUCCESS STEP ── */}
+                {pilotStep === 'success' && (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="px-10 py-20 flex flex-col items-center text-center"
+                  >
+                    {/* Enhanced pulsing check mark */}
+                    <div className="relative mb-10">
+                      {/* Outer pulse rings */}
+                      {[0, 1, 2].map((i) => (
+                        <motion.div
+                          key={i}
+                          className="absolute inset-0 rounded-full"
+                          style={{ 
+                            border: '2px solid rgba(232,184,74,0.3)',
+                          }}
+                          animate={{ 
+                            scale: [1, 2 + i * 0.3],
+                            opacity: [0.8, 0] 
+                          }}
+                          transition={{ 
+                            duration: 2,
+                            repeat: Infinity,
+                            delay: i * 0.4,
+                            ease: 'easeOut',
+                          }}
+                        />
+                      ))}
+
+                      {/* Main icon container */}
+                      <motion.div
+                        className="relative w-24 h-24 rounded-full flex items-center justify-center"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(232,184,74,0.2), rgba(232,184,74,0.1))',
+                          border: '3px solid rgba(232,184,74,0.6)',
+                          boxShadow: '0 0 40px rgba(232,184,74,0.4), inset 0 0 20px rgba(232,184,74,0.2)',
+                        }}
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ 
+                          type: 'spring',
+                          stiffness: 200,
+                          damping: 15,
+                          delay: 0.2,
+                        }}
+                      >
+                        <motion.svg
+                          className="w-12 h-12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#E8B84A"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <motion.path
+                            d="M5 13l4 4L19 7"
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: 1 }}
+                            transition={{ 
+                              duration: 0.6,
+                              delay: 0.4,
+                              ease: 'easeInOut',
+                            }}
+                          />
+                        </motion.svg>
+                      </motion.div>
+                    </div>
+
+                    <motion.h2
+                      className="text-4xl font-bold text-white mb-4"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6 }}
+                    >
+                      You're on the list!
+                    </motion.h2>
+                    
+                    <motion.p
+                      className="text-white/60 text-base max-w-md leading-relaxed mb-2"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.7 }}
+                    >
+                      We've saved{' '}
+                      <span style={{ color: '#E8B84A' }} className="font-semibold">
+                        {pilotEmail}
+                      </span>
+                    </motion.p>
+                    
+                    <motion.p
+                      className="text-white/45 text-sm max-w-md leading-relaxed mb-12"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.8 }}
+                    >
+                      Expect a personal message from our team before March 2026. Only
+                      20 spots are available — we'll be in touch soon.
+                    </motion.p>
+
+                    <motion.button
+                      onClick={closePilotOverlay}
+                      className="px-10 py-4 rounded-xl font-bold text-black text-base relative overflow-hidden"
+                      style={{ 
+                        background: 'linear-gradient(135deg, #E8B84A, #E8A87C)',
+                        boxShadow: '0 4px 20px rgba(232,184,74,0.4)',
+                      }}
+                      whileHover={{ 
+                        scale: 1.02,
+                        boxShadow: '0 6px 30px rgba(232,184,74,0.5)',
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.9 }}
+                    >
+                      <motion.div
+                        className="absolute inset-0 bg-white"
+                        initial={{ x: '-100%', opacity: 0.3 }}
+                        whileHover={{ x: '100%' }}
+                        transition={{ duration: 0.6 }}
+                      />
+                      <span className="relative z-10">Back to the site</span>
+                    </motion.button>
+                  </motion.div>
+                )}
+
+              </AnimatePresence>
             </motion.div>
           </motion.div>
         )}
@@ -934,7 +1931,7 @@ function ProductsPageContent() {
   );
 }
 
-// ─── Agentic Node Component — accepts optional size prop ───
+// ─── Agentic Node Component ───
 function AgenticNode({ product, isActive, index, size = 144 }: {
   product: typeof products[0];
   isActive: boolean;
@@ -1059,7 +2056,7 @@ const ProductDetailsSection = forwardRef<
           </div>
         </motion.div>
 
-        <motion.div id="how-it-works" className="mb-28 scroll-mt-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
+        <motion.div className="mb-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
           <div className="grid grid-cols-3 gap-14 items-start">
             <div className="col-span-1">
               <h3 className="text-4xl font-light text-white mb-4">How does<div className="text-4xl font-semibold mt-1" style={{ color: product.color }}>{getBrandName(product.category)} work?</div></h3>
