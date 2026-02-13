@@ -1302,7 +1302,7 @@ export default function AboutPage() {
                       From diagnosis to deployment, we move fast and build solutions that fit how your business actually runs.
                     </p>
                     <span className="text-xs md:text-sm text-white/40 font-normal tracking-wider">
-                      Click a circle to explore each step →
+                      ← Click a circle to explore each step
                     </span>
                   </motion.div>
                 )}
