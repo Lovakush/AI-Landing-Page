@@ -1,15 +1,16 @@
 'use client';
 
-import { motion, useScroll, useTransform, animate, useInView } from 'framer-motion';
+import { motion, useScroll, useTransform, animate, useInView, AnimatePresence } from 'framer-motion';
 import { useRef, MouseEvent, useEffect, useState, useMemo } from 'react';
 import { ShaderAnimation } from "@/components/ui/shader-lines";
 import RadialOrbitalTimeline from "@/components/ui/radial-orbital-timeline";
-import { Users, Target, Box, Bot, Zap, ScanSearch, Rocket, MoveRight, Brain, BookOpen, Lightbulb } from 'lucide-react';
+import { Users, Target, Box, Bot, Zap, ScanSearch, Rocket, MoveRight, Brain, BookOpen, Lightbulb, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import Chatbot from '@/components/ui/chatbot';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
 import SIADashboard from '@/components/ui/SIADashboard';
+import WaitlistModal from '@/components/ui/WaitlistModal';
 
 
 const CountUp = ({ to, duration = 2, suffix = "", prefix = "" }: { to: number, duration?: number, suffix?: string, prefix?: string }) => {
@@ -135,10 +136,37 @@ export default function OpseraLanding() {
   const [selectedAgent, setSelectedAgent] = useState<string | null>('argo');
   const [showAgentDetails, setShowAgentDetails] = useState(false);
   const [showAccessModal, setShowAccessModal] = useState(false);
-  const [email, setEmail] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [showSuccess, setShowSuccess] = useState(false);
   const [navVisible, setNavVisible] = useState(true);
+  const [archHovered, setArchHovered] = useState<number | null>(null);
+  const [archRevealed, setArchRevealed] = useState(-1);
+  const [archCycled, setArchCycled] = useState(false);
+  const [archSlide, setArchSlide] = useState(0);
+
+  const archPreview = archRevealed === -1;
+  const archComplete = archRevealed >= 3;
+
+  const getLayerOpacity = (idx: number) => {
+    if (archPreview) return 0.4;
+    if (!archComplete) return archRevealed >= idx ? 1 : 0;
+    if (archHovered === null) return 1;
+    return archHovered >= idx ? 1 : 0;
+  };
+
+  const showAutonomous = !archPreview && (
+    archHovered === 3 || (archComplete && archHovered === null)
+  );
+
+  // Columns & crown visible in preview (dimmed) and when showAutonomous
+  const columnsVisible = archPreview || showAutonomous;
+  const columnsOpacity = archPreview ? 0.4 : (showAutonomous ? 1 : 0);
+
+  const archLayers = [
+    { title: 'Data Integration', desc: 'We break data silos by unifying information across your enterprise apps, cloud storage, and ERPs under a single roof.' },
+    { title: 'AI Reasoning', desc: 'Your unified data powers intelligent solutions through LLMs and machine learning, enabling smarter decision-making at scale.' },
+    { title: 'Model Training', desc: 'Continuous improvement, data enrichment, and training deliver sharper insights into how your enterprise operates with each iteration.' },
+    { title: 'Autonomous Action', desc: 'Self-orchestrating agentic workflows run analytics, enable automations, and deliver intelligence grounded in your enterprise data.' },
+  ];
+
   const lastScrollY = useRef(0);
 
   // Auto-hide navbar on scroll
@@ -169,6 +197,14 @@ export default function OpseraLanding() {
     }, 10000);
     return () => clearInterval(interval);
   }, [showAgentDetails]);
+
+  // Initialize architecture for mobile (no hover, start on slide 0)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setArchRevealed(0);
+      setArchHovered(0);
+    }
+  }, []);
 
   // Auto-advance products every 25 seconds
   useEffect(() => {
@@ -234,7 +270,7 @@ export default function OpseraLanding() {
             className="flex flex-col items-center gap-6"
           >
             {/* Main Heading with Animated Word */}
-            <h1 className="text-5xl md:text-6xl lg:text-7xl tracking-tighter font-light text-white">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tighter font-light text-white">
               <span>Operations made</span>
               <div className="relative w-full h-[1.2em]">
                 {heroWords.map((word, index) => (
@@ -313,7 +349,7 @@ export default function OpseraLanding() {
       </section>
 
       {/* Products Section - Built on Reality */}
-      <section className="relative py-24 px-6 overflow-hidden min-h-[700px]" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2D1B4E 50%, #3d2a5f 100%)" }}>
+      <section className="relative py-12 sm:py-16 lg:py-24 px-4 sm:px-6 overflow-x-clip min-h-[600px] lg:min-h-[700px]" style={{ background: "linear-gradient(180deg, #1a0a2e 0%, #2D1B4E 50%, #3d2a5f 100%)" }}>
         {/* Purple glow effects */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#A855F7]/15 rounded-full blur-[150px]" />
@@ -328,41 +364,42 @@ export default function OpseraLanding() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-6 lg:mb-16"
           >
-            <h3 className="text-4xl md:text-5xl lg:text-6xl font-light">
+            <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light">
               <span className="text-white">Built on reality, </span>
               <span className="italic text-[#E8B84A]">not AI hype</span>
             </h3>
           </motion.div>
 
-          {/* Interactive Layout - Orbit on right, info on left */}
-          <div className="relative min-h-[600px] flex items-center">
-            {/* The Orbit - Always positioned on the right */}
+          {/* Interactive Layout - Orbit on right, info on left (desktop) / stacked (mobile) */}
+          <div className="relative flex flex-col lg:flex-row items-center lg:items-center lg:min-h-[600px]">
+            {/* The Orbit */}
             <div
-              className="w-full"
+              className="w-full lg:w-full scale-[0.7] sm:scale-[0.8] md:scale-[0.9] lg:scale-100 origin-center"
               style={{
-                transform: 'translateX(30%) scale(1.1)',
-                transformOrigin: 'center center',
+                transform: undefined,
               }}
             >
-              <RadialOrbitalTimeline
-                timelineData={productTimelineData}
-                selectedId={selectedProduct}
-                onSelectNode={handleProductSelect}
-                isCompact={false}
-              />
+              <div className="lg:translate-x-[30%] lg:scale-110 transition-transform">
+                <RadialOrbitalTimeline
+                  timelineData={productTimelineData}
+                  selectedId={selectedProduct}
+                  onSelectNode={handleProductSelect}
+                  isCompact={false}
+                />
+              </div>
             </div>
 
-            {/* Left Side - Product Info & KPIs (always visible) */}
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[45%]">
+            {/* Product Info & KPIs */}
+            <div className="w-full lg:absolute lg:left-0 lg:top-1/2 lg:-translate-y-1/2 lg:w-[45%] -mt-16 sm:-mt-8 lg:mt-0">
               {selectedProduct && selectedProductData && (
-                <div className="space-y-6">
-                  {/* Product Title */}
-                  <div>
+                <div className="space-y-4 lg:space-y-6">
+                  {/* Product Title & Description */}
+                  <div className="text-center lg:text-left">
                     <motion.h4
                       key={`title-${selectedProduct}`}
-                      className="text-3xl md:text-4xl font-semibold text-white mb-3"
+                      className="text-2xl sm:text-3xl md:text-4xl font-semibold text-white mb-2 lg:mb-3"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
@@ -371,7 +408,7 @@ export default function OpseraLanding() {
                     </motion.h4>
                     <motion.p
                       key={`desc-${selectedProduct}`}
-                      className="text-base text-white/70 leading-relaxed"
+                      className="text-sm sm:text-base text-white/70 leading-relaxed max-w-md mx-auto lg:mx-0"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.15 }}
@@ -380,24 +417,24 @@ export default function OpseraLanding() {
                     </motion.p>
                   </div>
 
-                  {/* KPI Cards - Stacked Vertically */}
-                  <div className="flex flex-col gap-3">
+                  {/* KPI Cards - Horizontal on mobile, vertical on desktop */}
+                  <div className="flex flex-row lg:flex-col gap-1.5 sm:gap-2 lg:gap-3">
                     {selectedProductData.kpis?.map((kpi, index) => (
                       <motion.div
                         key={`kpi-${selectedProduct}-${index}`}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2 + index * 0.1 }}
-                        className="group relative bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 overflow-hidden cursor-pointer hover:bg-white/10 hover:border-white/20 transition-all duration-300"
+                        className="group relative bg-white/5 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 lg:p-4 border border-white/10 overflow-hidden cursor-pointer hover:bg-white/10 hover:border-white/20 transition-all duration-300 flex-1 lg:flex-none"
                       >
                         {/* Shine effect on hover */}
                         <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12" />
 
-                        <div className="relative flex items-center gap-4">
-                          <div className="text-3xl md:text-4xl font-bold text-[#E8B84A]">
+                        <div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-0.5 lg:gap-4">
+                          <div className="text-base sm:text-lg lg:text-4xl font-bold text-[#E8B84A] leading-tight">
                             {kpi.value}
                           </div>
-                          <div className="text-sm text-white/60">
+                          <div className="text-[10px] sm:text-xs lg:text-sm text-white/60 leading-tight">
                             {kpi.label}
                           </div>
                         </div>
@@ -412,7 +449,7 @@ export default function OpseraLanding() {
       </section>
 
       {/* AI Agents Showcase Section - New Launches */}
-      <section className="relative py-32 px-6 overflow-hidden" style={{ background: "linear-gradient(180deg, #3d2a5f 0%, #2D1B4E 15%, #2D1B4E 100%)" }}>
+      <section className="relative py-16 md:py-32 px-4 sm:px-6 overflow-hidden" style={{ background: "linear-gradient(180deg, #3d2a5f 0%, #2D1B4E 15%, #2D1B4E 100%)" }}>
 
         {/* Purple glow effects */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -428,119 +465,221 @@ export default function OpseraLanding() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-8 md:mb-16"
           >
-            <h3 className="text-4xl md:text-5xl lg:text-6xl font-light mb-4">
+            <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light mb-3 md:mb-4">
               <span className="text-white">New </span>
               <span className="italic text-[#E8B84A]">Launches</span>
             </h3>
-            <p className="text-lg text-white/50 max-w-2xl mx-auto">
+            <p className="text-base md:text-lg text-white/50 max-w-2xl mx-auto">
               Domain-specific AI agents for Sales, Marketing, and HR
             </p>
           </motion.div>
 
           {/* Interactive Layout: Stacked Cards on Left, Dashboard on Right */}
-          <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[500px]">
-            {/* Left - Stacked Display Cards */}
+          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center min-h-0 lg:min-h-[500px]">
+            {/* Left - Stacked Display Cards (Desktop) / Swipe Carousel (Mobile) */}
             <motion.div
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8 }}
-              className="flex items-center justify-start"
+              className="w-full"
             >
-              <div className="grid [grid-template-areas:'stack'] place-items-center">
-                {aiAgentsData.map((agent, index) => {
-                  const isSelected = selectedAgent === agent.id;
-                  const IconComponent = agent.icon;
-
-                  // Stack positions like the reference:
-                  // Position 0 (back): x=0, y=0
-                  // Position 1 (middle): x=64, y=40
-                  // Position 2 (front): x=128, y=80
-                  // Selected card always goes to front (position 2)
-                  const selectedIndex = aiAgentsData.findIndex(a => a.id === selectedAgent);
-
-                  let visualPosition: number;
-                  if (isSelected) {
-                    visualPosition = 2; // Front position
-                  } else {
-                    // Distribute other cards in remaining positions (0 and 1)
-                    const otherCards = aiAgentsData.filter(a => a.id !== selectedAgent);
-                    const otherIndex = otherCards.findIndex(a => a.id === agent.id);
-                    visualPosition = otherIndex; // 0 or 1
-                  }
-
-                  const positions = [
-                    { x: 0, y: 0 },      // Back
-                    { x: 80, y: 50 },    // Middle
-                    { x: 160, y: 100 },  // Front
-                  ];
-
-                  const pos = positions[visualPosition];
-
-                  return (
-                    <motion.div
-                      key={agent.id}
-                      onClick={() => setSelectedAgent(agent.id)}
-                      initial={false}
-                      animate={{
-                        x: pos.x,
-                        y: pos.y,
-                        zIndex: visualPosition + 1,
-                        opacity: isSelected ? 1 : 0.6,
-                      }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 400,
-                        damping: 35,
-                        mass: 0.8,
-                      }}
-                      whileHover={{ y: pos.y - 15, opacity: 1 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`[grid-area:stack] relative flex h-36 w-[28rem] -skew-y-[8deg] select-none items-center rounded-2xl border backdrop-blur-sm px-7 py-4 cursor-pointer transition-colors duration-300
-                        ${isSelected
-                          ? 'bg-[#1a1a2e]/95 shadow-[0_0_40px_rgba(232,184,74,0.2)]'
-                          : 'bg-[#1a1a2e]/60'
-                        }
-                      `}
-                      style={{
-                        borderColor: isSelected ? `${agent.color}40` : 'rgba(255,255,255,0.08)',
-                      }}
-                    >
-                      {/* Gradient fade on right */}
-                      <div
-                        className="absolute -right-1 top-[-5%] h-[110%] w-[24rem] pointer-events-none z-20 transition-opacity duration-500"
-                        style={{
-                          background: `linear-gradient(to left, #2D1B4E, transparent)`,
-                          opacity: isSelected ? 0 : 0.6,
-                        }}
-                      />
-
-                      {/* NEW badge */}
-                      {agent.id === 'argo' && (
-                        <div className="absolute -top-2 -left-2 z-40">
-                          <div className="relative">
-                            <div className="absolute inset-0 bg-[#E8B84A] rounded-full blur-md opacity-50" />
-                            <div className="relative bg-gradient-to-r from-[#E8B84A] to-[#d4a43d] text-[#0a0612] text-xs font-bold px-3 py-1 rounded-full">
-                              NEW
+              {/* Mobile: Single-card swipe carousel */}
+              <div className="lg:hidden">
+                <div
+                  className="relative overflow-hidden touch-pan-y"
+                  onTouchStart={(e) => {
+                    const touch = e.touches[0];
+                    (e.currentTarget as any)._touchStartX = touch.clientX;
+                  }}
+                  onTouchEnd={(e) => {
+                    const startX = (e.currentTarget as any)._touchStartX;
+                    if (startX === undefined) return;
+                    const endX = e.changedTouches[0].clientX;
+                    const diff = startX - endX;
+                    if (Math.abs(diff) > 50) {
+                      const currentIndex = aiAgentsData.findIndex(a => a.id === selectedAgent);
+                      if (diff > 0 && currentIndex < aiAgentsData.length - 1) {
+                        setSelectedAgent(aiAgentsData[currentIndex + 1].id);
+                      } else if (diff < 0 && currentIndex > 0) {
+                        setSelectedAgent(aiAgentsData[currentIndex - 1].id);
+                      }
+                    }
+                  }}
+                >
+                  <AnimatePresence mode="wait">
+                    {aiAgentsData.map((agent) => {
+                      if (agent.id !== selectedAgent) return null;
+                      const IconComponent = agent.icon;
+                      return (
+                        <motion.div
+                          key={agent.id}
+                          initial={{ opacity: 0, x: 60 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -60 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                          className="relative flex items-center rounded-2xl border backdrop-blur-sm px-5 py-4 bg-[#1a1a2e]/95"
+                          style={{ borderColor: `${agent.color}40` }}
+                        >
+                          {/* NEW badge */}
+                          {agent.id === 'argo' && (
+                            <div className="absolute -top-2 -left-1 z-40">
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-[#E8B84A] rounded-full blur-md opacity-50" />
+                                <div className="relative bg-gradient-to-r from-[#E8B84A] to-[#d4a43d] text-[#0a0612] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                  NEW
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-3">
+                            <span
+                              className="inline-block rounded-full p-2"
+                              style={{ backgroundColor: `${agent.color}25` }}
+                            >
+                              <IconComponent className="size-5" style={{ color: agent.color }} />
+                            </span>
+                            <div>
+                              <p className="text-lg font-semibold" style={{ color: agent.color }}>{agent.name}</p>
+                              <p className="text-xs text-white/50">{agent.role}</p>
                             </div>
                           </div>
-                        </div>
-                      )}
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+                </div>
 
-                      <div className="relative z-30 flex items-center gap-3">
-                        <span
-                          className="inline-block rounded-full p-2"
-                          style={{ backgroundColor: `${agent.color}25` }}
-                        >
-                          <IconComponent className="size-7" style={{ color: agent.color }} />
-                        </span>
-                        <p className="text-2xl font-semibold" style={{ color: agent.color }}>{agent.name}</p>
-                      </div>
-                    </motion.div>
-                  );
-                })}
+                {/* Swipe navigation: arrows + dots */}
+                <div className="flex items-center justify-center gap-4 mt-3">
+                  <button
+                    onClick={() => {
+                      const idx = aiAgentsData.findIndex(a => a.id === selectedAgent);
+                      if (idx > 0) setSelectedAgent(aiAgentsData[idx - 1].id);
+                    }}
+                    className="p-1 text-white/30 hover:text-white/70 transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <div className="flex gap-2">
+                    {aiAgentsData.map((agent) => (
+                      <button
+                        key={agent.id}
+                        onClick={() => setSelectedAgent(agent.id)}
+                        className="transition-all duration-300 rounded-full"
+                        style={{
+                          width: selectedAgent === agent.id ? '24px' : '8px',
+                          height: '8px',
+                          backgroundColor: selectedAgent === agent.id ? agent.color : 'rgba(255,255,255,0.2)',
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => {
+                      const idx = aiAgentsData.findIndex(a => a.id === selectedAgent);
+                      if (idx < aiAgentsData.length - 1) setSelectedAgent(aiAgentsData[idx + 1].id);
+                    }}
+                    className="p-1 text-white/30 hover:text-white/70 transition-colors"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <p className="text-center text-white/25 text-[10px] mt-1.5 tracking-wide">Swipe to browse</p>
+              </div>
+
+              {/* Desktop: Stacked cards */}
+              <div className="hidden lg:flex items-center justify-start">
+                <div className="grid [grid-template-areas:'stack'] place-items-center">
+                  {aiAgentsData.map((agent, index) => {
+                    const isSelected = selectedAgent === agent.id;
+                    const IconComponent = agent.icon;
+
+                    const selectedIndex = aiAgentsData.findIndex(a => a.id === selectedAgent);
+
+                    let visualPosition: number;
+                    if (isSelected) {
+                      visualPosition = 2;
+                    } else {
+                      const otherCards = aiAgentsData.filter(a => a.id !== selectedAgent);
+                      const otherIndex = otherCards.findIndex(a => a.id === agent.id);
+                      visualPosition = otherIndex;
+                    }
+
+                    const positions = [
+                      { x: 0, y: 0 },
+                      { x: 80, y: 50 },
+                      { x: 160, y: 100 },
+                    ];
+
+                    const pos = positions[visualPosition];
+
+                    return (
+                      <motion.div
+                        key={agent.id}
+                        onClick={() => setSelectedAgent(agent.id)}
+                        initial={false}
+                        animate={{
+                          x: pos.x,
+                          y: pos.y,
+                          zIndex: visualPosition + 1,
+                          opacity: isSelected ? 1 : 0.6,
+                        }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 35,
+                          mass: 0.8,
+                        }}
+                        whileHover={{ y: pos.y - 15, opacity: 1 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`[grid-area:stack] relative flex h-36 w-[28rem] -skew-y-[8deg] select-none items-center rounded-2xl border backdrop-blur-sm px-7 py-4 cursor-pointer transition-colors duration-300
+                          ${isSelected
+                            ? 'bg-[#1a1a2e]/95 shadow-[0_0_40px_rgba(232,184,74,0.2)]'
+                            : 'bg-[#1a1a2e]/60'
+                          }
+                        `}
+                        style={{
+                          borderColor: isSelected ? `${agent.color}40` : 'rgba(255,255,255,0.08)',
+                        }}
+                      >
+                        {/* Gradient fade on right */}
+                        <div
+                          className="absolute -right-1 top-[-5%] h-[110%] w-[24rem] pointer-events-none z-20 transition-opacity duration-500"
+                          style={{
+                            background: `linear-gradient(to left, #2D1B4E, transparent)`,
+                            opacity: isSelected ? 0 : 0.6,
+                          }}
+                        />
+
+                        {/* NEW badge */}
+                        {agent.id === 'argo' && (
+                          <div className="absolute -top-2 -left-2 z-40">
+                            <div className="relative">
+                              <div className="absolute inset-0 bg-[#E8B84A] rounded-full blur-md opacity-50" />
+                              <div className="relative bg-gradient-to-r from-[#E8B84A] to-[#d4a43d] text-[#0a0612] text-xs font-bold px-3 py-1 rounded-full">
+                                NEW
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="relative z-30 flex items-center gap-3">
+                          <span
+                            className="inline-block rounded-full p-2"
+                            style={{ backgroundColor: `${agent.color}25` }}
+                          >
+                            <IconComponent className="size-7" style={{ color: agent.color }} />
+                          </span>
+                          <p className="text-2xl font-semibold" style={{ color: agent.color }}>{agent.name}</p>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
               </div>
             </motion.div>
 
@@ -550,7 +689,7 @@ export default function OpseraLanding() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex flex-col gap-4"
+              className="flex flex-col gap-3 sm:gap-4 w-full"
             >
               {selectedAgent && (() => {
                 const agent = aiAgentsData.find(a => a.id === selectedAgent)!;
@@ -577,30 +716,30 @@ export default function OpseraLanding() {
                         <img
                           src={agent.dashboardImg}
                           alt={`${agent.name} Dashboard`}
-                          className="w-full h-[350px] object-cover"
+                          className="w-full h-[180px] sm:h-[240px] md:h-[300px] lg:h-[350px] object-cover"
                         />
                         {/* Overlay gradient */}
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0612]/80 via-transparent to-transparent" />
 
                         {/* Agent info overlay at bottom with glassmorphism backdrop */}
-                        <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-3 md:p-4">
                           <div
-                            className="rounded-xl p-4 backdrop-blur-md border"
+                            className="rounded-xl p-2.5 sm:p-3 md:p-4 backdrop-blur-md border"
                             style={{
                               backgroundColor: 'rgba(10, 6, 18, 0.6)',
                               borderColor: `${agent.color}30`,
                             }}
                           >
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2.5 sm:gap-3">
                               <div
-                                className="w-10 h-10 rounded-lg flex items-center justify-center"
+                                className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0"
                                 style={{ backgroundColor: agent.color }}
                               >
-                                <agent.icon className="w-5 h-5 text-white" />
+                                <agent.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                               </div>
-                              <div>
-                                <h4 className="text-lg font-bold text-white">{agent.name}</h4>
-                                <p className="text-xs" style={{ color: agent.color }}>{agent.role}</p>
+                              <div className="min-w-0">
+                                <h4 className="text-sm sm:text-base md:text-lg font-bold text-white">{agent.name}</h4>
+                                <p className="text-[10px] sm:text-xs" style={{ color: agent.color }}>{agent.role}</p>
                               </div>
                             </div>
                           </div>
@@ -614,7 +753,7 @@ export default function OpseraLanding() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
                       onClick={() => setShowAgentDetails(true)}
-                      className="w-full py-3 rounded-xl font-medium text-white border transition-all duration-300 hover:scale-[1.02]"
+                      className="w-full py-2.5 sm:py-3 rounded-xl font-medium text-sm sm:text-base text-white border transition-all duration-300 hover:scale-[1.02]"
                       style={{
                         backgroundColor: `${agent.color}15`,
                         borderColor: `${agent.color}40`,
@@ -722,22 +861,22 @@ export default function OpseraLanding() {
       </section>
 
       {/* Smooth transition from AI Agents to Market Positioning */}
-      <div className="h-64" style={{ background: "linear-gradient(to bottom, #2D1B4E 0%, #3d2a5f 15%, #6b4e9b 35%, #b8a5d4 55%, #e8e0f0 75%, white 100%)" }} />
+      <div className="h-32 md:h-64" style={{ background: "linear-gradient(to bottom, #2D1B4E 0%, #3d2a5f 15%, #6b4e9b 35%, #b8a5d4 55%, #e8e0f0 75%, white 100%)" }} />
 
       {/* Market Positioning Section - The Intelligence Matrix */}
-      <section className="relative py-32 px-6 bg-gradient-to-b from-white to-[#f5f0ff]">
+      <section className="relative py-16 md:py-32 px-4 sm:px-6 bg-gradient-to-b from-white to-[#f5f0ff]">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-20"
+            className="text-center mb-10 md:mb-20"
           >
-            <h3 className="text-5xl md:text-6xl font-light text-[#2D1B4E] mb-6 tracking-tight font-[family-name:var(--font-space-grotesk)]">
+            <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-[#2D1B4E] mb-4 md:mb-6 tracking-tight font-[family-name:var(--font-space-grotesk)]">
               The Intelligence Gap, Solved.
             </h3>
-            <p className="text-xl text-[#2D1B4E]/60 max-w-3xl mx-auto font-light font-[family-name:var(--font-inter)] leading-relaxed">
+            <p className="text-base md:text-lg text-[#2D1B4E]/60 max-w-3xl mx-auto font-light font-[family-name:var(--font-inter)] leading-relaxed">
               Too fast for enterprise suites. Too powerful for generic bots.
               <br className="hidden md:block" />
               <span className="text-[#2D1B4E] font-medium"> SIA exists in the sweet spot of execution.</span>
@@ -751,7 +890,7 @@ export default function OpseraLanding() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8 }}
-              className="relative aspect-[4/3] md:aspect-[16/9] bg-[#2D1B4E] rounded-3xl overflow-hidden shadow-2xl border border-[#2D1B4E]/10 group"
+              className="relative aspect-[4/3] md:aspect-[16/9] bg-[#2D1B4E] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-[#2D1B4E]/10 group"
             >
               {/* Scan Line Effect */}
               <motion.div
@@ -762,7 +901,7 @@ export default function OpseraLanding() {
               />
 
               {/* Grid Lines */}
-              <div className="absolute inset-0 p-8 md:p-12 z-0">
+              <div className="absolute inset-0 p-4 sm:p-8 md:p-12 z-0">
                 <svg className="w-full h-full opacity-20" width="100%" height="100%">
                   <defs>
                     <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -801,20 +940,20 @@ export default function OpseraLanding() {
                 </svg>
 
                 {/* Axis Labels */}
-                <div className="absolute bottom-4 left-16 right-0 text-white/40 text-xs tracking-widest font-mono flex justify-between uppercase">
+                <div className="absolute bottom-2 sm:bottom-4 left-8 sm:left-16 right-2 sm:right-0 text-white/40 text-[9px] sm:text-xs tracking-wider sm:tracking-widest font-mono flex justify-between uppercase">
                   <span>Months to Value</span>
                   <span>Days to Value</span>
                 </div>
-                <div className="absolute left-14 top-8 text-white/40 text-xs tracking-widest font-mono uppercase pointer-events-none">
+                <div className="absolute left-5 sm:left-14 top-4 sm:top-8 text-white/40 text-[9px] sm:text-xs tracking-wider sm:tracking-widest font-mono uppercase pointer-events-none">
                   <span>High Capability</span>
                 </div>
-                <div className="absolute left-28 bottom-14 text-white/40 text-xs tracking-widest font-mono uppercase pointer-events-none">
+                <div className="absolute left-10 sm:left-28 bottom-8 sm:bottom-14 text-white/40 text-[9px] sm:text-xs tracking-wider sm:tracking-widest font-mono uppercase pointer-events-none">
                   <span>Low Capability</span>
                 </div>
               </div>
 
               {/* Data Points */}
-              <div className="absolute inset-0 p-8 md:p-12 z-10">
+              <div className="absolute inset-0 p-4 sm:p-8 md:p-12 z-10">
 
                 {/* Competitor: Legacy ERP (High Capability, Slow Time) - Top Left */}
                 <motion.div
@@ -826,9 +965,9 @@ export default function OpseraLanding() {
                 >
                   <div className="relative flex items-center justify-center">
                     <div className="absolute w-full h-full bg-white/20 rounded-full blur-sm" />
-                    <div className="w-4 h-4 bg-gradient-to-br from-white/60 to-white/30 rounded-full ring-2 ring-white/10" />
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-br from-white/60 to-white/30 rounded-full ring-2 ring-white/10" />
                   </div>
-                  <div className="mt-3 text-xs text-white/70 font-mono whitespace-nowrap -ml-4">Legacy ERP</div>
+                  <div className="mt-2 sm:mt-3 text-[9px] sm:text-xs text-white/70 font-mono whitespace-nowrap -ml-3 sm:-ml-4">Legacy ERP</div>
                 </motion.div>
 
                 {/* Competitor: Consulting (Mid Capability, Slow Time) - Mid Left */}
@@ -841,9 +980,9 @@ export default function OpseraLanding() {
                 >
                   <div className="relative flex items-center justify-center">
                     <div className="absolute w-full h-full bg-white/20 rounded-full blur-sm" />
-                    <div className="w-4 h-4 bg-gradient-to-br from-white/60 to-white/30 rounded-full ring-2 ring-white/10" />
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-br from-white/60 to-white/30 rounded-full ring-2 ring-white/10" />
                   </div>
-                  <div className="mt-3 text-xs text-white/70 font-mono whitespace-nowrap -ml-4">Consulting Firms</div>
+                  <div className="mt-2 sm:mt-3 text-[9px] sm:text-xs text-white/70 font-mono whitespace-nowrap -ml-3 sm:-ml-4">Consulting Firms</div>
                 </motion.div>
 
                 {/* Competitor: Generic AI (Low Capability, Fast Time) - Bottom Right */}
@@ -856,9 +995,9 @@ export default function OpseraLanding() {
                 >
                   <div className="relative flex items-center justify-center">
                     <div className="absolute w-full h-full bg-white/20 rounded-full blur-sm" />
-                    <div className="w-4 h-4 bg-gradient-to-br from-white/60 to-white/30 rounded-full ring-2 ring-white/10" />
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-br from-white/60 to-white/30 rounded-full ring-2 ring-white/10" />
                   </div>
-                  <div className="mt-3 text-xs text-white/70 font-mono whitespace-nowrap -ml-8">Generic AI Bots</div>
+                  <div className="mt-2 sm:mt-3 text-[9px] sm:text-xs text-white/70 font-mono whitespace-nowrap -ml-6 sm:-ml-8">Generic AI Bots</div>
                 </motion.div>
 
                 {/* OPSERA: The Hero (High Capability, Fast Time) - Top Right */}
@@ -867,7 +1006,7 @@ export default function OpseraLanding() {
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ type: "spring", stiffness: 260, damping: 20, delay: 1.8 }}
-                  className="absolute top-[20%] right-[15%]"
+                  className="absolute top-[20%] right-[12%] sm:right-[15%]"
                 >
                   <div className="relative flex items-center justify-center">
                     {/* Pulsing Rings */}
@@ -875,23 +1014,33 @@ export default function OpseraLanding() {
                     <div className="absolute w-[200%] h-[200%] border border-[#E8B84A]/30 rounded-full animate-[spin_10s_linear_infinite]" />
 
                     {/* Main Orb */}
-                    <div className="w-6 h-6 bg-gradient-to-br from-[#E8B84A] to-[#E8A87C] rounded-full shadow-[0_0_20px_rgba(232,184,74,0.6)] z-20 relative ring-4 ring-[#2D1B4E]/50" />
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-[#E8B84A] to-[#E8A87C] rounded-full shadow-[0_0_20px_rgba(232,184,74,0.6)] z-20 relative ring-2 sm:ring-4 ring-[#2D1B4E]/50" />
 
-                    {/* Badge */}
+                    {/* Badge — below on mobile, left on desktop */}
                     <motion.div
                       initial={{ opacity: 0, x: -10 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: 2.2 }}
-                      className="absolute right-full mr-4 bg-white/10 backdrop-blur-md border border-[#E8B84A]/30 text-[#E8B84A] px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shadow-lg"
+                      className="hidden sm:block absolute right-full mr-4 bg-white/10 backdrop-blur-md border border-[#E8B84A]/30 text-[#E8B84A] px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shadow-lg"
                     >
                       30-Day Deployment
                     </motion.div>
                   </div>
-                  <div className="mt-4 text-sm text-white font-bold tracking-widest text-center flex flex-col items-center gap-1">
+                  <div className="mt-2 sm:mt-4 text-xs sm:text-sm text-white font-bold tracking-widest text-center flex flex-col items-center gap-1">
                     SIA
-                    <span className="w-1 h-8 bg-gradient-to-b from-[#E8B84A] to-transparent opacity-50 absolute -bottom-10" />
+                    <span className="w-1 h-6 sm:h-8 bg-gradient-to-b from-[#E8B84A] to-transparent opacity-50 absolute -bottom-7 sm:-bottom-10" />
                   </div>
+                  {/* Badge — below SIA on mobile */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 2.2 }}
+                    className="sm:hidden mt-8 bg-white/10 backdrop-blur-md border border-[#E8B84A]/30 text-[#E8B84A] px-2 py-1 rounded-md text-[9px] font-bold whitespace-nowrap shadow-lg text-center"
+                  >
+                    30-Day Deployment
+                  </motion.div>
                 </motion.div>
 
               </div>
@@ -901,152 +1050,683 @@ export default function OpseraLanding() {
       </section>
 
       {/* Smooth transition from Market to Technology */}
-      <div className="h-64" style={{ background: "linear-gradient(to bottom, #f5f0ff 0%, #e0d5f0 20%, #b8a5d4 40%, #6b4e9b 65%, #3d2a5f 80%, #2D1B4E 100%)" }} />
+      <div className="h-32 md:h-64" style={{ background: "linear-gradient(to bottom, #f5f0ff 0%, #e0d5f0 20%, #b8a5d4 40%, #6b4e9b 65%, #3d2a5f 80%, #2D1B4E 100%)" }} />
 
       {/* Technology Stack Section - 3D Platform with Bars */}
-      <section className="relative py-32 px-6 bg-[#2D1B4E] overflow-hidden">
+      <section className="relative py-16 md:py-24 lg:py-32 px-4 sm:px-6 bg-[#2D1B4E] overflow-hidden">
         <div className="max-w-6xl mx-auto relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="mb-10 md:mb-16 text-center lg:text-left"
           >
-            <h3 className="text-5xl md:text-6xl font-light text-white mb-6 tracking-tight font-[family-name:var(--font-space-grotesk)]">
+            <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-white mb-4 md:mb-6 tracking-tight font-[family-name:var(--font-space-grotesk)]">
               Robust architecture
             </h3>
-            <p className="text-xl text-white/40 max-w-2xl mx-auto font-light font-[family-name:var(--font-inter)]">
+            <p className="text-base md:text-lg lg:text-xl text-white/40 max-w-2xl font-light font-[family-name:var(--font-inter)] mx-auto lg:mx-0">
               From raw data to autonomous action
             </p>
           </motion.div>
 
-          {/* 3D Platform Scene */}
-          <div className="relative max-w-4xl mx-auto">
-            {/* Platform with perspective */}
-            <div
-              className="relative mx-auto rounded-2xl p-8 md:p-12"
-              style={{
-                background: "linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%)",
-                boxShadow: "0 40px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.05)"
-              }}
-            >
-              {/* Grid overlay */}
-              <div
-                className="absolute inset-0 rounded-2xl opacity-20 pointer-events-none"
-                style={{
-                  backgroundImage: "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
-                  backgroundSize: "30px 30px"
-                }}
-              />
+          {/* Isometric 3D Architecture Visualization */}
+          <div className="relative max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-4 lg:gap-12">
 
-              {/* Bars Container */}
-              <div className="relative flex items-end justify-center gap-3 md:gap-5 h-[320px] md:h-[380px]">
-                {[
-                  { height: 35, label: "Connect", desc: "Data ingestion" },
-                  { height: 50, label: "Process", desc: "ETL pipeline" },
-                  { height: 70, label: "Analyze", desc: "AI reasoning", highlight: true },
-                  { height: 85, label: "Learn", desc: "Model training", highlight: true },
-                  { height: 100, label: "Execute", desc: "Automation", highlight: true },
-                  { height: 80, label: "Monitor", desc: "Observability" },
-                  { height: 55, label: "Optimize", desc: "Continuous improvement" },
-                ].map((bar, idx) => (
-                  <motion.button
-                    key={bar.label}
-                    initial={{ height: 0, opacity: 0 }}
-                    whileInView={{ height: `${bar.height}%`, opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.1 * idx, ease: "easeOut" }}
-                    whileHover={{ scale: 1.05, y: -8 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="group relative flex-1 max-w-[70px] md:max-w-[80px] cursor-pointer"
-                    style={{ height: `${bar.height}%` }}
+            {/* Desktop left column — interactive layer headers (hidden on mobile) */}
+            <div className="hidden lg:flex flex-col justify-center gap-0 w-56 shrink-0 order-1">
+              {archLayers.map((item, i) => {
+                const isRevealed = archPreview || i <= archRevealed;
+                const isHovered = archHovered === i;
+                return (
+                  <div
+                    key={item.title}
+                    className="cursor-pointer group"
+                    onMouseEnter={() => {
+                      setArchHovered(i);
+                      setArchRevealed(prev => Math.max(prev, i));
+                    }}
+                    onMouseLeave={() => {
+                      if (archComplete && !archCycled) setArchCycled(true);
+                      setArchHovered(null);
+                    }}
+                    onClick={() => {
+                      setArchHovered(i);
+                      setArchRevealed(prev => Math.max(prev, i));
+                    }}
                   >
-                    {/* Bar */}
-                    <div
-                      className={`
-                        w-full h-full rounded-t-lg relative overflow-hidden transition-all duration-300
-                        ${bar.highlight
-                          ? "bg-gradient-to-t from-[#E8B84A] via-[#d4a843] to-[#c9a03d] shadow-[0_0_30px_rgba(232,184,74,0.3)]"
-                          : "bg-gradient-to-t from-[#3a3a42] via-[#4a4a52] to-[#5a5a62]"
-                        }
-                        group-hover:shadow-[0_0_40px_rgba(232,184,74,0.5)]
-                      `}
-                    >
-                      {/* Metallic shine effect */}
-                      <div
-                        className="absolute inset-0 opacity-40"
-                        style={{
-                          background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 30%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 70%, transparent 100%)"
-                        }}
-                      />
-
-                      {/* Left edge highlight */}
-                      <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-white/40 via-white/20 to-transparent" />
-
-                      {/* Top cap */}
-                      <div
-                        className={`absolute top-0 left-0 right-0 h-3 rounded-t-lg ${bar.highlight ? "bg-[#f5cc5a]" : "bg-[#6a6a72]"}`}
-                        style={{
-                          boxShadow: bar.highlight ? "0 -2px 10px rgba(232,184,74,0.5)" : "none"
-                        }}
-                      />
+                    {i > 0 && (
+                      <div className="w-full h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                    )}
+                    <div className="py-4 transition-all duration-300 text-left">
+                      <span className={`text-sm font-semibold tracking-[3px] uppercase font-[family-name:var(--font-space-grotesk)] transition-colors duration-300 whitespace-nowrap ${
+                        isRevealed ? (archPreview ? 'text-white/50' : 'text-white/80') : 'text-white/30'
+                      } ${isHovered ? '!text-[#E8B84A]' : ''}`}>
+                        {item.title}
+                      </span>
+                      <AnimatePresence>
+                        {isHovered && (
+                          <motion.p
+                            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                            animate={{ height: 'auto', opacity: 1, marginTop: 8 }}
+                            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                            transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            className="text-xs text-white/40 font-light leading-relaxed overflow-hidden"
+                          >
+                            {item.desc}
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
                     </div>
-
-                    {/* Reflection */}
-                    <div
-                      className={`
-                        absolute -bottom-8 left-0 right-0 h-8 rounded-b-lg opacity-20 blur-sm
-                        ${bar.highlight
-                          ? "bg-gradient-to-b from-[#E8B84A] to-transparent"
-                          : "bg-gradient-to-b from-[#4a4a52] to-transparent"
-                        }
-                      `}
-                    />
-
-                    {/* Label */}
-                    <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 text-center whitespace-nowrap">
-                      <p className={`text-[10px] md:text-xs font-medium ${bar.highlight ? "text-[#E8B84A]" : "text-white/50"} group-hover:text-white transition-colors`}>
-                        {bar.label}
-                      </p>
-                    </div>
-
-                    {/* Hover tooltip */}
-                    <div className="absolute -top-16 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                      <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg px-3 py-2 whitespace-nowrap">
-                        <p className="text-white text-xs font-medium">{bar.label}</p>
-                        <p className="text-white/60 text-[10px]">{bar.desc}</p>
-                      </div>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-
-              {/* Platform edge glow */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#E8B84A]/30 to-transparent" />
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Flow description */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.8 }}
-              className="flex items-center justify-center gap-4 mt-20 text-sm"
+            {/* Visualization */}
+            <div className="relative flex-1 w-full order-1 lg:order-2">
+            <div
+              className="relative flex items-center justify-center scale-[0.45] sm:scale-[0.55] md:scale-[0.7] lg:scale-[0.85] xl:scale-100 origin-center h-[300px] sm:h-[360px] md:h-[440px] lg:h-[520px] xl:h-[560px]"
+              style={{ perspective: '1200px' }}
             >
-              <span className="text-white/40">Your Data</span>
-              <span className="text-white/20">→</span>
-              <span className="text-[#E8B84A] font-medium">AI Processing Pipeline</span>
-              <span className="text-white/20">→</span>
-              <span className="text-white/40">Autonomous Action</span>
-            </motion.div>
+              {/* Hover float wrapper — outer div for y animation only */}
+              <motion.div
+                whileHover={{ y: -12 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+              >
+                {/* Scene container — isometric rotation, never touched by framer-motion */}
+                <div
+                  style={{
+                    transformStyle: 'preserve-3d',
+                    transform: 'rotateX(55deg) rotateZ(-45deg)',
+                    position: 'relative',
+                    width: '400px',
+                    height: '400px',
+                  }}
+                >
+                {/* ═══════ Shadow under base ═══════ */}
+                <div className="absolute pointer-events-none" style={{
+                  left: '50%', top: '50%',
+                  transform: 'translate(-50%, -50%) translateZ(-5px)',
+                  width: '420px', height: '420px',
+                  background: 'radial-gradient(ellipse, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.12) 50%, transparent 70%)',
+                  filter: 'blur(20px)',
+                }} />
+
+                {/* ═══════ Layer 1: Source Systems (base) ═══════ */}
+                <div
+                  className="absolute"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    transform: `translate(-50%, -50%) translateZ(${archComplete && archHovered === 0 ? 20 : 0}px)`,
+                    transition: 'transform 0.4s ease',
+                    width: '400px',
+                    height: '400px',
+                    transformStyle: 'preserve-3d',
+                  }}
+                >
+                  {/* Left side face — edges appear first (no delay) */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: getLayerOpacity(0) }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="absolute top-0 bottom-0 left-0 overflow-hidden"
+                    style={{
+                      width: '56px',
+                      transform: 'rotateY(90deg)',
+                      transformOrigin: 'left',
+                      background: 'linear-gradient(180deg, #18182e 0%, #0e0e1e 100%)',
+                      borderTop: '1px solid rgba(255,255,255,0.06)',
+                      borderBottom: '1px solid rgba(255,255,255,0.04)',
+                      borderLeft: '1px solid rgba(255,255,255,0.06)',
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-15" style={{
+                      background: 'linear-gradient(0deg, transparent 0%, rgba(255,255,255,0.12) 30%, transparent 60%)',
+                    }} />
+                    <div className="absolute inset-0 flex items-center justify-center" style={{ transform: 'scaleX(-1)' }}>
+                      <span className="text-[12px] text-white/50 font-semibold tracking-[2px] uppercase whitespace-nowrap"
+                        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(-360deg)' }}
+                      >
+                        Enterprise Source Systems &amp; ETL
+                      </span>
+                    </div>
+                  </motion.div>
+
+                  {/* Right side face — edges appear first (no delay) */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: getLayerOpacity(0) }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="absolute left-0 right-0 bottom-0 overflow-hidden"
+                    style={{
+                      height: '56px',
+                      transform: 'rotateX(90deg)',
+                      transformOrigin: 'bottom',
+                      background: 'linear-gradient(180deg, #12122a 0%, #0a0a18 100%)',
+                      borderLeft: '1px solid rgba(255,255,255,0.06)',
+                      borderRight: '1px solid rgba(255,255,255,0.04)',
+                      borderBottom: '1px solid rgba(255,255,255,0.04)',
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-10" style={{
+                      background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 20%, transparent 40%, rgba(255,255,255,0.05) 60%, transparent 80%)',
+                    }} />
+                    <div className="absolute inset-0 flex items-center justify-center gap-2 px-4" style={{ transform: 'scaleY(-1)' }}>
+                      {['CRM', 'ERP', 'Databases', "API's", 'Webhooks'].map((label) => (
+                        <span
+                          key={label}
+                          className="text-[10px] text-white/45 font-medium tracking-wide whitespace-nowrap rounded-full px-2.5 py-1"
+                          style={{
+                            background: 'rgba(255,255,255,0.06)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                          }}
+                        >
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  </motion.div>
+
+                  {/* Top face — surface appears second (delay 0.3s) */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: getLayerOpacity(0) }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    className="absolute inset-0 rounded-lg overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(135deg, #1c1c2e 0%, #2a2a40 25%, #1e1e32 50%, #2c2c44 75%, #1a1a2c 100%)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-20 pointer-events-none" style={{
+                      backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)',
+                    }} />
+                    <div className="absolute inset-0 opacity-30 pointer-events-none" style={{
+                      background: 'linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.08) 55%, transparent 70%)',
+                    }} />
+                    <div className="absolute inset-0 opacity-15 pointer-events-none" style={{
+                      backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+                      backgroundSize: '40px 40px',
+                    }} />
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-white/20 via-white/10 to-transparent" />
+                    <div className="absolute top-0 left-0 bottom-0 w-[1px] bg-gradient-to-b from-white/20 via-white/10 to-transparent" />
+                  </motion.div>
+                </div>
+
+                {/* ═══════ Layer 2: AI Reasoning & Model Training ═══════ */}
+                <div
+                  className="absolute"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    transform: `translate(-50%, -50%) translateZ(${archComplete && archHovered === 1 ? 90 : 70}px)`,
+                    transition: 'transform 0.4s ease',
+                    width: '320px',
+                    height: '320px',
+                    transformStyle: 'preserve-3d',
+                  }}
+                >
+                  {/* Left side face */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: getLayerOpacity(1) }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="absolute top-2 bottom-0 left-0 overflow-hidden"
+                    style={{
+                      width: '24px',
+                      transform: 'rotateY(90deg)',
+                      transformOrigin: 'left',
+                      background: 'linear-gradient(180deg, #2a1245 0%, #1e0a38 50%, #160830 100%)',
+                      borderTop: '1px solid rgba(168,85,247,0.3)',
+                      borderBottom: '1px solid rgba(168,85,247,0.15)',
+                      borderLeft: '1px solid rgba(168,85,247,0.3)',
+                      boxShadow: 'inset 0 0 12px rgba(168,85,247,0.1), inset 0 1px 0 rgba(255,255,255,0.06)',
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-30" style={{
+                      backgroundImage: 'linear-gradient(180deg, rgba(200,160,255,0.12) 0%, transparent 30%, rgba(200,160,255,0.08) 70%, transparent 100%)',
+                    }} />
+                    <div className="absolute inset-0 flex items-center justify-center" style={{ transform: 'scaleX(-1)' }}>
+                      <span className="text-[10px] text-purple-300/50 font-semibold tracking-[2px] uppercase whitespace-nowrap"
+                        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(-360deg)' }}
+                      >
+                        AI Reasoning &amp; Model Training
+                      </span>
+                    </div>
+                  </motion.div>
+
+                  {/* Right side face */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: getLayerOpacity(1) }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="absolute left-0 right-2 bottom-0 overflow-hidden"
+                    style={{
+                      height: '24px',
+                      transform: 'rotateX(90deg)',
+                      transformOrigin: 'bottom',
+                      background: 'linear-gradient(90deg, #2a1245 0%, #1e0a38 50%, #160830 100%)',
+                      borderLeft: '1px solid rgba(168,85,247,0.3)',
+                      borderRight: '1px solid rgba(168,85,247,0.15)',
+                      borderBottom: '1px solid rgba(168,85,247,0.15)',
+                      boxShadow: 'inset 0 0 12px rgba(168,85,247,0.1), inset 0 1px 0 rgba(255,255,255,0.06)',
+                    }}
+                  >
+                    <div className="absolute inset-0 opacity-30" style={{
+                      backgroundImage: 'linear-gradient(90deg, rgba(200,160,255,0.12) 0%, transparent 30%, rgba(200,160,255,0.08) 70%, transparent 100%)',
+                    }} />
+                  </motion.div>
+
+                  {/* Top face */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: getLayerOpacity(1) }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="absolute inset-0 rounded-xl overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(120,60,200,0.15) 0%, rgba(168,85,247,0.2) 30%, rgba(140,70,220,0.12) 60%, rgba(168,85,247,0.18) 100%)',
+                      border: '1px solid rgba(168,85,247,0.25)',
+                      backdropFilter: 'blur(8px)',
+                      boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.1), 0 0 30px rgba(168,85,247,0.1)',
+                    }}
+                  >
+                    {/* Glass refraction highlight */}
+                    <div className="absolute inset-0 opacity-40 pointer-events-none" style={{
+                      background: 'linear-gradient(135deg, transparent 20%, rgba(200,160,255,0.15) 40%, rgba(255,255,255,0.1) 50%, rgba(200,160,255,0.1) 60%, transparent 80%)',
+                    }} />
+                    {/* Grid texture */}
+                    <div className="absolute inset-0 pointer-events-none" style={{
+                      backgroundImage: 'linear-gradient(rgba(168,85,247,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,0.12) 1px, transparent 1px)',
+                      backgroundSize: '40px 40px',
+                    }} />
+                    {/* Grid cubes with labels - scattered on the surface */}
+                    {[
+                      { label: 'LLM', x: 24, y: 20 },
+                      { label: 'RAG', x: 230, y: 50 },
+                      { label: 'AI Agents', x: 10, y: 240 },
+                      { label: 'ML', x: 100, y: 130 },
+                      { label: 'Fine-Tuning', x: 200, y: 180 },
+                    ].map((item) => (
+                      <div
+                        key={item.label}
+                        className="absolute rounded-md flex items-center justify-center"
+                        style={{
+                          left: `${item.x}px`,
+                          top: `${item.y}px`,
+                          width: item.label.length > 3 ? '80px' : '50px',
+                          height: '36px',
+                          background: 'linear-gradient(135deg, rgba(168,85,247,0.2) 0%, rgba(120,60,200,0.15) 100%)',
+                          border: '1px solid rgba(168,85,247,0.3)',
+                          boxShadow: '0 0 12px rgba(168,85,247,0.15), inset 0 1px 1px rgba(255,255,255,0.08)',
+                        }}
+                      >
+                        <span className="text-[9px] text-purple-300/70 font-bold tracking-[1px] uppercase transition-opacity duration-300"
+                          style={{ opacity: columnsVisible ? 0 : 1 }}
+                        >
+                          {item.label}
+                        </span>
+                      </div>
+                    ))}
+                    {/* Edge highlights */}
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-purple-400/30 via-purple-300/15 to-transparent" />
+                    <div className="absolute top-0 left-0 bottom-0 w-[1px] bg-gradient-to-b from-purple-400/30 via-purple-300/15 to-transparent" />
+                  </motion.div>
+                </div>
+
+                {/* ═══════ Layer 3: Golden Orbit Arcs — single SVG paths ═══════ */}
+                {(() => {
+                  const arcs = [
+                    'M 49 38 Q 152 0 255 68',
+                    'M 255 68 Q 305 120 240 198',
+                    'M 240 198 Q 183 218 125 148',
+                    'M 125 148 Q 32 93 49 38',
+                    'M 255 68 Q 230 85 125 148',
+                    'M 50 258 Q 100 148 49 38',
+                    'M 50 258 Q 30 190 125 148',
+                  ];
+                  return (
+                    <div
+                      className="absolute pointer-events-none"
+                      style={{
+                        left: '50%',
+                        top: '50%',
+                        marginLeft: '-160px',
+                        marginTop: '-160px',
+                        width: '320px',
+                        height: '320px',
+                        transform: 'translateZ(72px)',
+                      }}
+                    >
+                    <motion.svg
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: (() => {
+                        if (archPreview) return 0.4;
+                        if (!archComplete) return archRevealed >= 2 ? 1 : 0;
+                        if (archHovered === null) return 0;
+                        return archHovered >= 2 && archHovered < 3 ? 1 : 0;
+                      })() }}
+                      transition={{ duration: 0.8 }}
+                      className="absolute inset-0 pointer-events-none"
+                      viewBox="0 0 320 320"
+                      overflow="visible"
+                      style={{
+                        width: '320px',
+                        height: '320px',
+                      }}
+                    >
+                      <defs>
+                        <filter id="arcGlow" x="-30%" y="-30%" width="160%" height="160%">
+                          <feGaussianBlur stdDeviation="3" result="blur" />
+                          <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                          </feMerge>
+                        </filter>
+                        <filter id="arcGlowStrong" x="-30%" y="-30%" width="160%" height="160%">
+                          <feGaussianBlur stdDeviation="5" result="blur" />
+                          <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                          </feMerge>
+                        </filter>
+                      </defs>
+
+                      {/* Static golden glow arcs — 1 path = 1 arc */}
+                      {arcs.map((d, i) => (
+                        <path key={`glow-${i}`} d={d} fill="none" stroke="rgba(232,184,74,0.3)" strokeWidth="1.5" filter="url(#arcGlow)" />
+                      ))}
+
+                      {/* Animated traveling particles along each arc */}
+                      {arcs.map((d, i) => (
+                        <motion.path
+                          key={`particle-${i}`}
+                          d={d}
+                          fill="none"
+                          stroke="rgba(255,230,150,0.9)"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          filter="url(#arcGlowStrong)"
+                          pathLength={1000}
+                          strokeDasharray="40 960"
+                          initial={{ strokeDashoffset: 0 }}
+                          animate={{ strokeDashoffset: -1000 }}
+                          transition={{ duration: 3 + i * 0.2, repeat: Infinity, ease: 'linear', delay: i * 0.4 }}
+                        />
+                      ))}
+
+                      {/* Endpoint halos moved to separate 3D-positioned divs below */}
+                    </motion.svg>
+                    </div>
+                  );
+                })()}
+
+                {/* Ambient glow beneath platform */}
+                <motion.div
+                  className="absolute rounded-full pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: archPreview ? 0.2 : (getLayerOpacity(0) > 0 ? (archComplete ? 1 : 0.4) : 0) }}
+                  transition={{ duration: 1 }}
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%) translateZ(-15px)',
+                    width: '480px',
+                    height: '480px',
+                    background: 'radial-gradient(circle, rgba(168,85,247,0.05) 0%, rgba(255,255,255,0.02) 40%, transparent 60%)',
+                    filter: 'blur(25px)',
+                  }}
+                />
+
+                {/* ═══════ Golden 3D columns — grow from textboxes on Autonomous Action ═══════ */}
+                <div
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: '-160px',
+                    marginTop: '-160px',
+                    transform: `translateZ(${archCycled && archHovered === 3 ? 90 : 70}px)`,
+                    transition: 'transform 0.4s ease',
+                    width: '320px',
+                    height: '320px',
+                    transformStyle: 'preserve-3d',
+                  }}
+                >
+                  {[
+                    { x: 24, y: 20, tw: 50, colH: 190, label: 'Marketing' },
+                    { x: 230, y: 50, tw: 50, colH: 110, label: 'Procurement' },
+                    { x: 10, y: 240, tw: 80, colH: 155, label: 'Accounting' },
+                    { x: 100, y: 130, tw: 50, colH: 230, label: 'Human Resource' },
+                    { x: 200, y: 180, tw: 80, colH: 75, label: 'Sales' },
+                  ].map((col, i) => (
+                    <div
+                      key={i}
+                      className="absolute"
+                      style={{
+                        left: `${col.x}px`,
+                        top: `${col.y}px`,
+                        width: `${col.tw}px`,
+                        height: '36px',
+                        transformStyle: 'preserve-3d',
+                        transform: `scaleZ(${columnsVisible ? 1 : 0})`,
+                        opacity: columnsOpacity,
+                        transition: 'transform 1.2s linear, opacity 0.15s linear',
+                      }}
+                    >
+                      {/* Top cap */}
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          transform: `translateZ(${col.colH}px)`,
+                          background: 'linear-gradient(135deg, rgba(232,184,74,0.55) 0%, rgba(232,184,74,0.38) 100%)',
+                          border: '2px solid rgba(232,184,74,0.6)',
+                          boxShadow: '0 0 18px rgba(232,184,74,0.25)',
+                        }}
+                      />
+                      {/* Left visible face */}
+                      <div
+                        className="absolute top-0 left-0 overflow-hidden"
+                        style={{
+                          width: `${col.colH}px`,
+                          height: '36px',
+                          transform: `translateZ(${col.colH}px) rotateY(90deg)`,
+                          transformOrigin: 'left',
+                          background: 'linear-gradient(to right, rgba(232,184,74,0.45), rgba(232,184,74,0.22))',
+                          borderLeft: '2px solid rgba(232,184,74,0.55)',
+                          borderTop: '2px solid rgba(232,184,74,0.45)',
+                          borderBottom: '2px solid rgba(232,184,74,0.30)',
+                        }}
+                      >
+                        <span
+                          className="absolute whitespace-nowrap font-semibold uppercase"
+                          style={{
+                            fontSize: '10px',
+                            color: 'rgba(255,235,170,0.95)',
+                            textShadow: '0 0 8px rgba(232,184,74,0.6)',
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, -50%) scaleX(-1)',
+                            letterSpacing: '1.5px',
+                            opacity: columnsVisible ? (archPreview ? 0.4 : 1) : 0,
+                            transition: 'opacity 0.5s ease',
+                            transitionDelay: (!archPreview && showAutonomous) ? '1.2s' : '0s',
+                          }}
+                        >
+                          {col.label}
+                        </span>
+                      </div>
+                      {/* Bottom visible face */}
+                      <div
+                        className="absolute bottom-0 left-0"
+                        style={{
+                          width: `${col.tw}px`,
+                          height: `${col.colH}px`,
+                          transform: `translateZ(${col.colH}px) rotateX(90deg)`,
+                          transformOrigin: 'bottom',
+                          background: 'linear-gradient(to top, rgba(232,184,74,0.40), rgba(232,184,74,0.18))',
+                          borderBottom: '2px solid rgba(232,184,74,0.50)',
+                          borderLeft: '2px solid rgba(232,184,74,0.30)',
+                          borderRight: '2px solid rgba(232,184,74,0.30)',
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* ═══════ Crown ring above columns with traveling particle ═══════ */}
+                <div
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: '-160px',
+                    marginTop: '-160px',
+                    width: '320px',
+                    height: '320px',
+                    transform: `translateZ(${archCycled && archHovered === 3 ? 330 : 310}px)`,
+                    transition: 'transform 0.4s ease',
+                  }}
+                >
+                  <motion.svg
+                    initial={{ opacity: archPreview ? 0.4 : 0 }}
+                    animate={{ opacity: columnsOpacity }}
+                    transition={{ duration: 0.5, delay: (!archPreview && showAutonomous) ? 1.2 : 0 }}
+                    className="absolute inset-0 pointer-events-none"
+                    viewBox="0 0 320 320"
+                    overflow="visible"
+                    style={{ width: '320px', height: '320px' }}
+                  >
+                    <defs>
+                      <filter id="crownGlow" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation="4" result="blur" />
+                        <feMerge>
+                          <feMergeNode in="blur" />
+                          <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                      </filter>
+                    </defs>
+                    <circle cx="140" cy="150" r="135" fill="none" stroke="rgba(232,184,74,0.25)" strokeWidth="1.5" filter="url(#crownGlow)" />
+                    <motion.circle
+                      cx="140"
+                      cy="150"
+                      r="135"
+                      fill="none"
+                      stroke="rgba(255,230,150,0.9)"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      filter="url(#crownGlow)"
+                      pathLength={1000}
+                      strokeDasharray="40 960"
+                      initial={{ strokeDashoffset: 0 }}
+                      animate={{ strokeDashoffset: -1000 }}
+                      transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
+                    />
+                  </motion.svg>
+                </div>
+
+              </div>
+              </motion.div>
+            </div>
+            {/* Mobile: touch swipe overlay for slide navigation */}
+            <div
+              className="absolute inset-0 lg:hidden z-10"
+              onTouchStart={(e) => {
+                (e.currentTarget as any)._touchStartX = e.touches[0].clientX;
+              }}
+              onTouchEnd={(e) => {
+                const startX = (e.currentTarget as any)._touchStartX;
+                if (startX === undefined) return;
+                const diff = startX - e.changedTouches[0].clientX;
+                if (Math.abs(diff) > 50) {
+                  const next = diff > 0
+                    ? Math.min(archSlide + 1, archLayers.length - 1)
+                    : Math.max(archSlide - 1, 0);
+                  setArchSlide(next);
+                  setArchHovered(next);
+                  setArchRevealed(prev => Math.max(prev, next));
+                }
+              }}
+            />
+          </div>
+
+            {/* Mobile: Slide content below visualization */}
+            <div className="lg:hidden w-full order-3">
+              <div className="text-center px-4">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`arch-slide-${archSlide}`}
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -30 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <h4 className="text-lg sm:text-xl font-semibold text-[#E8B84A] tracking-wide uppercase font-[family-name:var(--font-space-grotesk)] mb-2">
+                      {archLayers[archSlide].title}
+                    </h4>
+                    <p className="text-sm text-white/50 font-light leading-relaxed max-w-md mx-auto">
+                      {archLayers[archSlide].desc}
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Navigation: arrows + dots */}
+                <div className="flex items-center justify-center gap-4 mt-5">
+                  <button
+                    onClick={() => {
+                      if (archSlide > 0) {
+                        const next = archSlide - 1;
+                        setArchSlide(next);
+                        setArchHovered(next);
+                        setArchRevealed(prev => Math.max(prev, next));
+                      }
+                    }}
+                    className="p-1 text-white/30 hover:text-white/70 transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <div className="flex gap-2">
+                    {archLayers.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          setArchSlide(i);
+                          setArchHovered(i);
+                          setArchRevealed(prev => Math.max(prev, i));
+                        }}
+                        className="transition-all duration-300 rounded-full"
+                        style={{
+                          width: archSlide === i ? '24px' : '8px',
+                          height: '8px',
+                          backgroundColor: archSlide === i ? '#E8B84A' : 'rgba(255,255,255,0.2)',
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (archSlide < archLayers.length - 1) {
+                        const next = archSlide + 1;
+                        setArchSlide(next);
+                        setArchHovered(next);
+                        setArchRevealed(prev => Math.max(prev, next));
+                      }
+                    }}
+                    className="p-1 text-white/30 hover:text-white/70 transition-colors"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+                <p className="text-white/25 text-[10px] mt-2 tracking-wide">Swipe to explore</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* The Grand Finale - CTA Section */}
-      <section id="cta" className="relative py-48 px-6 bg-gradient-to-b from-[#2D1B4E] via-[#3d2a5f] to-[#2D1B4E] overflow-hidden">
+      <section id="cta" className="relative py-20 md:py-48 px-4 sm:px-6 bg-gradient-to-b from-[#2D1B4E] via-[#3d2a5f] to-[#2D1B4E] overflow-hidden">
         {/* Energy Orb Background Effect */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] rounded-full blur-[120px] opacity-20 animate-pulse pointer-events-none" />
 
@@ -1057,7 +1737,7 @@ export default function OpseraLanding() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 1 }}
           >
-            <h3 className="text-6xl md:text-8xl font-light text-white mb-10 tracking-tight font-[family-name:var(--font-space-grotesk)] leading-tight">
+            <h3 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-light text-white mb-6 md:mb-10 tracking-tight font-[family-name:var(--font-space-grotesk)] leading-tight">
               Start seeing your
               <br />
               operations clearly.
@@ -1068,12 +1748,12 @@ export default function OpseraLanding() {
             </h3>
 
             <motion.button
-              onClick={() => { setShowAccessModal(true); setErrorMessage(''); setShowSuccess(false); }}
+              onClick={() => setShowAccessModal(true)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="relative group bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] text-[#2D1B4E] font-bold px-16 py-6 text-xl rounded-full shadow-[0_0_40px_rgba(232,184,74,0.4)] hover:shadow-[0_0_80px_rgba(232,184,74,0.6)] transition-all duration-300 overflow-hidden"
+              className="relative group bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] text-[#2D1B4E] font-bold px-8 sm:px-16 py-4 sm:py-6 text-base sm:text-xl rounded-full shadow-[0_0_40px_rgba(232,184,74,0.4)] hover:shadow-[0_0_80px_rgba(232,184,74,0.6)] transition-all duration-300 overflow-hidden"
             >
-              <span className="relative z-10">Request Access</span>
+              <span className="relative z-10">Join the Waitlist</span>
               {/* Shine Animation */}
               <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12 group-hover:animate-[shine_1s_ease-in-out_infinite]" />
             </motion.button>
@@ -1081,153 +1761,7 @@ export default function OpseraLanding() {
         </div>
 
         {/* Request Access Modal */}
-        {showAccessModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm"
-            onClick={() => setShowAccessModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative max-w-md w-full rounded-2xl p-8 border"
-              style={{
-                backgroundColor: '#1a1a2e',
-                borderColor: 'rgba(232, 184, 74, 0.3)',
-                boxShadow: '0 0 60px rgba(232, 184, 74, 0.2)',
-              }}
-            >
-              {/* Close button */}
-              <button
-                onClick={() => { setShowAccessModal(false); setShowSuccess(false); }}
-                className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-
-              {showSuccess ? (
-                <div className="text-center py-4">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <h4 className="text-2xl font-bold text-white mb-2">You're on the list!</h4>
-                  <p className="text-white/60 text-sm mb-6">
-                    We'll be in touch soon. Keep an eye on your inbox.
-                  </p>
-                  <motion.button
-                    onClick={() => { setShowAccessModal(false); setShowSuccess(false); }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 rounded-xl font-semibold text-[#2D1B4E] bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] hover:shadow-[0_0_30px_rgba(232,184,74,0.4)] transition-all"
-                  >
-                    Done
-                  </motion.button>
-                </div>
-              ) : (
-                <>
-                  {/* Header */}
-                  <div className="text-center mb-6">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] flex items-center justify-center">
-                      <Rocket className="w-8 h-8 text-[#2D1B4E]" />
-                    </div>
-                    <h4 className="text-2xl font-bold text-white mb-2">Request Access</h4>
-                    <p className="text-white/60 text-sm">
-                      Enter your email to join the waitlist and be among the first to experience SIA.
-                    </p>
-                  </div>
-
-                  {/* Email Input */}
-                  <form
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      setErrorMessage('');
-                      try {
-                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
-                        const res = await fetch(`${apiUrl}/api/waitlist/join/`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ email }),
-                        });
-                        if (!res.ok) {
-                          const errorData = await res.json().catch(() => null);
-                          let message = res.status === 400 ? 'Email already registered.' : 'Something went wrong. Please try again.';
-                          if (errorData) {
-                            const emailErr = errorData.email;
-                            if (Array.isArray(emailErr) && emailErr[0]) {
-                              message = emailErr[0];
-                            } else if (typeof emailErr === 'string') {
-                              message = emailErr;
-                            } else if (typeof errorData.error === 'string') {
-                              message = errorData.error;
-                            } else if (typeof errorData.detail === 'string') {
-                              message = errorData.detail;
-                            }
-                          }
-                          setErrorMessage(message);
-                          return;
-                        }
-                        setShowSuccess(true);
-                        setEmail('');
-                      } catch (err) {
-                        console.error('Waitlist error:', err);
-                        setErrorMessage('Could not connect to the server. Please check if the backend is running.');
-                      }
-                    }}
-                    className="space-y-4"
-                  >
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-white/70 mb-2">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          setErrorMessage('');
-                        }}
-                        placeholder="you@company.com"
-                        required
-                        className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-white/30 focus:outline-none transition-all ${
-                          errorMessage
-                            ? 'border-red-500/60 focus:border-red-500/80 focus:ring-2 focus:ring-red-500/20'
-                            : 'border-white/10 focus:border-[#E8B84A]/50 focus:ring-2 focus:ring-[#E8B84A]/20'
-                        }`}
-                      />
-                      {errorMessage && (
-                        <p className="text-red-400 text-sm mt-2">{errorMessage}</p>
-                      )}
-                    </div>
-
-                    <motion.button
-                      type="submit"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full py-3 rounded-xl font-semibold text-[#2D1B4E] bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] hover:shadow-[0_0_30px_rgba(232,184,74,0.4)] transition-all"
-                    >
-                      Join Waitlist
-                    </motion.button>
-                  </form>
-
-                  {/* Footer note */}
-                  <p className="text-center text-white/40 text-xs mt-4">
-                    We respect your privacy. No spam, ever.
-                  </p>
-                </>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
+        <WaitlistModal isOpen={showAccessModal} onClose={() => setShowAccessModal(false)} />
       </section>
 
       <Footer />

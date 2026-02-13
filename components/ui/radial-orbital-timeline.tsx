@@ -111,7 +111,7 @@ export default function RadialOrbitalTimeline({
   // Don't render dynamic content until mounted (fixes hydration)
   if (!mounted) {
     return (
-      <div className={`w-full ${containerHeight} flex flex-col items-center justify-center overflow-hidden`}>
+      <div className={`w-full ${containerHeight} flex flex-col items-center justify-center overflow-visible`}>
         <div className="relative w-full h-full flex items-center justify-center">
           <div className={`absolute ${centerSize} rounded-full bg-gradient-to-br from-[#A855F7] via-[#8B5CF6] to-[#6B4E9B] animate-pulse flex items-center justify-center z-10`}>
             <div className={`${centerInnerSize} rounded-full bg-white/80 backdrop-blur-md`}></div>
@@ -124,7 +124,7 @@ export default function RadialOrbitalTimeline({
 
   return (
     <div
-      className={`w-full ${containerHeight} flex flex-col items-center justify-center overflow-hidden`}
+      className={`w-full ${containerHeight} flex flex-col items-center justify-center overflow-visible`}
       ref={containerRef}
     >
       <div className="relative w-full h-full flex items-center justify-center">
