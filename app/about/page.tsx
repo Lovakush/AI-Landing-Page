@@ -6,6 +6,110 @@ import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
 
+function WaitlistForm() {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('loading');
+    setErrorMsg('');
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+      const res = await fetch(`${apiUrl}/api/waitlist/join/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        let message = res.status === 400 ? 'Email already registered.' : 'Something went wrong. Please try again.';
+        if (errorData) {
+          const emailErr = errorData.email;
+          if (Array.isArray(emailErr) && emailErr[0]) {
+            message = emailErr[0];
+          } else if (typeof emailErr === 'string') {
+            message = emailErr;
+          } else if (typeof errorData.error === 'string') {
+            message = errorData.error;
+          } else if (typeof errorData.detail === 'string') {
+            message = errorData.detail;
+          }
+        }
+        setErrorMsg(message);
+        setStatus('error');
+        return;
+      }
+
+      setStatus('success');
+      setEmail('');
+    } catch (err) {
+      console.error('Waitlist error:', err);
+      setErrorMsg('Could not connect to the server. Please try again later.');
+      setStatus('error');
+    }
+  };
+
+  if (status === 'success') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="max-w-md mx-auto flex items-center gap-3 px-6 py-4 rounded-full border border-[#E8B84A]/30 bg-[#E8B84A]/10 mb-6"
+      >
+        <span className="text-white text-sm font-semibold">You&apos;re on the list! We&apos;ll be in touch soon.</span>
+      </motion.div>
+    );
+  }
+
+  return (
+    <>
+      <motion.form
+        onSubmit={handleSubmit}
+        className="max-w-md mx-auto flex flex-col sm:flex-row items-center gap-4 justify-center mb-2"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); if (status === 'error') setStatus('idle'); }}
+          placeholder="you@company.com"
+          required
+          className={`w-full px-5 py-3 rounded-full bg-white/5 border text-white placeholder:text-white/40 outline-none text-base transition-all ${
+            status === 'error'
+              ? 'border-red-500/60 focus:border-red-500/80 focus:ring-2 focus:ring-red-500/20'
+              : 'border-white/20 focus:border-[#E8B84A] focus:ring-2 focus:ring-[#E8B84A]/20'
+          }`}
+          aria-label="Email address"
+        />
+        <motion.button
+          type="submit"
+          disabled={status === 'loading'}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-bold px-9 py-4 rounded-full text-base whitespace-nowrap"
+          style={{
+            background: 'linear-gradient(135deg, #E8B84A, #E8A87C)',
+            color: '#2D1B4E',
+            boxShadow: '0 0 40px rgba(232,184,74,0.4)',
+          }}
+        >
+          {status === 'loading' ? 'Joining...' : 'Join Waitlist'}
+        </motion.button>
+      </motion.form>
+      {status === 'error' && (
+        <p className="text-red-400 text-sm text-center mb-4">{errorMsg}</p>
+      )}
+    </>
+  );
+}
+
 const tetrisPieces = [
   {
     id: 1,
@@ -1301,33 +1405,7 @@ export default function AboutPage() {
             <p className="text-lg text-white/45 mb-10">
               Join the waitlist to be the first to know when we launch.
             </p>
-            <motion.form
-              className="max-w-md mx-auto flex flex-col sm:flex-row items-center gap-4 justify-center mb-6"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <input
-                type="email"
-                placeholder="you@company.com"
-                className="w-full px-5 py-3 rounded-full bg-white/5 border border-white/20 text-white placeholder:text-white/40 outline-none text-base focus:border-[#E8B84A] focus:ring-2 focus:ring-[#E8B84A]/20 transition-all"
-                aria-label="Email address"
-              />
-              <motion.button
-                type="submit"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-bold px-9 py-4 rounded-full text-base whitespace-nowrap"
-                style={{
-                  background: 'linear-gradient(135deg, #E8B84A, #E8A87C)',
-                  color: '#2D1B4E',
-                  boxShadow: '0 0 40px rgba(232,184,74,0.4)',
-                }}
-              >
-                Join Waitlist
-              </motion.button>
-            </motion.form>
+            <WaitlistForm />
           </motion.div>
         </div>
       </section>

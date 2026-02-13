@@ -31,8 +31,8 @@ const C = {
   pink: '#EC4899',
   pinkDim: 'rgba(236, 72, 153, 0.15)',
   text: '#FFFFFF',
-  textSec: 'rgba(255,255,255,0.60)',
-  textMut: 'rgba(255,255,255,0.35)',
+  textSec: 'rgba(255,255,255,0.75)',
+  textMut: 'rgba(255,255,255,0.55)',
 };
 
 // ======================== DATA ========================
@@ -144,9 +144,7 @@ export default function SIADashboard() {
 
       {/* SIDEBAR */}
       <div style={{ width: 52, background: C.bgSidebar, borderRight: `1px solid ${C.border}`, display:'flex', flexDirection:'column', alignItems:'center', padding:'12px 0', flexShrink:0, zIndex:2 }}>
-        <div style={{ width:32, height:32, borderRadius:10, background:`linear-gradient(135deg, ${C.purple}, ${C.gold})`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:20, fontSize:9, fontWeight:800, letterSpacing:1.5, boxShadow:`0 4px 20px rgba(139,92,246,0.3)` }}>
-          SIA
-        </div>
+        <img src="/sia-globe-v2.png" alt="SIA" style={{ width:32, height:32, objectFit:'contain', marginBottom:20, mixBlendMode:'lighten' }} />
         <div style={{ display:'flex', flexDirection:'column', gap:4, flex:1 }}>
           {NAV.map((item, i) => (
             <div key={i} title={item.label} style={{
@@ -173,9 +171,9 @@ export default function SIADashboard() {
           <div>
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
               <span style={{ fontSize:13, fontWeight:800 }}>Dashboard</span>
-              <span style={{ fontSize:8, fontWeight:700, color:C.purple, background:C.purpleDim, padding:'1px 6px', borderRadius:5, letterSpacing:0.5, textTransform:'uppercase' }}>Beta</span>
+              <span style={{ fontSize:8, fontWeight:700, color:C.purpleLight, background:C.purpleDim, padding:'2px 6px', borderRadius:5, letterSpacing:0.5, textTransform:'uppercase' }}>Beta</span>
             </div>
-            <div style={{ fontSize:9, color:C.textMut, marginTop:1 }}>Thursday, Feb 12, 2026</div>
+
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
             <div style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 10px', borderRadius:8, background:C.bgCard, border:`1px solid ${C.border}`, fontSize:10, color:C.textMut, cursor:'text', minWidth:140 }}>
@@ -189,8 +187,8 @@ export default function SIADashboard() {
           </div>
         </div>
 
-        {/* Scrollable body */}
-        <div style={{ flex:1, overflow:'auto', padding:'12px 16px' }}>
+        {/* Body */}
+        <div style={{ flex:1, overflow:'hidden', padding:'12px 16px' }}>
           {/* STATS ROW */}
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:10, marginBottom:14 }}>
             {STATS.map((s, i) => (
@@ -202,7 +200,7 @@ export default function SIADashboard() {
                   <div style={{ width:24, height:24, borderRadius:7, background:s.color+'15', display:'flex', alignItems:'center', justifyContent:'center' }}>
                     <s.Icon size={12} color={s.color} />
                   </div>
-                  <span style={{ fontSize:8, color:s.color, fontWeight:600, background:s.color+'10', padding:'1px 5px', borderRadius:5 }}>{s.tag}</span>
+                  <span style={{ fontSize:8, color:s.color, fontWeight:700, background:s.color+'25', padding:'2px 6px', borderRadius:5 }}>{s.tag}</span>
                 </div>
                 <div style={{ fontSize:20, fontWeight:800, lineHeight:1, letterSpacing:'-0.5px' }}>{counters[i]}{s.suf}</div>
                 <div style={{ fontSize:9, color:C.textMut, marginTop:3 }}>{s.label}</div>
@@ -218,7 +216,7 @@ export default function SIADashboard() {
                 <div style={{ fontSize:11, fontWeight:700, display:'flex', alignItems:'center', gap:6 }}>
                   <Bot size={12} color={C.purple} /> Active Agents
                 </div>
-                <div style={{ fontSize:9, color:C.purple, cursor:'pointer', display:'flex', alignItems:'center', gap:3, fontWeight:600 }}>
+                <div style={{ fontSize:9, color:C.purpleLight, cursor:'pointer', display:'flex', alignItems:'center', gap:3, fontWeight:700 }}>
                   View all <ChevronRight size={9} />
                 </div>
               </div>
@@ -247,7 +245,7 @@ export default function SIADashboard() {
                       </div>
                       <div style={{ display:'flex', alignItems:'center', gap:4 }}>
                         <div style={{ width:5, height:5, borderRadius:3, background:a.sColor, animation: a.status!=='Idle' ? 'dashPulse 2s ease-in-out infinite' : 'none', boxShadow: a.status!=='Idle' ? `0 0 6px ${a.sColor}50` : 'none' }} />
-                        <span style={{ fontSize:8, color:a.sColor, fontWeight:600 }}>{a.status}</span>
+                        <span style={{ fontSize:8, color:a.sColor, fontWeight:700, filter:'brightness(1.3)' }}>{a.status}</span>
                       </div>
                     </div>
                     <div style={{ height:2, background:'rgba(255,255,255,0.05)', borderRadius:1, overflow:'hidden', marginBottom:3, position:'relative' }}>
@@ -279,10 +277,10 @@ export default function SIADashboard() {
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:4 }}>
                   <div style={{ width:5, height:5, borderRadius:3, background:C.green, animation:'dashPulse 1.5s ease-in-out infinite' }} />
-                  <span style={{ fontSize:8, color:C.green, fontWeight:600 }}>Live</span>
+                  <span style={{ fontSize:8, color:C.green, fontWeight:700, filter:'brightness(1.2)' }}>Live</span>
                 </div>
               </div>
-              <div style={{ padding:'6px 10px', flex:1, overflow:'auto' }}>
+              <div style={{ padding:'6px 10px', flex:1, overflow:'hidden' }}>
                 {FEED.slice(0, visFeed).map((item, i) => (
                   <div key={i} style={{
                     display:'flex', gap:7, padding:'6px 0',
@@ -319,7 +317,7 @@ export default function SIADashboard() {
               <div style={{ fontSize:11, fontWeight:700, display:'flex', alignItems:'center', gap:6 }}>
                 <TrendingUp size={12} color={C.green} /> Weekly Performance
               </div>
-              <div style={{ display:'flex', gap:12, fontSize:8, color:C.textMut }}>
+              <div style={{ display:'flex', gap:12, fontSize:8, color:C.textSec }}>
                 <span style={{ display:'flex', alignItems:'center', gap:4 }}>
                   <div style={{ width:8, height:2, borderRadius:1, background:C.purple }} /> Tasks
                 </span>

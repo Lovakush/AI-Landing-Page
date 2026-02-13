@@ -805,7 +805,6 @@ function ProductsPageContent() {
                               <div className="p-5">
                                 <h4 className="text-white font-bold text-base mb-1">{product.name}</h4>
                                 <p className="text-white/60 text-xs mb-3">{product.tagline}</p>
-                                <div className="text-white font-bold text-xl mb-3">{product.price}</div>
                                 {/* Clickable CTA button */}
                                 <motion.button
                                   className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer"

@@ -1,9 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import WaitlistModal from "@/components/ui/WaitlistModal";
 
 export default function BookADemo() {
+  const [showModal, setShowModal] = useState(false);
+
   return (
     <section className="relative flex items-center justify-center py-32 px-6 overflow-hidden">
       
@@ -64,6 +68,7 @@ export default function BookADemo() {
           viewport={{ once: true }}
         >
           <motion.button
+            onClick={() => setShowModal(true)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
             className="group relative inline-flex items-center gap-3 px-12 py-5 rounded-full 
@@ -99,6 +104,8 @@ export default function BookADemo() {
           No credit card required • 30-minute consultation
         </motion.p>
       </motion.div>
+
+      <WaitlistModal isOpen={showModal} onClose={() => setShowModal(false)} />
     </section>
   );
 }

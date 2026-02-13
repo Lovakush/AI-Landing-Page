@@ -9,9 +9,12 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
 
         {/* Left: Logo & Tagline */}
-        <div className="text-center md:text-left">
-          <img src="/sia-logo.png" alt="SIA" className="h-25 w-auto brightness-0 invert mb-2" />
-          <p className="text-white/40 text-sm tracking-wide font-[family-name:var(--font-inter)]">
+        <div className="text-center md:text-left flex flex-col items-center md:items-start">
+          <div className="relative">
+            <img src="/sia-text.png" alt="SIA" className="h-16 w-brightness-0 invert -bold" />
+            <img src="/sia-globe-v2.png" alt="SIA Globe" className="h-12 w-auto mix-blend-lighten absolute left-1/2 -translate-x-[56%] -top-7" />
+          </div>
+          <p className="text-white/40 text-sm tracking-wide font-[family-name:var(--font-inter)] mt-2">
             Execution-first AI for the Enterprise.
           </p>
         </div>

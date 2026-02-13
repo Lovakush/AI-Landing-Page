@@ -10,6 +10,7 @@ import Chatbot from '@/components/ui/chatbot';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
 import SIADashboard from '@/components/ui/SIADashboard';
+import WaitlistModal from '@/components/ui/WaitlistModal';
 
 
 const CountUp = ({ to, duration = 2, suffix = "", prefix = "" }: { to: number, duration?: number, suffix?: string, prefix?: string }) => {
@@ -135,9 +136,6 @@ export default function OpseraLanding() {
   const [selectedAgent, setSelectedAgent] = useState<string | null>('argo');
   const [showAgentDetails, setShowAgentDetails] = useState(false);
   const [showAccessModal, setShowAccessModal] = useState(false);
-  const [email, setEmail] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [showSuccess, setShowSuccess] = useState(false);
   const [navVisible, setNavVisible] = useState(true);
   const [archHovered, setArchHovered] = useState<number | null>(null);
   const [archRevealed, setArchRevealed] = useState(-1);
@@ -1750,12 +1748,12 @@ export default function OpseraLanding() {
             </h3>
 
             <motion.button
-              onClick={() => { setShowAccessModal(true); setErrorMessage(''); setShowSuccess(false); }}
+              onClick={() => setShowAccessModal(true)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="relative group bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] text-[#2D1B4E] font-bold px-8 sm:px-16 py-4 sm:py-6 text-base sm:text-xl rounded-full shadow-[0_0_40px_rgba(232,184,74,0.4)] hover:shadow-[0_0_80px_rgba(232,184,74,0.6)] transition-all duration-300 overflow-hidden"
             >
-              <span className="relative z-10">Request Access</span>
+              <span className="relative z-10">Join the Waitlist</span>
               {/* Shine Animation */}
               <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12 group-hover:animate-[shine_1s_ease-in-out_infinite]" />
             </motion.button>
@@ -1763,153 +1761,7 @@ export default function OpseraLanding() {
         </div>
 
         {/* Request Access Modal */}
-        {showAccessModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm"
-            onClick={() => setShowAccessModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative max-w-md w-full rounded-2xl p-8 border"
-              style={{
-                backgroundColor: '#1a1a2e',
-                borderColor: 'rgba(232, 184, 74, 0.3)',
-                boxShadow: '0 0 60px rgba(232, 184, 74, 0.2)',
-              }}
-            >
-              {/* Close button */}
-              <button
-                onClick={() => { setShowAccessModal(false); setShowSuccess(false); }}
-                className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-
-              {showSuccess ? (
-                <div className="text-center py-4">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <h4 className="text-2xl font-bold text-white mb-2">You're on the list!</h4>
-                  <p className="text-white/60 text-sm mb-6">
-                    We'll be in touch soon. Keep an eye on your inbox.
-                  </p>
-                  <motion.button
-                    onClick={() => { setShowAccessModal(false); setShowSuccess(false); }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 rounded-xl font-semibold text-[#2D1B4E] bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] hover:shadow-[0_0_30px_rgba(232,184,74,0.4)] transition-all"
-                  >
-                    Done
-                  </motion.button>
-                </div>
-              ) : (
-                <>
-                  {/* Header */}
-                  <div className="text-center mb-6">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] flex items-center justify-center">
-                      <Rocket className="w-8 h-8 text-[#2D1B4E]" />
-                    </div>
-                    <h4 className="text-2xl font-bold text-white mb-2">Request Access</h4>
-                    <p className="text-white/60 text-sm">
-                      Enter your email to join the waitlist and be among the first to experience SIA.
-                    </p>
-                  </div>
-
-                  {/* Email Input */}
-                  <form
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      setErrorMessage('');
-                      try {
-                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
-                        const res = await fetch(`${apiUrl}/api/waitlist/join/`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ email }),
-                        });
-                        if (!res.ok) {
-                          const errorData = await res.json().catch(() => null);
-                          let message = res.status === 400 ? 'Email already registered.' : 'Something went wrong. Please try again.';
-                          if (errorData) {
-                            const emailErr = errorData.email;
-                            if (Array.isArray(emailErr) && emailErr[0]) {
-                              message = emailErr[0];
-                            } else if (typeof emailErr === 'string') {
-                              message = emailErr;
-                            } else if (typeof errorData.error === 'string') {
-                              message = errorData.error;
-                            } else if (typeof errorData.detail === 'string') {
-                              message = errorData.detail;
-                            }
-                          }
-                          setErrorMessage(message);
-                          return;
-                        }
-                        setShowSuccess(true);
-                        setEmail('');
-                      } catch (err) {
-                        console.error('Waitlist error:', err);
-                        setErrorMessage('Could not connect to the server. Please check if the backend is running.');
-                      }
-                    }}
-                    className="space-y-4"
-                  >
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-white/70 mb-2">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          setErrorMessage('');
-                        }}
-                        placeholder="you@company.com"
-                        required
-                        className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-white/30 focus:outline-none transition-all ${
-                          errorMessage
-                            ? 'border-red-500/60 focus:border-red-500/80 focus:ring-2 focus:ring-red-500/20'
-                            : 'border-white/10 focus:border-[#E8B84A]/50 focus:ring-2 focus:ring-[#E8B84A]/20'
-                        }`}
-                      />
-                      {errorMessage && (
-                        <p className="text-red-400 text-sm mt-2">{errorMessage}</p>
-                      )}
-                    </div>
-
-                    <motion.button
-                      type="submit"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full py-3 rounded-xl font-semibold text-[#2D1B4E] bg-gradient-to-r from-[#E8B84A] to-[#E8A87C] hover:shadow-[0_0_30px_rgba(232,184,74,0.4)] transition-all"
-                    >
-                      Join Waitlist
-                    </motion.button>
-                  </form>
-
-                  {/* Footer note */}
-                  <p className="text-center text-white/40 text-xs mt-4">
-                    We respect your privacy. No spam, ever.
-                  </p>
-                </>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
+        <WaitlistModal isOpen={showAccessModal} onClose={() => setShowAccessModal(false)} />
       </section>
 
       <Footer />
