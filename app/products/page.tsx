@@ -1,7 +1,8 @@
 'use client';
 
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
-import { useState, useEffect, useRef, forwardRef } from 'react';
+import { useState, useEffect, useRef, forwardRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { MoveRight, Sparkles, Zap, Target, Users, TrendingUp, BarChart3, Bot, Check, X, Network, GitBranch, Workflow, Cpu, Activity } from 'lucide-react';
 import Chatbot from '@/components/ui/chatbot';
 import Navbar from '@/components/ui/Navbar';
@@ -242,7 +243,16 @@ const products = [
   },
 ];
 
-export default function ProductsPage() {
+export default function ProductsPageWrapper() {
+  return (
+    <Suspense>
+      <ProductsPage />
+    </Suspense>
+  );
+}
+
+function ProductsPage() {
+  const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState('category1');
   const [wordIndex, setWordIndex] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null);
@@ -290,6 +300,33 @@ export default function ProductsPage() {
       setShouldScrollToDetails(false);
     }
   }, [selectedProduct, shouldScrollToDetails]);
+
+  useEffect(() => {
+    const agentParam = searchParams.get('agent');
+    if (!agentParam) return;
+
+    const agentToCategory: Record<string, string> = {
+      argo: 'category3',
+      mark: 'category1',
+      consuelo: 'category2',
+    };
+    const category = agentToCategory[agentParam.toLowerCase()];
+    if (category) {
+      setSelectedCategory(category);
+      // Wait for the product details section to render, then scroll to #how-it-works
+      const scrollToHow = () => {
+        const el = document.getElementById('how-it-works');
+        if (el) {
+          const y = el.getBoundingClientRect().top + window.scrollY - 100;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        } else {
+          // Section not rendered yet, retry
+          setTimeout(scrollToHow, 200);
+        }
+      };
+      setTimeout(scrollToHow, 300);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -2070,7 +2107,7 @@ const ProductDetailsSection = forwardRef<
           </div>
         </motion.div>
 
-        <motion.div className="mb-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
+        <motion.div id="how-it-works" className="mb-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
           <div className="grid grid-cols-3 gap-14 items-start">
             <div className="col-span-1">
               <h3 className="text-4xl font-light text-white mb-4">How does<div className="text-4xl font-semibold mt-1" style={{ color: product.color }}>{getBrandName(product.category)} work?</div></h3>
