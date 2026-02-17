@@ -1,6 +1,151 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+
+function AgenticBackground() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current!;
+    const ctx = canvas.getContext('2d')!;
+    let raf: number;
+    let t = 0;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const NODE_COUNT = 55;
+    const nodes = Array.from({ length: NODE_COUNT }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      vx: (Math.random() - 0.5) * 0.28,
+      vy: (Math.random() - 0.5) * 0.28,
+      r: Math.random() * 1.5 + 0.5,
+      pulse: Math.random() * Math.PI * 2,
+    }));
+
+    const hexLabels = Array.from({ length: 18 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      vy: -(Math.random() * 0.18 + 0.06),
+      opacity: Math.random() * 0.3 + 0.06,
+      label: `0x${Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6,'0').toUpperCase()}`,
+    }));
+
+    const scanLines = Array.from({ length: 4 }, (_, i) => ({
+      y: (window.innerHeight / 4) * i,
+      speed: Math.random() * 0.35 + 0.12,
+      opacity: Math.random() * 0.035 + 0.015,
+    }));
+
+    const radar = { x: window.innerWidth * 0.15, y: window.innerHeight * 0.22, radius: 110, angle: 0 };
+    const radar2 = { x: window.innerWidth * 0.88, y: window.innerHeight * 0.78, radius: 65 };
+
+    const draw = () => {
+      t += 0.012;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    
+      const bg = ctx.createRadialGradient(canvas.width*.5, canvas.height*.4, 0, canvas.width*.5, canvas.height*.4, canvas.width*.75);
+      bg.addColorStop(0, 'rgba(14,12,32,1)');
+      bg.addColorStop(0.5, 'rgba(8,7,20,1)');
+      bg.addColorStop(1, 'rgba(4,3,12,1)');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+   
+      ctx.fillStyle = 'rgba(240,184,73,0.055)';
+      for (let gx = 0; gx < canvas.width; gx += 48)
+        for (let gy = 0; gy < canvas.height; gy += 48) {
+          ctx.beginPath(); ctx.arc(gx, gy, 0.6, 0, Math.PI*2); ctx.fill();
+        }
+
+    
+      scanLines.forEach(sl => {
+        sl.y += sl.speed;
+        if (sl.y > canvas.height) sl.y = 0;
+        const g = ctx.createLinearGradient(0, sl.y-1, 0, sl.y+1);
+        g.addColorStop(0, 'transparent');
+        g.addColorStop(0.5, `rgba(240,184,73,${sl.opacity})`);
+        g.addColorStop(1, 'transparent');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, sl.y-1, canvas.width, 2);
+      });
+
+     
+      radar.angle += 0.008;
+      for (let i = 0; i < 30; i++) {
+        const ta = radar.angle - i*0.07;
+        ctx.beginPath(); ctx.moveTo(radar.x, radar.y);
+        ctx.arc(radar.x, radar.y, radar.radius, ta-0.07, ta); ctx.closePath();
+        ctx.fillStyle = `rgba(240,184,73,${(1-i/30)*0.09})`; ctx.fill();
+      }
+      ctx.beginPath(); ctx.arc(radar.x, radar.y, radar.radius, 0, Math.PI*2);
+      ctx.strokeStyle='rgba(240,184,73,0.13)'; ctx.lineWidth=1; ctx.stroke();
+      [0.33, 0.66].forEach(f => {
+        ctx.beginPath(); ctx.arc(radar.x, radar.y, radar.radius*f, 0, Math.PI*2);
+        ctx.strokeStyle='rgba(240,184,73,0.07)'; ctx.lineWidth=0.5; ctx.stroke();
+      });
+      ctx.strokeStyle='rgba(240,184,73,0.1)'; ctx.lineWidth=0.5;
+      ctx.beginPath(); ctx.moveTo(radar.x-radar.radius,radar.y); ctx.lineTo(radar.x+radar.radius,radar.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(radar.x,radar.y-radar.radius); ctx.lineTo(radar.x,radar.y+radar.radius); ctx.stroke();
+      const blipX = radar.x + Math.cos(radar.angle)*radar.radius*0.68;
+      const blipY = radar.y + Math.sin(radar.angle)*radar.radius*0.68;
+      ctx.beginPath(); ctx.arc(blipX, blipY, 2.5, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(240,184,73,${Math.abs(Math.sin(t*3))*0.6+0.2})`; ctx.fill();
+
+      
+      ctx.beginPath(); ctx.arc(radar2.x, radar2.y, radar2.radius, 0, Math.PI*2);
+      ctx.strokeStyle='rgba(240,184,73,0.08)'; ctx.lineWidth=0.8; ctx.stroke();
+      const r2a = -radar.angle*0.6;
+      for (let i=0; i<20; i++) {
+        const ta = r2a - i*0.08;
+        ctx.beginPath(); ctx.moveTo(radar2.x, radar2.y);
+        ctx.arc(radar2.x, radar2.y, radar2.radius, ta-0.08, ta); ctx.closePath();
+        ctx.fillStyle = `rgba(240,184,73,${(1-i/20)*0.06})`; ctx.fill();
+      }
+
+   
+      nodes.forEach(n => {
+        n.x+=n.vx; n.y+=n.vy; n.pulse+=0.025;
+        if(n.x<0) n.x=canvas.width; if(n.x>canvas.width) n.x=0;
+        if(n.y<0) n.y=canvas.height; if(n.y>canvas.height) n.y=0;
+      });
+      for (let i=0; i<nodes.length; i++) for (let j=i+1; j<nodes.length; j++) {
+        const dx=nodes[i].x-nodes[j].x, dy=nodes[i].y-nodes[j].y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<130) {
+          ctx.beginPath(); ctx.moveTo(nodes[i].x,nodes[i].y); ctx.lineTo(nodes[j].x,nodes[j].y);
+          ctx.strokeStyle=`rgba(240,184,73,${(1-dist/130)*0.13})`; ctx.lineWidth=0.6; ctx.stroke();
+        }
+      }
+      nodes.forEach(n => {
+        ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(240,184,73,${Math.abs(Math.sin(n.pulse))*0.5+0.12})`; ctx.fill();
+      });
+
+   
+      ctx.font = "9px 'DM Mono', monospace";
+      hexLabels.forEach(h => {
+        h.y+=h.vy;
+        if(h.y<-20) { h.y=canvas.height+20; h.x=Math.random()*canvas.width; }
+        ctx.fillStyle=`rgba(240,184,73,${h.opacity})`;
+        ctx.fillText(h.label, h.x, h.y);
+      });
+
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+  }, []);
+
+  return <canvas ref={canvasRef} style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none' }} />;
+}
 
 function validateEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -27,7 +172,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   useEffect(() => {
     if (isOpen) {
-      
+  
       setPhase('entering');
       setTimeout(() => setPhase('visible'), 50);
       document.body.style.overflow = 'hidden';
@@ -106,9 +251,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
         /* ── Overlay: iris wipe from gold to dark ── */
         @keyframes iris-in {
-          0%   { clip-path: circle(0% at var(--ox) var(--oy)); background: rgba(240,184,73,0.12); }
-          40%  { background: rgba(10,8,22,0.88); }
-          100% { clip-path: circle(150% at var(--ox) var(--oy)); background: rgba(6,5,18,0.92); }
+          0%   { clip-path: circle(0% at var(--ox) var(--oy)); }
+          100% { clip-path: circle(150% at var(--ox) var(--oy)); }
         }
         @keyframes iris-out {
           0%   { clip-path: circle(150% at var(--ox) var(--oy)); opacity:1; }
@@ -161,11 +305,11 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
         .lm-overlay-iris {
           --ox: 50%; --oy: 50%;
-          position: fixed; inset: 0; z-index: 1000;
-          backdrop-filter: blur(12px);
+          position: fixed; inset: 0; z-index: 1001;
+          background: transparent;
         }
         .lm-overlay-iris.entering { animation: iris-in 0.55s cubic-bezier(0.4,0,0.2,1) forwards; }
-        .lm-overlay-iris.visible  { clip-path: circle(150% at 50% 50%); background: rgba(6,5,18,0.92); }
+        .lm-overlay-iris.visible  { clip-path: circle(150% at 50% 50%); }
         .lm-overlay-iris.leaving  { animation: iris-out 0.35s cubic-bezier(0.4,0,1,1) forwards; }
 
         .lm-card {
@@ -278,6 +422,11 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       `}</style>
 
       {}
+      <div style={{ position:'fixed', inset:0, zIndex:999, pointerEvents:'none' }}>
+        <AgenticBackground />
+      </div>
+
+      {}
       <div
         className={`lm-overlay-iris ${phase}`}
         onClick={phase === 'visible' ? onClose : undefined}
@@ -329,7 +478,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(240,184,73,0.06)';(e.currentTarget as HTMLElement).style.color='rgba(240,184,73,0.4)';}}
           >✕</button>
 
-          {}
+          {/* ── content ── */}
           <div style={{ position:'relative', zIndex:1 }}>
 
             {}
