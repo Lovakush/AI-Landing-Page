@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-
+/* ─── Agentic canvas background ─────────────────────────────────── */
 function AgenticBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -50,7 +50,7 @@ function AgenticBackground() {
       t += 0.012;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      
+      // deep bg
       const bg = ctx.createRadialGradient(canvas.width*.5, canvas.height*.4, 0, canvas.width*.5, canvas.height*.4, canvas.width*.75);
       bg.addColorStop(0, 'rgba(14,12,32,1)');
       bg.addColorStop(0.5, 'rgba(8,7,20,1)');
@@ -58,14 +58,14 @@ function AgenticBackground() {
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      
+      // dot grid
       ctx.fillStyle = 'rgba(240,184,73,0.055)';
       for (let gx = 0; gx < canvas.width; gx += 48)
         for (let gy = 0; gy < canvas.height; gy += 48) {
           ctx.beginPath(); ctx.arc(gx, gy, 0.6, 0, Math.PI*2); ctx.fill();
         }
 
-      
+      // scan lines
       scanLines.forEach(sl => {
         sl.y += sl.speed;
         if (sl.y > canvas.height) sl.y = 0;
@@ -77,7 +77,7 @@ function AgenticBackground() {
         ctx.fillRect(0, sl.y-1, canvas.width, 2);
       });
 
-     
+      // radar 1
       radar.angle += 0.008;
       for (let i = 0; i < 30; i++) {
         const ta = radar.angle - i*0.07;
@@ -99,7 +99,7 @@ function AgenticBackground() {
       ctx.beginPath(); ctx.arc(blipX, blipY, 2.5, 0, Math.PI*2);
       ctx.fillStyle = `rgba(240,184,73,${Math.abs(Math.sin(t*3))*0.6+0.2})`; ctx.fill();
 
-     
+      // radar 2
       ctx.beginPath(); ctx.arc(radar2.x, radar2.y, radar2.radius, 0, Math.PI*2);
       ctx.strokeStyle='rgba(240,184,73,0.08)'; ctx.lineWidth=0.8; ctx.stroke();
       const r2a = -radar.angle*0.6;
@@ -110,7 +110,7 @@ function AgenticBackground() {
         ctx.fillStyle = `rgba(240,184,73,${(1-i/20)*0.06})`; ctx.fill();
       }
 
-     
+      // node network
       nodes.forEach(n => {
         n.x+=n.vx; n.y+=n.vy; n.pulse+=0.025;
         if(n.x<0) n.x=canvas.width; if(n.x>canvas.width) n.x=0;
@@ -129,7 +129,7 @@ function AgenticBackground() {
         ctx.fillStyle=`rgba(240,184,73,${Math.abs(Math.sin(n.pulse))*0.5+0.12})`; ctx.fill();
       });
 
-     
+      // hex labels
       ctx.font = "9px 'DM Mono', monospace";
       hexLabels.forEach(h => {
         h.y+=h.vy;
@@ -157,13 +157,15 @@ type View = 'login' | 'forgot' | 'register' | 'forgot-sent';
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onLoginSuccess?: (name: string, email: string) => void;
 }
 
-export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
+export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps) {
   const [view, setView] = useState<View>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -173,7 +175,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   useEffect(() => {
     if (isOpen) {
-      
+      // delay card entrance to sync after ripple peak (~420ms)
       setPhase('entering');
       setTimeout(() => setPhase('visible'), 50);
       document.body.style.overflow = 'hidden';
@@ -183,7 +185,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         setPhase('hidden');
         document.body.style.overflow = '';
         setView('login'); setErrors({});
-        setPassword(''); setConfirmPassword(''); setEmail(''); setName('');
+        setPassword(''); setConfirmPassword(''); setEmail(''); setFirstName(''); setLastName('');
       }, 380);
     }
     return () => { document.body.style.overflow = ''; };
@@ -198,28 +200,25 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const triggerShake = () => { setShake(true); setTimeout(() => setShake(false), 450); };
   const switchView = (v: View) => { setErrors({}); setPassword(''); setConfirmPassword(''); setView(v); };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!email) errs.email = 'Email required';
     else if (!validateEmail(email)) errs.email = 'Invalid email address';
     if (!password) errs.password = 'Password required';
-    else if (password.length < 6) errs.password = 'Incorrect password';
     if (Object.keys(errs).length) { setErrors(errs); triggerShake(); return; }
+
+    // ── TEMPORARY: fake login for UI testing (swap with real API when backend is ready) ──
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
+      const displayName = email.split('@')[0]
+        .replace(/[._-]/g, ' ')
+        .replace(/\w/g, (c: string) => c.toUpperCase());
+      onLoginSuccess?.(displayName, email);
       onClose();
-      
-      setTimeout(() => {
-        const dashboard = document.getElementById('dashboard');
-        if (dashboard) {
-          dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 380);
-    }, 1400);
-  };
-
+    }, 1000);
+  }
   const handleForgot = (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
@@ -230,18 +229,50 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setTimeout(() => { setLoading(false); setView('forgot-sent'); }, 1200);
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
-    if (!name) errs.name = 'Name required';
+    if (!firstName) errs.firstName = 'First name required';
+    if (!lastName)  errs.lastName  = 'Last name required';
     if (!email) errs.email = 'Email required';
     else if (!validateEmail(email)) errs.email = 'Invalid email address';
     if (!password) errs.password = 'Password required';
     else if (password.length < 8) errs.password = 'Min. 8 characters';
     if (confirmPassword !== password) errs.confirm = 'Passwords do not match';
     if (Object.keys(errs).length) { setErrors(errs); triggerShake(); return; }
+
     setLoading(true);
-    setTimeout(() => setLoading(false), 1600);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          first_name: firstName,
+          last_name: lastName,
+          tenant_id: '',
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        const msg = data?.message || 'Registration failed. Please try again.';
+        setErrors({ email: msg });
+        triggerShake();
+        return;
+      }
+
+      // success — prompt user to check email and go to login
+      switchView('forgot-sent'); // re-use the "check your inbox" confirmation screen
+
+    } catch {
+      setErrors({ email: 'Network error — please try again.' });
+      triggerShake();
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (phase === 'hidden') return null;
@@ -432,35 +463,35 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         }
       `}</style>
 
-      {}
+      {/* ── full-screen agentic background — fixed, sits behind overlay, NOT clipped ── */}
       <div style={{ position:'fixed', inset:0, zIndex:999, pointerEvents:'none' }}>
         <AgenticBackground />
       </div>
 
-      {}
+      {/* ── iris overlay — transparent, only clips the card in ── */}
       <div
         className={`lm-overlay-iris ${phase}`}
         onClick={phase === 'visible' ? onClose : undefined}
         style={{ display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}
       >
-        {}
+        {/* ── card ── */}
         <div
           className={`lm-card ${phase}${shake ? ' shaking' : ''}`}
           onClick={e => e.stopPropagation()}
         >
-          {}
+          {/* scan line on enter */}
           {(phase === 'entering' || phase === 'visible') && <div className="lm-scan" />}
 
-          {}
+          {/* grid texture */}
           <div style={{ position:'absolute', inset:0, pointerEvents:'none', opacity:0.022,
             backgroundImage:'linear-gradient(rgba(240,184,73,1) 1px,transparent 1px),linear-gradient(90deg,rgba(240,184,73,1) 1px,transparent 1px)',
             backgroundSize:'24px 24px' }} />
 
-          {}
+          {/* orbit rings */}
           <div style={{ position:'absolute', width:260, height:260, border:'1px solid rgba(240,184,73,0.07)', borderRadius:'50%', top:'50%', left:'50%', animation:'orbitA 30s linear infinite', pointerEvents:'none' }} />
           <div style={{ position:'absolute', width:180, height:180, border:'1px solid rgba(240,184,73,0.05)', borderRadius:'50%', top:'50%', left:'50%', animation:'orbitB 22s linear infinite', pointerEvents:'none' }} />
 
-          {}
+          {/* corner ticks */}
           {[{t:0,l:0,bt:true,bl:true},{t:0,r:0,bt:true,br:true},{b:0,l:0,bb:true,bl:true},{b:0,r:0,bb:true,br:true}].map((c,i)=>(
             <div key={i} style={{
               position:'absolute', width:10, height:10,
@@ -477,7 +508,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             }} />
           ))}
 
-          {}
+          {/* close */}
           <button onClick={onClose} style={{
             position:'absolute', top:10, right:10, width:24, height:24,
             borderRadius:6, background:'rgba(240,184,73,0.06)', border:'1px solid rgba(240,184,73,0.15)',
@@ -489,10 +520,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(240,184,73,0.06)';(e.currentTarget as HTMLElement).style.color='rgba(240,184,73,0.4)';}}
           >✕</button>
 
-          {}
+          {/* ── content ── */}
           <div style={{ position:'relative', zIndex:1 }}>
 
-            {}
+            {/* logo + route */}
             <div className="lm-content-item" style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4, animationDelay:'0.18s' }}>
               <img src="/sia-globe-v2.png" alt="SIA" style={{ height:26, width:'auto', mixBlendMode:'lighten' }} />
               <div style={{ width:1, height:14, background:'rgba(240,184,73,0.2)' }} />
@@ -504,7 +535,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
             <span className="lm-gold-underline" />
 
-            {}
+            {/* ══ LOGIN ══ */}
             {view === 'login' && (
               <div className="lm-view">
                 <h2 className="lm-content-item" style={{ fontFamily:"'DM Mono',monospace", fontSize:20, fontWeight:700, color:'#f0ead8', margin:'0 0 2px', letterSpacing:'-0.01em', animationDelay:'0.22s' }}>
@@ -555,7 +586,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               </div>
             )}
 
-            {}
+            {/* ══ FORGOT ══ */}
             {view === 'forgot' && (
               <div className="lm-view">
                 <button className="lm-back" onClick={()=>switchView('login')}>
@@ -576,7 +607,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               </div>
             )}
 
-            {}
+            {/* ══ FORGOT SENT ══ */}
             {view === 'forgot-sent' && (
               <div className="lm-view" style={{ textAlign:'center', padding:'8px 0' }}>
                 <div style={{ width:44,height:44,borderRadius:10,background:'rgba(240,184,73,0.08)',border:'1px solid rgba(240,184,73,0.25)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px' }}>
@@ -590,7 +621,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               </div>
             )}
 
-            {/}
+            {/* ══ REGISTER ══ */}
             {view === 'register' && (
               <div className="lm-view">
                 <button className="lm-back" onClick={()=>switchView('login')}>
@@ -599,16 +630,25 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 <h2 style={{ fontFamily:"'DM Mono',monospace", fontSize:19, fontWeight:700, color:'#f0ead8', margin:'0 0 2px', letterSpacing:'-0.01em' }}>Create account.</h2>
                 <p style={{ fontFamily:"'DM Mono',monospace", fontSize:11.5, color:'rgba(200,185,150,0.38)', margin:'0 0 16px', letterSpacing:'0.02em' }}>Takes less than a minute.</p>
                 <form onSubmit={handleRegister} noValidate>
-                  {([
-                    { key:'name', label:'Full Name', type:'text', placeholder:'Jane Smith', val:name, set:(v:string)=>setName(v) },
-                    { key:'email', label:'Email', type:'email', placeholder:'you@example.com', val:email, set:(v:string)=>setEmail(v) },
-                  ] as const).map((f) => (
-                    <div key={f.key} style={{ marginBottom:10 }}>
-                      <label className="lm-label">{f.label}</label>
-                      <input type={f.type} className={`lm-input${errors[f.key]?' lm-input-err':''}`} placeholder={f.placeholder} value={f.val} onChange={e=>{f.set(e.target.value);setErrors(p=>({...p,[f.key]:''}));}} />
-                      {errors[f.key] && <ErrMsg msg={errors[f.key]} />}
+                  {/* First + Last name row */}
+                  <div style={{ display:'flex', gap:8, marginBottom:10 }}>
+                    <div style={{ flex:1 }}>
+                      <label className="lm-label">First Name</label>
+                      <input type="text" className={`lm-input${errors.firstName?' lm-input-err':''}`} placeholder="Jane" value={firstName} onChange={e=>{setFirstName(e.target.value);setErrors(p=>({...p,firstName:''}));}} />
+                      {errors.firstName && <ErrMsg msg={errors.firstName} />}
                     </div>
-                  ))}
+                    <div style={{ flex:1 }}>
+                      <label className="lm-label">Last Name</label>
+                      <input type="text" className={`lm-input${errors.lastName?' lm-input-err':''}`} placeholder="Smith" value={lastName} onChange={e=>{setLastName(e.target.value);setErrors(p=>({...p,lastName:''}));}} />
+                      {errors.lastName && <ErrMsg msg={errors.lastName} />}
+                    </div>
+                  </div>
+                  {/* Email */}
+                  <div style={{ marginBottom:10 }}>
+                    <label className="lm-label">Email</label>
+                    <input type="email" className={`lm-input${errors.email?' lm-input-err':''}`} placeholder="you@example.com" value={email} onChange={e=>{setEmail(e.target.value);setErrors(p=>({...p,email:''}));}} />
+                    {errors.email && <ErrMsg msg={errors.email} />}
+                  </div>
                   <div style={{ marginBottom:10 }}>
                     <label className="lm-label">Password</label>
                     <div style={{ position:'relative' }}>
