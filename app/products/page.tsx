@@ -2135,14 +2135,28 @@ const ProductDetailsSection = forwardRef<
 
         <motion.div className="mb-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
           <h3 className="text-4xl font-light text-white text-center mb-10">See <span style={{ color: product.color }}>{product.name}</span> in action</h3>
-          <div className="w-full h-[460px] rounded-2xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${product.color}10, ${product.color}04)`, border: `1px solid ${product.color}18` }}>
-            <div className="text-center opacity-40">
-              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: `${product.color}25`, border: `2px solid ${product.color}50` }}>
-                <span className="text-4xl">▶</span>
-              </div>
-              <p className="text-white text-sm">Demo video coming soon</p>
+          {product.category === 'category2' ? (
+            <div style={{ position: 'relative', boxSizing: 'content-box', maxHeight: '80svh', width: '100%', aspectRatio: '2.09', padding: '40px 0' }}>
+              <iframe
+                src="https://app.supademo.com/embed/cmlpd72lu1d20egrdab9h62t3?embed_v=2&utm_source=embed"
+                loading="lazy"
+                title="Revalidate Rejected Candidates Through Job Applicant Review"
+                allow="clipboard-write"
+                frameBorder="0"
+                allowFullScreen
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+              />
             </div>
-          </div>
+          ) : (
+            <div className="w-full h-[460px] rounded-2xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${product.color}10, ${product.color}04)`, border: `1px solid ${product.color}18` }}>
+              <div className="text-center opacity-40">
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: `${product.color}25`, border: `2px solid ${product.color}50` }}>
+                  <span className="text-4xl">▶</span>
+                </div>
+                <p className="text-white text-sm">Demo video coming soon</p>
+              </div>
+            </div>
+          )}
         </motion.div>
 
         <motion.div className="mb-16" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.3 }} transition={{ duration: 0.6 }}>
