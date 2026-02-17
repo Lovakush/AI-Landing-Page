@@ -222,7 +222,8 @@ export default function WaitlistSection() {
     setErrorMsg("");
 
     try {
-      const response = await fetch('/api/waitlist/join', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+      const res = await fetch(`${apiUrl}/api/waitlist/join/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -230,18 +231,31 @@ export default function WaitlistSection() {
         body: JSON.stringify({ email }),
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setStatus("success");
-        setEmail(""); // Clear the input
-      } else {
-        setErrorMsg(data.message || "Something went wrong. Please try again.");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        let message = res.status === 400 ? 'Email already registered.' : 'Something went wrong. Please try again.';
+        if (errorData) {
+          const emailErr = errorData.email;
+          if (Array.isArray(emailErr) && emailErr[0]) {
+            message = emailErr[0];
+          } else if (typeof emailErr === 'string') {
+            message = emailErr;
+          } else if (typeof errorData.error === 'string') {
+            message = errorData.error;
+          } else if (typeof errorData.detail === 'string') {
+            message = errorData.detail;
+          }
+        }
+        setErrorMsg(message);
         setStatus("error");
+        return;
       }
+
+      setStatus("success");
+      setEmail("");
     } catch (error) {
       console.error('Waitlist submission error:', error);
-      setErrorMsg("Network error. Please check your connection and try again.");
+      setErrorMsg("Could not connect to the server. Please check if the backend is running.");
       setStatus("error");
     }
   };

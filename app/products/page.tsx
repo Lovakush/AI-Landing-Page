@@ -1,7 +1,8 @@
 'use client';
 
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
-import { useState, useEffect, useRef, forwardRef } from 'react';
+import { useState, useEffect, useRef, forwardRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { MoveRight, Sparkles, Zap, Target, Users, TrendingUp, BarChart3, Bot, Check, X, Network, GitBranch, Workflow, Cpu, Activity } from 'lucide-react';
 import Chatbot from '@/components/ui/chatbot';
 import Navbar from '@/components/ui/Navbar';
@@ -242,7 +243,16 @@ const products = [
   },
 ];
 
-export default function ProductsPage() {
+export default function ProductsPageWrapper() {
+  return (
+    <Suspense>
+      <ProductsPage />
+    </Suspense>
+  );
+}
+
+function ProductsPage() {
+  const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState('category1');
   const [wordIndex, setWordIndex] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null);
@@ -292,6 +302,33 @@ export default function ProductsPage() {
   }, [selectedProduct, shouldScrollToDetails]);
 
   useEffect(() => {
+    const agentParam = searchParams.get('agent');
+    if (!agentParam) return;
+
+    const agentToCategory: Record<string, string> = {
+      argo: 'category3',
+      mark: 'category1',
+      consuelo: 'category2',
+    };
+    const category = agentToCategory[agentParam.toLowerCase()];
+    if (category) {
+      setSelectedCategory(category);
+      // Wait for the product details section to render, then scroll to #how-it-works
+      const scrollToHow = () => {
+        const el = document.getElementById('how-it-works');
+        if (el) {
+          const y = el.getBoundingClientRect().top + window.scrollY - 100;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        } else {
+          // Section not rendered yet, retry
+          setTimeout(scrollToHow, 200);
+        }
+      };
+      setTimeout(scrollToHow, 300);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
@@ -323,15 +360,29 @@ export default function ProductsPage() {
     setPilotError('');
 
     try {
-      const res = await fetch('/api/pilot-signup', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+      const res = await fetch(`${apiUrl}/api/waitlist/join/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: pilotEmail.trim() }),
       });
-      const data = await res.json();
 
       if (!res.ok) {
-        setPilotError(data.error ?? 'Something went wrong. Please try again.');
+        const errorData = await res.json().catch(() => null);
+        let message = res.status === 400 ? 'Email already registered.' : 'Something went wrong. Please try again.';
+        if (errorData) {
+          const emailErr = errorData.email;
+          if (Array.isArray(emailErr) && emailErr[0]) {
+            message = emailErr[0];
+          } else if (typeof emailErr === 'string') {
+            message = emailErr;
+          } else if (typeof errorData.error === 'string') {
+            message = errorData.error;
+          } else if (typeof errorData.detail === 'string') {
+            message = errorData.detail;
+          }
+        }
+        setPilotError(message);
       } else {
         setPilotStep('success');
       }
@@ -1161,7 +1212,6 @@ export default function ProductsPage() {
                               <div className="p-5">
                                 <h4 className="text-white font-bold text-base mb-1">{product.name}</h4>
                                 <p className="text-white/60 text-xs mb-3">{product.tagline}</p>
-                                <div className="text-white font-bold text-xl mb-3">{product.price}</div>
                                 <motion.button
                                   className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer"
                                   style={{ background: `${product.color}20`, border: `1px solid ${product.color}40` }}
@@ -1919,7 +1969,7 @@ export default function ProductsPage() {
 
       {selectedProduct && (
         <div className="relative z-10 w-full">
-          {selectedProduct.ctaType === 'demo' ? <BookADemo /> : <WaitlistSection />}
+          {selectedCategory === 'category3' ? <WaitlistSection /> : <BookADemo />}
         </div>
       )}
 
@@ -2056,7 +2106,7 @@ const ProductDetailsSection = forwardRef<
           </div>
         </motion.div>
 
-        <motion.div className="mb-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
+        <motion.div id="how-it-works" className="mb-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
           <div className="grid grid-cols-3 gap-14 items-start">
             <div className="col-span-1">
               <h3 className="text-4xl font-light text-white mb-4">How does<div className="text-4xl font-semibold mt-1" style={{ color: product.color }}>{getBrandName(product.category)} work?</div></h3>
