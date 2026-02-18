@@ -342,7 +342,9 @@ export default function OpseraLanding() {
                 transformOrigin: 'center center',
               }}
             >
-              <SIADashboard />
+              <div id="dashboard">
+  <SIADashboard />
+</div>
             </div>
           </div>
         </motion.div>
