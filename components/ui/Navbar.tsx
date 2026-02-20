@@ -33,10 +33,10 @@ function loadUser(): AuthUser {
 
 
 const Navbar = () => {
-  const [mobileOpen, setMobileOpen]   = useState(false);
-  const [loginOpen, setLoginOpen]     = useState(false);
+  const [mobileOpen, setMobileOpen]       = useState(false);
+  const [loginOpen, setLoginOpen]         = useState(false);
   const [transitioning, setTransitioning] = useState(false);
-  const [rippleStyle, setRippleStyle] = useState<React.CSSProperties>({});
+  const [rippleStyle, setRippleStyle]     = useState<React.CSSProperties>({});
 
   const [user, setUser]               = useState<AuthUser>(loadUser);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -71,12 +71,19 @@ const Navbar = () => {
     setTimeout(() => setTransitioning(false), 900);
   };
 
+  // Called after a successful normal user login
   const handleLoginSuccess = (name: string, email: string) => {
     const newUser = { name, email };
     setUser(newUser);
     saveUser(newUser);
     setLoginOpen(false);
     router.push('/platform');
+  };
+
+  // Called after a successful admin login — redirect straight to /admin
+  const handleAdminLoginSuccess = (name: string, email: string, token: string) => {
+    setLoginOpen(false);
+    router.push('/admin');
   };
 
   const handleLogout = () => {
@@ -325,6 +332,7 @@ const Navbar = () => {
         isOpen={loginOpen}
         onClose={() => setLoginOpen(false)}
         onLoginSuccess={handleLoginSuccess}
+        onAdminLoginSuccess={handleAdminLoginSuccess}
       />
     </>
   );

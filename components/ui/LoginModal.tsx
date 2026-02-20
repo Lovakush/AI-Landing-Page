@@ -145,27 +145,39 @@ function validateEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 
-// ── Added 'register-success' to the View type ──
-type View = 'login' | 'forgot' | 'register' | 'forgot-sent' | 'register-success';
+type View = 'login' | 'forgot' | 'register' | 'forgot-sent' | 'register-success' | 'admin-login';
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLoginSuccess?: (name: string, email: string) => void;
+  onAdminLoginSuccess?: (name: string, email: string, token: string) => void;
 }
 
-export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps) {
+export default function LoginModal({ isOpen, onClose, onLoginSuccess, onAdminLoginSuccess }: LoginModalProps) {
   const [view, setView] = useState<View>('login');
+
+  // Shared
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [shake, setShake] = useState(false);
   const [phase, setPhase] = useState<'hidden' | 'entering' | 'visible' | 'leaving'>('hidden');
+
+  // Register only
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Admin only
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [showAdminPass, setShowAdminPass] = useState(false);
+  const [adminErrors, setAdminErrors] = useState<Record<string, string>>({});
+
+  const isAdmin = view === 'admin-login';
 
   useEffect(() => {
     if (isOpen) {
@@ -177,8 +189,10 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
       setTimeout(() => {
         setPhase('hidden');
         document.body.style.overflow = '';
-        setView('login'); setErrors({});
-        setPassword(''); setConfirmPassword(''); setEmail(''); setFirstName(''); setLastName('');
+        setView('login'); setErrors({}); setAdminErrors({});
+        setPassword(''); setConfirmPassword(''); setEmail('');
+        setFirstName(''); setLastName('');
+        setAdminEmail(''); setAdminPassword('');
       }, 380);
     }
     return () => { document.body.style.overflow = ''; };
@@ -191,65 +205,90 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
   }, [onClose]);
 
   const triggerShake = () => { setShake(true); setTimeout(() => setShake(false), 450); };
-  const switchView = (v: View) => { setErrors({}); setPassword(''); setConfirmPassword(''); setView(v); };
 
+  const switchView = (v: View) => {
+    setErrors({}); setAdminErrors({});
+    setPassword(''); setConfirmPassword('');
+    setAdminPassword('');
+    setView(v);
+  };
+
+  // ── User Login ────────────────────────────────────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
+    const errs: Record<string, string> = {};
+    if (!email) errs.email = 'Email required';
+    else if (!validateEmail(email)) errs.email = 'Invalid email address';
+    if (!password) errs.password = 'Password required';
+    if (Object.keys(errs).length) { setErrors(errs); triggerShake(); return; }
 
-  const errs: Record<string, string> = {};
-  if (!email) errs.email = 'Email required';
-  else if (!validateEmail(email)) errs.email = 'Invalid email address';
-  if (!password) errs.password = 'Password required';
-
-  if (Object.keys(errs).length) {
-    setErrors(errs);
-    triggerShake();
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login/`,
-      {
+    setLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-      }
-    );
+      });
+      const data = await res.json();
+      if (!res.ok) { setErrors({ password: data?.error || 'Invalid credentials' }); triggerShake(); return; }
 
-    const data = await res.json();
+      localStorage.setItem('access_token', data.data.access_token);
+      localStorage.setItem('refresh_token', data.data.refresh_token);
+      localStorage.setItem('user', JSON.stringify(data.data.user));
 
-    if (!res.ok) {
-      setErrors({ password: data?.error || 'Invalid credentials' });
+      const displayName = `${data.data.user?.first_name || ''} ${data.data.user?.last_name || ''}`.trim() || email;
+      onLoginSuccess?.(displayName, email);
+      onClose();
+    } catch {
+      setErrors({ email: 'Network error — please try again.' });
       triggerShake();
-      return;
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // ✅ SAVE TOKENS CORRECTLY FROM data.data
-localStorage.setItem('access_token', data.data.access_token);
-localStorage.setItem('refresh_token', data.data.refresh_token);
+  // ── Admin Login ───────────────────────────────────────────────────────────
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs: Record<string, string> = {};
+    if (!adminEmail) errs.email = 'Email required';
+    else if (!validateEmail(adminEmail)) errs.email = 'Invalid email address';
+    if (!adminPassword) errs.password = 'Password required';
+    if (Object.keys(errs).length) { setAdminErrors(errs); triggerShake(); return; }
 
-// Optional: save user
-localStorage.setItem('user', JSON.stringify(data.data.user));
+    setLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: adminEmail, password: adminPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setAdminErrors({ password: data?.error || 'Access denied' }); triggerShake(); return; }
 
-const displayName =
-  `${data.data.user?.first_name || ''} ${data.data.user?.last_name || ''}`.trim() || email;
+      const user = data.data.user;
+      if (!user?.is_staff && !user?.is_superuser && user?.role !== 'admin') {
+        setAdminErrors({ password: 'Insufficient privileges. Admin access required.' });
+        triggerShake();
+        return;
+      }
 
+      localStorage.setItem('admin_access_token', data.data.access_token);
+      localStorage.setItem('admin_refresh_token', data.data.refresh_token);
+      localStorage.setItem('admin_user', JSON.stringify(user));
 
-    onLoginSuccess?.(displayName, email);
-    onClose();
+      const displayName = `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || adminEmail;
+      onAdminLoginSuccess?.(displayName, adminEmail, data.data.access_token);
+      onClose();
+    } catch {
+      setAdminErrors({ email: 'Network error — please try again.' });
+      triggerShake();
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  } catch {
-    setErrors({ email: 'Network error — please try again.' });
-    triggerShake();
-  } finally {
-    setLoading(false);
-  }
-};
-
-
+  // ── Forgot Password ───────────────────────────────────────────────────────
   const handleForgot = (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
@@ -260,6 +299,7 @@ const displayName =
     setTimeout(() => { setLoading(false); setView('forgot-sent'); }, 1200);
   };
 
+  // ── Register ──────────────────────────────────────────────────────────────
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
@@ -277,27 +317,15 @@ const displayName =
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          password,
-          first_name: firstName,
-          last_name: lastName,
-          tenant_id: '',
-        }),
+        body: JSON.stringify({ email, password, first_name: firstName, last_name: lastName, tenant_id: '' }),
       });
-
       const data = await res.json();
-
       if (!res.ok || !data.success) {
-        const msg = data?.message || 'Registration failed. Please try again.';
-        setErrors({ email: msg });
+        setErrors({ email: data?.message || 'Registration failed. Please try again.' });
         triggerShake();
         return;
       }
-
-      // ── Changed from 'forgot-sent' to 'register-success' ──
       switchView('register-success');
-
     } catch {
       setErrors({ email: 'Network error — please try again.' });
       triggerShake();
@@ -308,28 +336,22 @@ const displayName =
 
   if (phase === 'hidden') return null;
 
-  const isEntering = phase === 'entering';
-  const isLeaving = phase === 'leaving';
-
   const ErrMsg = ({ msg }: { msg: string }) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4, fontSize: 11, color: '#ff6b6b', fontFamily: 'monospace', letterSpacing: '0.02em' }}>
+    <div style={{ display:'flex', alignItems:'center', gap:4, marginTop:4, fontSize:11, color:'#ff6b6b', fontFamily:'monospace', letterSpacing:'0.02em' }}>
       <span>✕</span> {msg}
     </div>
   );
+
+  // corner bracket colour changes with admin mode
+  const bracketColor = isAdmin ? '#ff6b6b' : '#f0b849';
 
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap');
 
-        @keyframes iris-in {
-          0%   { clip-path: circle(0% at var(--ox) var(--oy)); }
-          100% { clip-path: circle(150% at var(--ox) var(--oy)); }
-        }
-        @keyframes iris-out {
-          0%   { clip-path: circle(150% at var(--ox) var(--oy)); opacity:1; }
-          100% { clip-path: circle(0% at var(--ox) var(--oy)); opacity:0; }
-        }
+        @keyframes iris-in  { 0%   { clip-path: circle(0% at 50% 50%); } 100% { clip-path: circle(150% at 50% 50%); } }
+        @keyframes iris-out { 0%   { clip-path: circle(150% at 50% 50%); opacity:1; } 100% { clip-path: circle(0% at 50% 50%); opacity:0; } }
 
         @keyframes card-materialize {
           0%   { opacity:0; transform: scale(0.72) translateY(20px); filter: blur(12px) brightness(3); }
@@ -341,161 +363,103 @@ const displayName =
           0%   { opacity:1; transform: scale(1); filter: blur(0); }
           100% { opacity:0; transform: scale(0.88) translateY(12px); filter: blur(8px); }
         }
-
-        @keyframes scan-sweep {
-          0%   { top: -2px; opacity: 0.6; }
-          100% { top: 100%; opacity: 0; }
-        }
-
-        @keyframes content-rise {
-          from { opacity:0; transform: translateY(10px); }
-          to   { opacity:1; transform: translateY(0); }
-        }
-
-        @keyframes shake {
-          0%,100%{transform:translateX(0) scale(1)}
-          20%{transform:translateX(-7px) scale(1.01)}
-          40%{transform:translateX(7px) scale(1.01)}
-          60%{transform:translateX(-4px)}
-          80%{transform:translateX(4px)}
-        }
+        @keyframes scan-sweep  { 0% { top:-2px; opacity:0.6; } 100% { top:100%; opacity:0; } }
+        @keyframes content-rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes shake { 0%,100%{transform:translateX(0) scale(1)} 20%{transform:translateX(-7px) scale(1.01)} 40%{transform:translateX(7px) scale(1.01)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
         @keyframes spin  { to { transform: rotate(360deg) } }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
         @keyframes orbitA { to { transform: translate(-50%,-50%) rotate(360deg) } }
         @keyframes orbitB { to { transform: translate(-50%,-50%) rotate(-360deg) } }
-        @keyframes viewIn {
-          from { opacity:0; transform:translateX(10px); }
-          to   { opacity:1; transform:translateX(0); }
-        }
-        @keyframes gold-line {
-          from { width: 0; }
-          to   { width: 100%; }
-        }
-        @keyframes pulse-ring {
-          0%,100% { transform: scale(1); opacity: 0.5; }
-          50%      { transform: scale(1.06); opacity: 1; }
-        }
-        @keyframes icon-pop {
-          from { transform: scale(0.5); opacity: 0; }
-          to   { transform: scale(1); opacity: 1; }
-        }
+        @keyframes viewIn  { from { opacity:0; transform:translateX(10px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes gold-line { from { width:0; } to { width:100%; } }
+        @keyframes pulse-ring { 0%,100% { transform:scale(1); opacity:0.5; } 50% { transform:scale(1.06); opacity:1; } }
+        @keyframes icon-pop   { from { transform:scale(0.5); opacity:0; } to { transform:scale(1); opacity:1; } }
+        @keyframes admin-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,80,80,0.2)} 50%{box-shadow:0 0 0 6px rgba(255,80,80,0)} }
 
-        .lm-overlay-iris {
-          --ox: 50%; --oy: 50%;
-          position: fixed; inset: 0; z-index: 1001;
-          background: transparent;
-        }
-        .lm-overlay-iris.entering { animation: iris-in 0.55s cubic-bezier(0.4,0,0.2,1) forwards; }
-        .lm-overlay-iris.visible  { clip-path: circle(150% at 50% 50%); }
-        .lm-overlay-iris.leaving  { animation: iris-out 0.35s cubic-bezier(0.4,0,1,1) forwards; }
+        .lm-overlay-iris { --ox:50%; --oy:50%; position:fixed; inset:0; z-index:1001; background:transparent; }
+        .lm-overlay-iris.entering { animation:iris-in  0.55s cubic-bezier(0.4,0,0.2,1) forwards; }
+        .lm-overlay-iris.visible  { clip-path:circle(150% at 50% 50%); }
+        .lm-overlay-iris.leaving  { animation:iris-out 0.35s cubic-bezier(0.4,0,1,1)   forwards; }
 
         .lm-card {
-          position: relative; width:100%; max-width:320px;
-          background: linear-gradient(155deg, rgba(13,12,30,0.98) 0%, rgba(7,6,18,1) 100%);
-          border-radius: 14px; overflow: hidden;
-          border: 1px solid rgba(240,184,73,0.22);
-          box-shadow: 0 0 0 1px rgba(240,184,73,0.04),
-                      0 24px 80px rgba(0,0,0,0.8),
-                      0 0 60px rgba(240,184,73,0.06),
-                      inset 0 1px 0 rgba(240,184,73,0.1);
-          padding: 28px 24px 24px;
+          position:relative; width:100%; max-width:320px;
+          background:linear-gradient(155deg,rgba(13,12,30,0.98) 0%,rgba(7,6,18,1) 100%);
+          border-radius:14px; overflow:hidden;
+          border:1px solid rgba(240,184,73,0.22);
+          box-shadow:0 0 0 1px rgba(240,184,73,0.04),0 24px 80px rgba(0,0,0,0.8),0 0 60px rgba(240,184,73,0.06),inset 0 1px 0 rgba(240,184,73,0.1);
+          padding:28px 24px 24px; transition:border-color 0.3s, box-shadow 0.3s;
         }
-        .lm-card.entering { animation: card-materialize 0.65s cubic-bezier(0.16,1,0.3,1) 0.08s both; }
+        .lm-card.entering { animation:card-materialize 0.65s cubic-bezier(0.16,1,0.3,1) 0.08s both; }
         .lm-card.visible  { opacity:1; }
-        .lm-card.leaving  { animation: card-dissolve 0.32s ease forwards; }
-        .lm-card.shaking  { animation: shake 0.4s cubic-bezier(0.36,0.07,0.19,0.97) !important; }
-
-        .lm-scan {
-          position: absolute; left:0; right:0; height: 2px;
-          background: linear-gradient(90deg, transparent, rgba(240,184,73,0.6), transparent);
-          animation: scan-sweep 0.7s ease 0.3s forwards;
-          pointer-events: none; z-index: 10;
+        .lm-card.leaving  { animation:card-dissolve 0.32s ease forwards; }
+        .lm-card.shaking  { animation:shake 0.4s cubic-bezier(0.36,0.07,0.19,0.97) !important; }
+        .lm-card.admin-mode {
+          border-color:rgba(255,100,100,0.3);
+          box-shadow:0 0 0 1px rgba(255,80,80,0.04),0 24px 80px rgba(0,0,0,0.8),0 0 60px rgba(255,80,80,0.07),inset 0 1px 0 rgba(255,100,100,0.08);
         }
 
-        .lm-content-item {
-          animation: content-rise 0.4s ease both;
-        }
+        .lm-scan { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,rgba(240,184,73,0.6),transparent); animation:scan-sweep 0.7s ease 0.3s forwards; pointer-events:none; z-index:10; }
+        .lm-content-item { animation:content-rise 0.4s ease both; }
 
         .lm-input {
-          width: 100%; background: rgba(255,255,255,0.025);
-          border: 1px solid rgba(240,184,73,0.18); border-radius: 8px;
-          padding: 9px 12px; color: #f0ead8;
-          font-family: 'DM Mono', monospace; font-size: 13px;
-          outline: none; box-sizing: border-box;
-          transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+          width:100%; background:rgba(255,255,255,0.025); border:1px solid rgba(240,184,73,0.18);
+          border-radius:8px; padding:9px 12px; color:#f0ead8;
+          font-family:'DM Mono',monospace; font-size:13px; outline:none; box-sizing:border-box;
+          transition:border-color 0.15s,box-shadow 0.15s,background 0.15s;
         }
-        .lm-input::placeholder { color: rgba(200,185,150,0.22); font-size: 12px; }
-        .lm-input:focus {
-          border-color: rgba(240,184,73,0.55);
-          background: rgba(240,184,73,0.04);
-          box-shadow: 0 0 0 2px rgba(240,184,73,0.1);
-        }
-        .lm-input-err { border-color: rgba(255,107,107,0.5) !important; background: rgba(255,60,60,0.03) !important; }
+        .lm-input::placeholder { color:rgba(200,185,150,0.22); font-size:12px; }
+        .lm-input:focus { border-color:rgba(240,184,73,0.55); background:rgba(240,184,73,0.04); box-shadow:0 0 0 2px rgba(240,184,73,0.1); }
+        .lm-input.admin-input:focus { border-color:rgba(255,100,100,0.55); background:rgba(255,80,80,0.04); box-shadow:0 0 0 2px rgba(255,80,80,0.1); }
+        .lm-input-err { border-color:rgba(255,107,107,0.5) !important; background:rgba(255,60,60,0.03) !important; }
 
         .lm-btn {
           width:100%; padding:10px; border-radius:8px; border:none; cursor:pointer;
-          font-family:'DM Mono',monospace; font-size:12px; font-weight:500;
-          letter-spacing:0.08em; text-transform:uppercase;
-          background: linear-gradient(135deg, #e8a835, #f5d070, #e8a835);
-          background-size: 200% auto; color:#0a0a1a;
-          transition: background-position 0.4s, transform 0.1s, box-shadow 0.2s;
-          position: relative; overflow: hidden;
+          font-family:'DM Mono',monospace; font-size:12px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase;
+          background:linear-gradient(135deg,#e8a835,#f5d070,#e8a835); background-size:200% auto; color:#0a0a1a;
+          transition:background-position 0.4s,transform 0.1s,box-shadow 0.2s; position:relative; overflow:hidden;
         }
-        .lm-btn::after {
-          content:''; position:absolute; inset:0;
-          background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
-          transform: translateX(-100%); transition: transform 0.4s ease;
-        }
-        .lm-btn:hover:not(:disabled)::after { transform: translateX(100%); }
-        .lm-btn:hover:not(:disabled) { background-position: right center; box-shadow: 0 4px 22px rgba(240,184,73,0.3); transform: translateY(-1px); }
-        .lm-btn:active:not(:disabled) { transform: translateY(0); }
+        .lm-btn::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.25) 50%,transparent 100%); transform:translateX(-100%); transition:transform 0.4s ease; }
+        .lm-btn:hover:not(:disabled)::after { transform:translateX(100%); }
+        .lm-btn:hover:not(:disabled) { background-position:right center; box-shadow:0 4px 22px rgba(240,184,73,0.3); transform:translateY(-1px); }
+        .lm-btn:active:not(:disabled) { transform:translateY(0); }
         .lm-btn:disabled { opacity:0.55; cursor:not-allowed; }
+        .lm-btn.admin-btn { background:linear-gradient(135deg,#c0392b,#e74c3c,#c0392b); background-size:200% auto; }
+        .lm-btn.admin-btn:hover:not(:disabled) { box-shadow:0 4px 22px rgba(255,80,80,0.35); }
 
         .lm-btn-ghost {
-          width:100%; padding:9px; border-radius:8px; cursor:pointer;
-          background:transparent; border:1px solid rgba(240,184,73,0.22);
-          color:rgba(240,184,73,0.7); font-family:'DM Mono',monospace;
-          font-size:12px; letter-spacing:0.08em; text-transform:uppercase;
-          transition: background 0.15s, border-color 0.15s, color 0.15s;
+          width:100%; padding:9px; border-radius:8px; cursor:pointer; background:transparent;
+          border:1px solid rgba(240,184,73,0.22); color:rgba(240,184,73,0.7);
+          font-family:'DM Mono',monospace; font-size:12px; letter-spacing:0.08em; text-transform:uppercase;
+          transition:background 0.15s,border-color 0.15s,color 0.15s;
         }
         .lm-btn-ghost:hover { background:rgba(240,184,73,0.06); border-color:rgba(240,184,73,0.4); color:#f0b849; }
 
-        .lm-label {
-          font-family:'DM Mono',monospace; font-size:9.5px; font-weight:500;
-          color:rgba(240,184,73,0.5); letter-spacing:0.14em; text-transform:uppercase;
-          display:block; margin-bottom:5px;
-        }
-        .lm-link {
-          background:none; border:none; cursor:pointer; padding:0;
-          font-family:'DM Mono',monospace; font-size:11px;
-          color:rgba(240,184,73,0.55); letter-spacing:0.04em;
-          transition: color 0.15s;
-        }
+        .lm-label { font-family:'DM Mono',monospace; font-size:9.5px; font-weight:500; color:rgba(240,184,73,0.5); letter-spacing:0.14em; text-transform:uppercase; display:block; margin-bottom:5px; }
+        .lm-label.admin-label { color:rgba(255,100,100,0.5); }
+        .lm-link { background:none; border:none; cursor:pointer; padding:0; font-family:'DM Mono',monospace; font-size:11px; color:rgba(240,184,73,0.55); letter-spacing:0.04em; transition:color 0.15s; }
         .lm-link:hover { color:#f0b849; }
-        .lm-back {
-          background:none; border:none; cursor:pointer; padding:0;
-          display:flex; align-items:center; gap:5px; margin-bottom:16px;
-          font-family:'DM Mono',monospace; font-size:10px;
-          color:rgba(240,184,73,0.38); letter-spacing:0.08em; text-transform:uppercase;
-          transition: color 0.15s;
-        }
+        .lm-back { background:none; border:none; cursor:pointer; padding:0; display:flex; align-items:center; gap:5px; margin-bottom:16px; font-family:'DM Mono',monospace; font-size:10px; color:rgba(240,184,73,0.38); letter-spacing:0.08em; text-transform:uppercase; transition:color 0.15s; }
         .lm-back:hover { color:rgba(240,184,73,0.7); }
-        .lm-spinner {
-          display:inline-block; width:12px; height:12px;
-          border:1.5px solid rgba(10,10,26,0.2); border-top-color:#0a0a1a;
-          border-radius:50%; animation:spin 0.6s linear infinite;
-          vertical-align:middle; margin-right:6px;
-        }
+        .lm-spinner { display:inline-block; width:12px; height:12px; border:1.5px solid rgba(10,10,26,0.2); border-top-color:#0a0a1a; border-radius:50%; animation:spin 0.6s linear infinite; vertical-align:middle; margin-right:6px; }
         .lm-divider { display:flex; align-items:center; gap:8px; margin:14px 0; }
         .lm-divider-line { flex:1; height:1px; background:rgba(240,184,73,0.1); }
         .lm-divider-text { font-family:'DM Mono',monospace; font-size:9px; color:rgba(240,184,73,0.28); letter-spacing:0.12em; text-transform:uppercase; }
-        .lm-cursor { display:inline-block; width:6px; height:12px; background:#f0b849; margin-left:2px; vertical-align:middle; animation:blink 1s step-end infinite; border-radius:1px; }
-        .lm-view { animation: viewIn 0.22s ease forwards; }
+        .lm-cursor { display:inline-block; width:6px; height:12px; background:#f0b849; margin-left:2px; vertical-align:middle; animation:blink 1s step-end infinite; border-radius:1px; transition:background 0.3s; }
+        .lm-cursor.red { background:#ff6b6b; }
+        .lm-view { animation:viewIn 0.22s ease forwards; }
+        .lm-gold-underline { display:block; height:1px; background:#f0b849; margin-top:16px; margin-bottom:20px; animation:gold-line 0.5s cubic-bezier(0.4,0,0.2,1) 0.45s both; transition:background 0.3s; }
+        .lm-gold-underline.red { background:rgba(255,100,100,0.7); }
 
-        .lm-gold-underline {
-          display:block; height:1px; background:#f0b849; margin-top:16px; margin-bottom:20px;
-          animation: gold-line 0.5s cubic-bezier(0.4,0,0.2,1) 0.45s both;
-        }
+        /* Tab switcher */
+        .lm-tabs { display:flex; background:rgba(255,255,255,0.03); border:1px solid rgba(240,184,73,0.1); border-radius:8px; padding:3px; gap:3px; margin-bottom:18px; }
+        .lm-tab { flex:1; padding:6px 8px; border-radius:6px; border:none; cursor:pointer; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; transition:all 0.2s; background:transparent; display:flex; align-items:center; justify-content:center; gap:5px; }
+        .lm-tab.user { color:rgba(240,184,73,0.45); }
+        .lm-tab.user.active { background:rgba(240,184,73,0.1); color:#f0b849; border:1px solid rgba(240,184,73,0.2); }
+        .lm-tab.admin { color:rgba(255,100,100,0.45); }
+        .lm-tab.admin.active { background:rgba(255,80,80,0.1); color:#ff6b6b; border:1px solid rgba(255,80,80,0.2); }
+
+        /* Admin badge */
+        .admin-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:4px; background:rgba(255,80,80,0.1); border:1px solid rgba(255,80,80,0.2); font-family:'DM Mono',monospace; font-size:8px; letter-spacing:0.14em; color:#ff6b6b; text-transform:uppercase; animation:admin-pulse 2s ease-in-out infinite; }
       `}</style>
 
       {/* Background */}
@@ -511,16 +475,14 @@ const displayName =
       >
         {/* Card */}
         <div
-          className={`lm-card ${phase}${shake ? ' shaking' : ''}`}
+          className={`lm-card ${phase}${shake ? ' shaking' : ''}${isAdmin ? ' admin-mode' : ''}`}
           onClick={e => e.stopPropagation()}
         >
           {/* Scan sweep */}
           {(phase === 'entering' || phase === 'visible') && <div className="lm-scan" />}
 
           {/* Grid overlay */}
-          <div style={{ position:'absolute', inset:0, pointerEvents:'none', opacity:0.022,
-            backgroundImage:'linear-gradient(rgba(240,184,73,1) 1px,transparent 1px),linear-gradient(90deg,rgba(240,184,73,1) 1px,transparent 1px)',
-            backgroundSize:'24px 24px' }} />
+          <div style={{ position:'absolute', inset:0, pointerEvents:'none', opacity:0.022, backgroundImage:'linear-gradient(rgba(240,184,73,1) 1px,transparent 1px),linear-gradient(90deg,rgba(240,184,73,1) 1px,transparent 1px)', backgroundSize:'24px 24px' }} />
 
           {/* Orbit rings */}
           <div style={{ position:'absolute', width:260, height:260, border:'1px solid rgba(240,184,73,0.07)', borderRadius:'50%', top:'50%', left:'50%', animation:'orbitA 30s linear infinite', pointerEvents:'none' }} />
@@ -534,12 +496,13 @@ const displayName =
               bottom:(c as any).b!==undefined?(c as any).b:undefined,
               left:(c as any).l!==undefined?(c as any).l:undefined,
               right:(c as any).r!==undefined?(c as any).r:undefined,
-              borderTop:(c as any).bt?'1.5px solid #f0b849':'none',
-              borderBottom:(c as any).bb?'1.5px solid #f0b849':'none',
-              borderLeft:(c as any).bl?'1.5px solid #f0b849':'none',
-              borderRight:(c as any).br?'1.5px solid #f0b849':'none',
+              borderTop:(c as any).bt?`1.5px solid ${bracketColor}`:'none',
+              borderBottom:(c as any).bb?`1.5px solid ${bracketColor}`:'none',
+              borderLeft:(c as any).bl?`1.5px solid ${bracketColor}`:'none',
+              borderRight:(c as any).br?`1.5px solid ${bracketColor}`:'none',
               borderTopLeftRadius:i===0?14:0, borderTopRightRadius:i===1?14:0,
               borderBottomLeftRadius:i===2?14:0, borderBottomRightRadius:i===3?14:0,
+              transition:'border-color 0.3s',
             }} />
           ))}
 
@@ -548,8 +511,7 @@ const displayName =
             position:'absolute', top:10, right:10, width:24, height:24,
             borderRadius:6, background:'rgba(240,184,73,0.06)', border:'1px solid rgba(240,184,73,0.15)',
             cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
-            color:'rgba(240,184,73,0.4)', fontSize:11, fontFamily:'monospace',
-            transition:'all 0.15s', zIndex:2,
+            color:'rgba(240,184,73,0.4)', fontSize:11, fontFamily:'monospace', transition:'all 0.15s', zIndex:2,
           }}
             onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(240,184,73,0.13)';(e.currentTarget as HTMLElement).style.color='rgba(240,184,73,0.85)';}}
             onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(240,184,73,0.06)';(e.currentTarget as HTMLElement).style.color='rgba(240,184,73,0.4)';}}
@@ -562,19 +524,37 @@ const displayName =
             <div className="lm-content-item" style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4, animationDelay:'0.18s' }}>
               <img src="/sia-globe-v2.png" alt="SIA" style={{ height:26, width:'auto', mixBlendMode:'lighten' }} />
               <div style={{ width:1, height:14, background:'rgba(240,184,73,0.2)' }} />
-              <span style={{ fontFamily:"'DM Mono',monospace", fontSize:9, color:'rgba(240,184,73,0.4)', letterSpacing:'0.18em', textTransform:'uppercase' }}>
-                {view === 'login'
-                  ? 'auth/sign-in'
-                  : view === 'forgot' || view === 'forgot-sent'
-                  ? 'auth/reset'
-                  : view === 'register-success'
-                  ? 'auth/registered'
+              <span style={{ fontFamily:"'DM Mono',monospace", fontSize:9, color: isAdmin ? 'rgba(255,100,100,0.55)' : 'rgba(240,184,73,0.4)', letterSpacing:'0.18em', textTransform:'uppercase', transition:'color 0.3s' }}>
+                {view === 'login'            ? 'auth/sign-in'
+                  : view === 'admin-login'  ? 'admin/access'
+                  : view === 'forgot' || view === 'forgot-sent' ? 'auth/reset'
+                  : view === 'register-success' ? 'auth/registered'
                   : 'auth/register'}
               </span>
-              <span className="lm-cursor" />
+              <span className={`lm-cursor${isAdmin ? ' red' : ''}`} />
             </div>
 
-            <span className="lm-gold-underline" />
+            <span className={`lm-gold-underline${isAdmin ? ' red' : ''}`} />
+
+            {/* ── Tab Switcher (only on login / admin-login views) ── */}
+            {(view === 'login' || view === 'admin-login') && (
+              <div className="lm-tabs lm-content-item" style={{ animationDelay:'0.2s' }}>
+                <button
+                  className={`lm-tab user${view === 'login' ? ' active' : ''}`}
+                  onClick={() => switchView('login')}
+                >
+                  <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                  User
+                </button>
+                <button
+                  className={`lm-tab admin${view === 'admin-login' ? ' active' : ''}`}
+                  onClick={() => switchView('admin-login')}
+                >
+                  <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                  Admin
+                </button>
+              </div>
+            )}
 
             {/* ── LOGIN VIEW ── */}
             {view === 'login' && (
@@ -620,10 +600,60 @@ const displayName =
                 <div className="lm-divider lm-content-item" style={{ animationDelay:'0.44s' }}>
                   <div className="lm-divider-line"/><span className="lm-divider-text">no account?</span><div className="lm-divider-line"/>
                 </div>
-
                 <div className="lm-content-item" style={{ animationDelay:'0.47s' }}>
                   <button type="button" className="lm-btn-ghost" onClick={()=>switchView('register')}>→ register()</button>
                 </div>
+              </div>
+            )}
+
+            {/* ── ADMIN LOGIN VIEW ── */}
+            {view === 'admin-login' && (
+              <div className="lm-view">
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
+                  <h2 style={{ fontFamily:"'DM Mono',monospace", fontSize:18, fontWeight:700, color:'#f0ead8', margin:0, letterSpacing:'-0.01em' }}>Admin Access.</h2>
+                  <span className="admin-badge">
+                    <svg width="7" height="7" viewBox="0 0 10 10" fill="#ff6b6b"><circle cx="5" cy="5" r="5"/></svg>
+                    RESTRICTED
+                  </span>
+                </div>
+                <p style={{ fontFamily:"'DM Mono',monospace", fontSize:11, color:'rgba(255,100,100,0.38)', margin:'0 0 18px', letterSpacing:'0.02em' }}>
+                  Elevated privileges required.
+                </p>
+
+                <form onSubmit={handleAdminLogin} noValidate>
+                  <div style={{ marginBottom:12 }}>
+                    <label className="lm-label admin-label">Admin Email</label>
+                    <input type="email" className={`lm-input admin-input${adminErrors.email?' lm-input-err':''}`} placeholder="admin@company.com" value={adminEmail} onChange={e=>{setAdminEmail(e.target.value);setAdminErrors(p=>({...p,email:''}));}} />
+                    {adminErrors.email && <ErrMsg msg={adminErrors.email} />}
+                  </div>
+
+                  <div style={{ marginBottom:18 }}>
+                    <label className="lm-label admin-label">Admin Password</label>
+                    <div style={{ position:'relative' }}>
+                      <input type={showAdminPass?'text':'password'} className={`lm-input admin-input${adminErrors.password?' lm-input-err':''}`} placeholder="••••••••" value={adminPassword} onChange={e=>{setAdminPassword(e.target.value);setAdminErrors(p=>({...p,password:''}));}} style={{paddingRight:36}} />
+                      <button type="button" onClick={()=>setShowAdminPass(!showAdminPass)} style={{ position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:'rgba(255,100,100,0.4)',padding:0,lineHeight:1 }}>
+                        {showAdminPass
+                          ? <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                          : <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
+                      </button>
+                    </div>
+                    {adminErrors.password && <ErrMsg msg={adminErrors.password} />}
+                  </div>
+
+                  {/* Warning box */}
+                  <div style={{ marginBottom:16, padding:'8px 10px', borderRadius:7, background:'rgba(255,80,80,0.05)', border:'1px solid rgba(255,80,80,0.12)', display:'flex', gap:7, alignItems:'flex-start' }}>
+                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="rgba(255,100,100,0.6)" strokeWidth="2" style={{ flexShrink:0, marginTop:1 }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span style={{ fontFamily:"'DM Mono',monospace", fontSize:9.5, color:'rgba(255,100,100,0.5)', lineHeight:1.5, letterSpacing:'0.03em' }}>
+                      All admin actions are logged and audited.
+                    </span>
+                  </div>
+
+                  <button type="submit" className="lm-btn admin-btn" disabled={loading}>
+                    {loading ? <><span className="lm-spinner"/>verifying access…</> : '→ admin_access()'}
+                  </button>
+                </form>
               </div>
             )}
 
@@ -664,84 +694,35 @@ const displayName =
 
             {/* ── REGISTER SUCCESS VIEW ── */}
             {view === 'register-success' && (
-              <div className="lm-view" style={{ textAlign: 'center', padding: '8px 0' }}>
-
-                {/* Shield icon with pulse ring */}
-                <div style={{
-                  width: 52, height: 52, borderRadius: 12,
-                  background: 'rgba(240,184,73,0.1)',
-                  border: '1px solid rgba(240,184,73,0.3)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  margin: '0 auto 16px', position: 'relative',
-                  boxShadow: '0 0 24px rgba(240,184,73,0.12)',
-                  animation: 'icon-pop 0.55s cubic-bezier(0.34,1.56,0.64,1) both',
-                }}>
-                  {/* Pulse ring */}
-                  <div style={{
-                    position: 'absolute', inset: -8, borderRadius: 18,
-                    border: '1px solid rgba(240,184,73,0.2)',
-                    animation: 'pulse-ring 2s ease-in-out infinite',
-                    pointerEvents: 'none',
-                  }} />
+              <div className="lm-view" style={{ textAlign:'center', padding:'8px 0' }}>
+                <div style={{ width:52,height:52,borderRadius:12,background:'rgba(240,184,73,0.1)',border:'1px solid rgba(240,184,73,0.3)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',position:'relative',boxShadow:'0 0 24px rgba(240,184,73,0.12)',animation:'icon-pop 0.55s cubic-bezier(0.34,1.56,0.64,1) both' }}>
+                  <div style={{ position:'absolute',inset:-8,borderRadius:18,border:'1px solid rgba(240,184,73,0.2)',animation:'pulse-ring 2s ease-in-out infinite',pointerEvents:'none' }} />
                   <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#f0b849" strokeWidth="1.8">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.5C16.5 22.15 20 17.25 20 12V6l-8-4z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.5C16.5 22.15 20 17.25 20 12V6l-8-4z"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4"/>
                   </svg>
                 </div>
-
-                <h2 style={{ fontFamily:"'DM Mono',monospace", fontSize:18, fontWeight:700, color:'#f0ead8', margin:'0 0 6px', letterSpacing:'-0.01em' }}>
-                  Account generated.
-                </h2>
-                <p style={{ fontFamily:"'DM Mono',monospace", fontSize:11.5, color:'rgba(200,185,150,0.38)', margin:'0 0 4px', lineHeight:1.6, letterSpacing:'0.02em' }}>
-                  Identity registered in the system.
-                </p>
-                <p style={{ fontFamily:"'DM Mono',monospace", fontSize:11, color:'rgba(240,184,73,0.65)', margin:'0 0 20px' }}>
-                  {email}
-                </p>
-
-                {/* Status checklist */}
-                <div style={{ marginBottom: 20, textAlign: 'left' }}>
+                <h2 style={{ fontFamily:"'DM Mono',monospace", fontSize:18, fontWeight:700, color:'#f0ead8', margin:'0 0 6px', letterSpacing:'-0.01em' }}>Account generated.</h2>
+                <p style={{ fontFamily:"'DM Mono',monospace", fontSize:11.5, color:'rgba(200,185,150,0.38)', margin:'0 0 4px', lineHeight:1.6, letterSpacing:'0.02em' }}>Identity registered in the system.</p>
+                <p style={{ fontFamily:"'DM Mono',monospace", fontSize:11, color:'rgba(240,184,73,0.65)', margin:'0 0 20px' }}>{email}</p>
+                <div style={{ marginBottom:20, textAlign:'left' }}>
                   {[
-                    { done: true,  label: 'Identity verified',              active: false },
-                    { done: true,  label: 'Credentials encrypted & stored', active: false },
-                    { done: false, label: 'Awaiting email confirmation',    active: true  },
-                  ].map((step, i) => (
-                    <div key={i} style={{
-                      display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '6px 0',
-                      borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.04)' : 'none',
-                      fontFamily: "'DM Mono',monospace", fontSize: 10.5,
-                      letterSpacing: '0.05em',
-                      color: step.active ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.38)',
-                    }}>
-                      <div style={{
-                        width: 16, height: 16, borderRadius: 3, flexShrink: 0,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: step.done ? 'rgba(240,184,73,0.15)' : 'transparent',
-                        border: step.done ? 'none' : `1px solid ${step.active ? 'rgba(240,184,73,0.5)' : 'rgba(255,255,255,0.15)'}`,
-                      }}>
+                    { done:true,  label:'Identity verified',              active:false },
+                    { done:true,  label:'Credentials encrypted & stored', active:false },
+                    { done:false, label:'Awaiting email confirmation',    active:true  },
+                  ].map((step,i) => (
+                    <div key={i} style={{ display:'flex',alignItems:'center',gap:8,padding:'6px 0',borderBottom:i<2?'1px solid rgba(255,255,255,0.04)':'none',fontFamily:"'DM Mono',monospace",fontSize:10.5,letterSpacing:'0.05em',color:step.active?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.38)' }}>
+                      <div style={{ width:16,height:16,borderRadius:3,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',background:step.done?'rgba(240,184,73,0.15)':'transparent',border:step.done?'none':`1px solid ${step.active?'rgba(240,184,73,0.5)':'rgba(255,255,255,0.15)'}` }}>
                         {step.done
-                          ? (
-                            <svg width="10" height="10" fill="none" stroke="#f0b849" strokeWidth="2.2">
-                              <path d="M2 5l2.5 2.5L8 3"/>
-                            </svg>
-                          ) : (
-                            <div style={{
-                              width: 5, height: 5, borderRadius: '50%',
-                              background: 'rgba(240,184,73,0.5)',
-                              animation: 'blink 1s step-end infinite',
-                            }} />
-                          )
+                          ? <svg width="10" height="10" fill="none" stroke="#f0b849" strokeWidth="2.2"><path d="M2 5l2.5 2.5L8 3"/></svg>
+                          : <div style={{ width:5,height:5,borderRadius:'50%',background:'rgba(240,184,73,0.5)',animation:'blink 1s step-end infinite' }} />
                         }
                       </div>
                       {step.label}
                     </div>
                   ))}
                 </div>
-
-                <button type="button" className="lm-btn" onClick={() => switchView('login')}>
-                  → proceed_to_login()
-                </button>
+                <button type="button" className="lm-btn" onClick={()=>switchView('login')}>→ proceed_to_login()</button>
               </div>
             )}
 
@@ -754,7 +735,6 @@ const displayName =
                 <h2 style={{ fontFamily:"'DM Mono',monospace", fontSize:19, fontWeight:700, color:'#f0ead8', margin:'0 0 2px', letterSpacing:'-0.01em' }}>Create account.</h2>
                 <p style={{ fontFamily:"'DM Mono',monospace", fontSize:11.5, color:'rgba(200,185,150,0.38)', margin:'0 0 16px', letterSpacing:'0.02em' }}>Takes less than a minute.</p>
                 <form onSubmit={handleRegister} noValidate>
-                  {/* Name row */}
                   <div style={{ display:'flex', gap:8, marginBottom:10 }}>
                     <div style={{ flex:1 }}>
                       <label className="lm-label">First Name</label>
@@ -767,13 +747,11 @@ const displayName =
                       {errors.lastName && <ErrMsg msg={errors.lastName} />}
                     </div>
                   </div>
-                  {/* Email */}
                   <div style={{ marginBottom:10 }}>
                     <label className="lm-label">Email</label>
                     <input type="email" className={`lm-input${errors.email?' lm-input-err':''}`} placeholder="you@example.com" value={email} onChange={e=>{setEmail(e.target.value);setErrors(p=>({...p,email:''}));}} />
                     {errors.email && <ErrMsg msg={errors.email} />}
                   </div>
-                  {/* Password */}
                   <div style={{ marginBottom:10 }}>
                     <label className="lm-label">Password</label>
                     <div style={{ position:'relative' }}>
@@ -786,7 +764,6 @@ const displayName =
                     </div>
                     {errors.password && <ErrMsg msg={errors.password} />}
                   </div>
-                  {/* Confirm Password */}
                   <div style={{ marginBottom:18 }}>
                     <label className="lm-label">Confirm Password</label>
                     <input type={showPass?'text':'password'} className={`lm-input${errors.confirm?' lm-input-err':''}`} placeholder="••••••••" value={confirmPassword} onChange={e=>{setConfirmPassword(e.target.value);setErrors(p=>({...p,confirm:''}));}} />
