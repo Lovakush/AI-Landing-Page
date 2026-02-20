@@ -227,11 +227,16 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
       return;
     }
 
-    // ✅ SAVE TOKENS
-    localStorage.setItem('access', data.access);
-    localStorage.setItem('refresh', data.refresh);
+    // ✅ SAVE TOKENS CORRECTLY FROM data.data
+localStorage.setItem('access_token', data.data.access_token);
+localStorage.setItem('refresh_token', data.data.refresh_token);
 
-    const displayName = `${data.first_name || ''} ${data.last_name || ''}`.trim() || email;
+// Optional: save user
+localStorage.setItem('user', JSON.stringify(data.data.user));
+
+const displayName =
+  `${data.data.user?.first_name || ''} ${data.data.user?.last_name || ''}`.trim() || email;
+
 
     onLoginSuccess?.(displayName, email);
     onClose();
