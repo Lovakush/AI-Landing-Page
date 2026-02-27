@@ -9,8 +9,8 @@ import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
 import WaitlistSection from "@/components/ui/WaitList";
 import BookADemo from "@/components/ui/BookaDemo";
-
-const dynamicWords = ["Marketing", "Human Resources", "Sales", "Advertising", "Job Postings", "Lead Generation"];
+import { CreateBundleSection } from '@/components/ui/BundleSection';
+const dynamicWords = ["Procurement","Customer Services","Sales","Sourcing","Collections","Acnt. Payb. And rec.","Reporting","Marketing", "Human Resources", "Sales", "Advertising", "Job Postings", "Lead Generation"];
 
 const categories = [
   { id: 'category1', label: 'Marketing', color: '#A855F7', gradient: 'linear-gradient(135deg, #A855F7, #C084FC)' },
@@ -2135,7 +2135,19 @@ const ProductDetailsSection = forwardRef<
 
         <motion.div className="mb-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
           <h3 className="text-4xl font-light text-white text-center mb-10">See <span style={{ color: product.color }}>{product.name}</span> in action</h3>
-          {product.category === 'category2' ? (
+          {product.id === 1 ? (
+            <div style={{ position: 'relative', boxSizing: 'content-box', maxHeight: '80svh', width: '100%', aspectRatio: '2.21', padding: '40px 0' }}>
+              <iframe
+                src="https://app.supademo.com/embed/cmlqpvjs63bf5egrdgc2zf548?embed_v=2&utm_source=embed"
+                loading="lazy"
+                title="Master Social Media Marketing with AI-Powered Content Creation"
+                allow="clipboard-write"
+                frameBorder="0"
+                allowFullScreen
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+              />
+            </div>
+          ) : product.category === 'category2' ? (
             <div style={{ position: 'relative', boxSizing: 'content-box', maxHeight: '80svh', width: '100%', aspectRatio: '2.09', padding: '40px 0' }}>
               <iframe
                 src="https://app.supademo.com/embed/cmlpd72lu1d20egrdab9h62t3?embed_v=2&utm_source=embed"
@@ -2183,6 +2195,11 @@ const ProductDetailsSection = forwardRef<
             </div>
           </div>
         </motion.div>
+
+
+
+         <CreateBundleSection product={product} />
+
       </div>
     </motion.div>
   );

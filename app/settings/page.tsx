@@ -202,6 +202,9 @@ function SaveBar({ onSave }: { onSave?: () => Promise<void> }) {
 }
 
 // ======================== PROFILE SECTION ========================
+// DROP-IN REPLACEMENT for the ProfileSection function in settings/page.tsx
+// Adds: avatar image upload, local preview, hover overlay, remove button
+
 function ProfileSection({
   profile, setProfile, agentStatus, loading,
 }: {
@@ -214,12 +217,26 @@ function ProfileSection({
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // ── avatar state ──────────────────────────────────────────────────────────
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [avatarHover, setAvatarHover] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle');
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setFullName(profile?.full_name ?? '');
     setPhone(profile?.phone ?? '');
+    // If your backend returns an avatar URL: setAvatarUrl(profile?.avatar_url ?? null);
   }, [profile]);
+
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (avatarUrl?.startsWith('blob:')) URL.revokeObjectURL(avatarUrl);
+    };
+  }, [avatarUrl]);
 
   const initials = (profile?.full_name ?? '?')
     .split(' ')
@@ -229,9 +246,54 @@ function ProfileSection({
     .toUpperCase()
     .slice(0, 2) || '?';
 
+  // ── avatar handlers ───────────────────────────────────────────────────────
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (avatarUrl?.startsWith('blob:')) URL.revokeObjectURL(avatarUrl);
+    const url = URL.createObjectURL(file);
+    setAvatarUrl(url);
+    setPendingFile(file);
+    e.target.value = ''; // allow re-selecting same file
+  };
+
+  const removeAvatar = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (avatarUrl?.startsWith('blob:')) URL.revokeObjectURL(avatarUrl);
+    setAvatarUrl(null);
+    setPendingFile(null);
+  };
+
+  /**
+   * Upload avatar to your backend.
+   * Replace this stub with your real API call, e.g.:
+   *   const form = new FormData();
+   *   form.append('avatar', file);
+   *   const res = await apiFetch('/api/users/avatar/', { method: 'POST', body: form });
+   *   return res.avatar_url;
+   */
+  const uploadAvatar = async (file: File): Promise<string | null> => {
+    setUploadStatus('uploading');
+    try {
+      await new Promise(r => setTimeout(r, 900)); // ← replace with real call
+      setUploadStatus('done');
+      setTimeout(() => setUploadStatus('idle'), 2000);
+      return URL.createObjectURL(file); // ← replace with server URL
+    } catch {
+      setUploadStatus('error');
+      setTimeout(() => setUploadStatus('idle'), 2500);
+      return null;
+    }
+  };
+
+  // ── save profile ──────────────────────────────────────────────────────────
   const saveProfile = async () => {
     setSaving(true);
     try {
+      if (pendingFile) {
+        const finalUrl = await uploadAvatar(pendingFile);
+        if (finalUrl) { setAvatarUrl(finalUrl); setPendingFile(null); }
+      }
       const updated = await updateProfile({ full_name: fullName, phone: phone || undefined });
       setProfile(updated);
       setEditMode(false);
@@ -245,6 +307,10 @@ function ProfileSection({
   const canHR   = agentStatus?.can_access_hr   ?? profile?.can_access_hr   ?? false;
   const tenant  = agentStatus?.tenant ?? profile?.tenant;
 
+  // upload status label
+  const uploadLabel = { idle: '', uploading: 'Uploading…', done: '✓ Uploaded', error: '✗ Failed' };
+  const uploadColor = { idle: T.textMut, uploading: T.gold, done: T.green, error: T.red };
+
   return (
     <div style={{ animation: 's-fadeUp 0.35s ease both' }}>
       <style>{`
@@ -253,8 +319,6 @@ function ProfileSection({
         @keyframes s-scan   { from{top:0} to{top:100%} }
         .s-spinner { display:inline-block;width:14px;height:14px;border:2px solid rgba(240,184,73,0.2);border-top-color:${T.gold};border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle }
         @keyframes spin { to{transform:rotate(360deg)} }
-        .s-plan-card { transition: box-shadow 0.2s; }
-        .s-plan-card:hover { box-shadow: 0 0 20px rgba(240,184,73,0.08); }
       `}</style>
 
       {/* Hero card */}
@@ -263,6 +327,7 @@ function ProfileSection({
         background: 'rgba(240,184,73,0.025)', padding: '24px 28px', marginBottom: 22,
         position: 'relative', overflow: 'hidden', boxShadow: '0 0 30px rgba(240,184,73,0.07)',
       }}>
+        {/* Animated shimmer border */}
         <div style={{
           position: 'absolute', inset: -1, borderRadius: 14,
           background: 'linear-gradient(90deg,transparent,rgba(240,184,73,0.4) 40%,rgba(245,208,112,0.7) 50%,rgba(240,184,73,0.4) 60%,transparent)',
@@ -272,47 +337,129 @@ function ProfileSection({
         }} />
 
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 22 }}>
-          {/* Avatar */}
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <div onClick={() => fileRef.current?.click()} style={{
-              width: 76, height: 76, borderRadius: 14,
-              background: 'linear-gradient(135deg,rgba(240,184,73,0.14),rgba(240,184,73,0.06))',
-              border: '1px solid rgba(240,184,73,0.32)', display: 'flex',
-              alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-              position: 'relative', overflow: 'hidden',
-            }}>
-              {loading
-                ? <span className="s-spinner" />
-                : <span style={Mono({ fontSize: 24, fontWeight: 600, color: T.gold, letterSpacing: '-0.02em' })}>{initials}</span>}
-              <div style={{
-                position: 'absolute', left: 0, right: 0, height: 1.5,
-                background: 'linear-gradient(90deg,transparent,rgba(240,184,73,0.9) 40%,rgba(245,208,112,1) 50%,rgba(240,184,73,0.9) 60%,transparent)',
-                animation: 's-scan 3s linear infinite', pointerEvents: 'none', zIndex: 2,
-              }} />
+
+          {/* ── Avatar picker ── */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+            <div style={{ position: 'relative' }}>
+              {/* Main avatar tile */}
+              <div
+                onClick={() => fileRef.current?.click()}
+                onMouseEnter={() => setAvatarHover(true)}
+                onMouseLeave={() => setAvatarHover(false)}
+                title="Click to upload photo"
+                style={{
+                  width: 76, height: 76, borderRadius: 14, cursor: 'pointer',
+                  background: avatarUrl
+                    ? 'transparent'
+                    : 'linear-gradient(135deg,rgba(240,184,73,0.14),rgba(240,184,73,0.06))',
+                  border: `1px solid ${avatarHover ? T.gold : 'rgba(240,184,73,0.32)'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  position: 'relative', overflow: 'hidden',
+                  transition: 'border-color 0.2s',
+                  boxShadow: avatarHover ? `0 0 14px rgba(240,184,73,0.2)` : 'none',
+                }}
+              >
+                {loading ? (
+                  <span className="s-spinner" />
+                ) : avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt="Avatar"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                ) : (
+                  <span style={Mono({ fontSize: 24, fontWeight: 600, color: T.gold, letterSpacing: '-0.02em' })}>
+                    {initials}
+                  </span>
+                )}
+
+                {/* Scan line */}
+                <div style={{
+                  position: 'absolute', left: 0, right: 0, height: 1.5,
+                  background: 'linear-gradient(90deg,transparent,rgba(240,184,73,0.9) 40%,rgba(245,208,112,1) 50%,rgba(240,184,73,0.9) 60%,transparent)',
+                  animation: 's-scan 3s linear infinite', pointerEvents: 'none', zIndex: 2,
+                }} />
+
+                {/* Hover overlay */}
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'rgba(7,6,15,0.65)',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3,
+                  opacity: avatarHover ? 1 : 0, transition: 'opacity 0.18s', zIndex: 3,
+                }}>
+                  {/* Camera SVG icon (no extra import needed) */}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.gold} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                  <span style={Mono({ fontSize: 7, color: T.gold, letterSpacing: '0.12em', textTransform: 'uppercase' })}>
+                    {avatarUrl ? 'Change' : 'Upload'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Remove button — only shown when photo exists */}
+              {avatarUrl && (
+                <button
+                  onClick={removeAvatar}
+                  title="Remove photo"
+                  style={{
+                    position: 'absolute', top: -6, right: -6,
+                    width: 18, height: 18, borderRadius: 9,
+                    border: `1px solid rgba(248,113,113,0.5)`,
+                    background: '#1a0f0f', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: 0, zIndex: 10,
+                  }}
+                >
+                  {/* × icon */}
+                  <svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke={T.red} strokeWidth="2" strokeLinecap="round">
+                    <line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/>
+                  </svg>
+                </button>
+              )}
             </div>
-            <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} />
+
+            {/* Hidden file input */}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+
+            {/* Status text */}
+            <span style={Mono({
+              fontSize: 7.5, letterSpacing: '0.07em', textAlign: 'center', maxWidth: 80,
+              color: uploadStatus !== 'idle' ? uploadColor[uploadStatus] : T.textMut,
+            })}>
+              {uploadStatus !== 'idle'
+                ? uploadLabel[uploadStatus]
+                : avatarUrl
+                  ? (pendingFile ? 'Unsaved' : 'Photo set')
+                  : 'No photo'}
+            </span>
           </div>
 
-          {/* Info */}
+          {/* Info / edit fields */}
           <div style={{ flex: 1 }}>
             {editMode ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <input
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  placeholder="Full name"
+                  style={Mono({ padding: '7px 10px', borderRadius: 8, background: 'rgba(240,184,73,0.06)', border: `1px solid rgba(240,184,73,0.25)`, color: T.text, fontSize: 13 })}
+                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Phone size={11} color={T.textMut} style={{ flexShrink: 0 }} />
                   <input
-                    value={fullName}
-                    onChange={e => setFullName(e.target.value)}
-                    placeholder="Full name"
-                    style={Mono({ padding: '7px 10px', borderRadius: 8, background: 'rgba(240,184,73,0.06)', border: `1px solid rgba(240,184,73,0.25)`, color: T.text, fontSize: 13 })}
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    placeholder="Phone (optional)"
+                    style={Mono({ flex: 1, padding: '7px 10px', borderRadius: 8, background: 'rgba(240,184,73,0.06)', border: `1px solid rgba(240,184,73,0.25)`, color: T.text, fontSize: 13 })}
                   />
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Phone size={11} color={T.textMut} style={{ flexShrink: 0 }} />
-                    <input
-                      value={phone}
-                      onChange={e => setPhone(e.target.value)}
-                      placeholder="Phone (optional)"
-                      style={Mono({ flex: 1, padding: '7px 10px', borderRadius: 8, background: 'rgba(240,184,73,0.06)', border: `1px solid rgba(240,184,73,0.25)`, color: T.text, fontSize: 13 })}
-                    />
-                  </div>
                 </div>
               </div>
             ) : (
@@ -343,24 +490,40 @@ function ProfileSection({
             )}
           </div>
 
-          <button
-            onClick={() => { if (editMode) { saveProfile(); } else { setEditMode(true); } }}
-            disabled={saving}
-            style={Mono({
-              padding: '8px 17px', borderRadius: 8, border: `1px solid rgba(240,184,73,0.3)`,
-              background: 'rgba(240,184,73,0.07)', color: T.gold, fontSize: 9.5,
-              letterSpacing: '0.1em', textTransform: 'uppercase', cursor: saving ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6,
-            })}>
-            <Edit size={11} /> {saving ? 'Saving…' : editMode ? 'Save' : 'Edit'}
-          </button>
-          {editMode && !saving && (
+          {/* Edit / Save / Cancel */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <button
-              onClick={() => { setEditMode(false); setFullName(profile?.full_name ?? ''); setPhone(profile?.phone ?? ''); }}
-              style={Mono({ padding: '8px 14px', borderRadius: 8, border: `1px solid ${T.border}`, background: 'transparent', color: T.textMut, fontSize: 9.5, cursor: 'pointer' })}>
-              Cancel
+              onClick={() => { if (editMode) { saveProfile(); } else { setEditMode(true); } }}
+              disabled={saving}
+              style={Mono({
+                padding: '8px 17px', borderRadius: 8, border: `1px solid rgba(240,184,73,0.3)`,
+                background: 'rgba(240,184,73,0.07)', color: T.gold, fontSize: 9.5,
+                letterSpacing: '0.1em', textTransform: 'uppercase', cursor: saving ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6,
+              })}>
+              <Edit size={11} /> {saving ? 'Saving…' : editMode ? 'Save' : 'Edit'}
             </button>
-          )}
+            {editMode && !saving && (
+              <button
+                onClick={() => {
+                  setEditMode(false);
+                  setFullName(profile?.full_name ?? '');
+                  setPhone(profile?.phone ?? '');
+                  // discard pending photo
+                  if (pendingFile) {
+                    if (avatarUrl?.startsWith('blob:')) URL.revokeObjectURL(avatarUrl);
+                    setAvatarUrl(null);
+                    setPendingFile(null);
+                  }
+                }}
+                style={Mono({
+                  padding: '8px 14px', borderRadius: 8, border: `1px solid ${T.border}`,
+                  background: 'transparent', color: T.textMut, fontSize: 9.5, cursor: 'pointer',
+                })}>
+                Cancel
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -414,7 +577,6 @@ function ProfileSection({
     </div>
   );
 }
-
 // ======================== NOTIFICATIONS SECTION ========================
 const NOTIF_KEY = 'sia_notifications';
 const NOTIF_DEFAULTS = {

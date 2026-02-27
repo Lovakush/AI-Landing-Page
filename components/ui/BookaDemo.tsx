@@ -52,8 +52,7 @@ export default function BookADemo() {
           viewport={{ once: true }}
           className="text-gray-400 text-lg md:text-xl mb-12 max-w-2xl mx-auto"
         >
-          See how our AI agents can revolutionize your Marketing, HR,
-          and Sales operations.
+          Orchestrate your entire business lifecycle with autonomous AI.
         </motion.p>
 
         {}
