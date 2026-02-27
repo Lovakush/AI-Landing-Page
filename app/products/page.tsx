@@ -10,7 +10,7 @@ import Footer from '@/components/ui/Footer';
 import WaitlistSection from "@/components/ui/WaitList";
 import BookADemo from "@/components/ui/BookaDemo";
 import { CreateBundleSection } from '@/components/ui/BundleSection';
-const dynamicWords = ["Procurement","Customer Services","Sales","Sourcing","Collections","Acnt. Payb. And rec.","Reporting","Marketing", "Human Resources", "Sales", "Advertising", "Job Postings", "Lead Generation"];
+const dynamicWords = ["Procurement","Customer Services","Sales","Sourcing","Collections","Accounts Payable","Accounts Receivable","Reporting","Marketing", "Human Resources", "Sales", "Advertising", "Job Postings", "Lead Generation"];
 
 const categories = [
   { id: 'category1', label: 'Marketing', color: '#A855F7', gradient: 'linear-gradient(135deg, #A855F7, #C084FC)' },
