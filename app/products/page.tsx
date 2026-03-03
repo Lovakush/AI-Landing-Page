@@ -10,12 +10,16 @@ import Footer from '@/components/ui/Footer';
 import WaitlistSection from "@/components/ui/WaitList";
 import BookADemo from "@/components/ui/BookaDemo";
 import { CreateBundleSection } from '@/components/ui/BundleSection';
+
 const dynamicWords = ["Procurement","Customer Services","Sales","Sourcing","Collections","Accounts Payable","Accounts Receivable","Reporting","Marketing", "Human Resources", "Sales", "Advertising", "Job Postings", "Lead Generation"];
 
 const categories = [
-  { id: 'category1', label: 'Marketing', color: '#A855F7', gradient: 'linear-gradient(135deg, #A855F7, #C084FC)' },
-  { id: 'category2', label: 'Human Resources', color: '#E8B84A', gradient: 'linear-gradient(135deg, #E8B84A, #F59E0B)' },
-  { id: 'category3', label: 'Sales', color: '#06B6D4', gradient: 'linear-gradient(135deg, #06B6D4, #22D3EE)' },
+  { id: 'category1', label: 'Marketing', color: '#A855F7', gradient: 'linear-gradient(135deg, #A855F7, #C084FC)', comingSoon: false },
+  { id: 'category2', label: 'Human Resources', color: '#E8B84A', gradient: 'linear-gradient(135deg, #E8B84A, #F59E0B)', comingSoon: false },
+  { id: 'category3', label: 'Sales', color: '#06B6D4', gradient: 'linear-gradient(135deg, #06B6D4, #22D3EE)', comingSoon: false },
+  { id: 'category4', label: 'Finance', color: '#10B981', gradient: 'linear-gradient(135deg, #10B981, #34D399)', comingSoon: true },
+  { id: 'category5', label: 'Supply Chain', color: '#F97316', gradient: 'linear-gradient(135deg, #F97316, #FB923C)', comingSoon: true },
+  { id: 'category6', label: 'Back Office', color: '#8B5CF6', gradient: 'linear-gradient(135deg, #8B5CF6, #A78BFA)', comingSoon: true },
 ];
 
 const getBrandName = (category: string): string => {
@@ -259,6 +263,7 @@ function ProductsPage() {
   const [shouldScrollToDetails, setShouldScrollToDetails] = useState(false);
   const [navVisible, setNavVisible] = useState(true);
   const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
+  const [hoveredComingSoon, setHoveredComingSoon] = useState<string | null>(null); // ← NEW
   const [showPilotOverlay, setShowPilotOverlay] = useState(false);
   const [pilotStep, setPilotStep] = useState<'info' | 'email' | 'success'>('info');
   const [pilotEmail, setPilotEmail] = useState('');
@@ -304,7 +309,6 @@ function ProductsPage() {
   useEffect(() => {
     const agentParam = searchParams.get('agent');
     if (!agentParam) return;
-
     const agentToCategory: Record<string, string> = {
       argo: 'category3',
       mark: 'category1',
@@ -313,14 +317,12 @@ function ProductsPage() {
     const category = agentToCategory[agentParam.toLowerCase()];
     if (category) {
       setSelectedCategory(category);
-      // Wait for the product details section to render, then scroll to #how-it-works
       const scrollToHow = () => {
         const el = document.getElementById('how-it-works');
         if (el) {
           const y = el.getBoundingClientRect().top + window.scrollY - 100;
           window.scrollTo({ top: y, behavior: 'smooth' });
         } else {
-          // Section not rendered yet, retry
           setTimeout(scrollToHow, 200);
         }
       };
@@ -355,10 +357,8 @@ function ProductsPage() {
       setPilotError('Please enter a valid email address.');
       return;
     }
-
     setPilotSubmitting(true);
     setPilotError('');
-
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
       const res = await fetch(`${apiUrl}/api/waitlist/join/`, {
@@ -366,21 +366,15 @@ function ProductsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: pilotEmail.trim() }),
       });
-
       if (!res.ok) {
         const errorData = await res.json().catch(() => null);
         let message = res.status === 400 ? 'Email already registered.' : 'Something went wrong. Please try again.';
         if (errorData) {
           const emailErr = errorData.email;
-          if (Array.isArray(emailErr) && emailErr[0]) {
-            message = emailErr[0];
-          } else if (typeof emailErr === 'string') {
-            message = emailErr;
-          } else if (typeof errorData.error === 'string') {
-            message = errorData.error;
-          } else if (typeof errorData.detail === 'string') {
-            message = errorData.detail;
-          }
+          if (Array.isArray(emailErr) && emailErr[0]) message = emailErr[0];
+          else if (typeof emailErr === 'string') message = emailErr;
+          else if (typeof errorData.error === 'string') message = errorData.error;
+          else if (typeof errorData.detail === 'string') message = errorData.detail;
         }
         setPilotError(message);
       } else {
@@ -425,8 +419,6 @@ function ProductsPage() {
           background: 'radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 70%)',
           filter: 'blur(60px)',
         }} />
-
-        {/* Interactive glow that follows category */}
         <motion.div
           style={{
             position: 'absolute',
@@ -445,1533 +437,1247 @@ function ProductsPage() {
       <div className="relative">
         <FloatingDots />
 
-      {/* ─── Hero Section ─── */}
-      <section className="relative z-10 min-h-screen flex items-center justify-center px-6 text-center pt-24">
-        <div className="max-w-4xl mx-auto relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, ease: 'easeOut' }}
-          >
-            <h1 className="text-6xl font-light text-white leading-tight mb-6 relative">
-
-              {/* Golden blinking glow */}
-              <motion.span
-                aria-hidden="true"
-                className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
-                style={{
-                  top: '-20%',
-                  width: '900px',
-                  height: '140%',
-                  borderRadius: '50%',
-                  background: 'radial-gradient(ellipse 70% 60% at 50% 50%, rgba(232,184,74,0.42) 0%, rgba(232,140,50,0.16) 45%, transparent 72%)',
-                  filter: 'blur(48px)',
-                  zIndex: 0,
-                }}
-                animate={{
-                  opacity: [0.5, 1, 0.5],
-                  scaleX: [0.92, 1.06, 0.92],
-                  scaleY: [0.9, 1.05, 0.9],
-                }}
-                transition={{
-                  duration: 2.8,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              />
-
-              <motion.span
-                aria-hidden="true"
-                className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
-                style={{
-                  top: '0%',
-                  width: '600px',
-                  height: '100%',
-                  borderRadius: '50%',
-                  background: 'radial-gradient(ellipse 65% 55% at 50% 50%, rgba(255,210,100,0.28) 0%, transparent 68%)',
-                  filter: 'blur(28px)',
-                  zIndex: 0,
-                }}
-                animate={{
-                  opacity: [0.3, 0.8, 0.3],
-                  scaleX: [0.88, 1.1, 0.88],
-                }}
-                transition={{
-                  duration: 2.8,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                  delay: 0.4,
-                }}
-              />
-
-              <span className="relative z-10">Intelligent solutions</span>
-              <div className="text-white/60 text-5xl mt-3">for your</div>
-
-              <div className="relative h-[1.4em] mt-4 overflow-hidden flex justify-center">
-                {dynamicWords.map((word, index) => (
-                  <motion.span
-                    key={word}
-                    className="absolute inset-0 flex justify-center text-6xl font-semibold"
-                    style={{
-                      background: 'linear-gradient(135deg, #E8B84A, #E8A87C)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                    }}
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={
-                      wordIndex === index
-                        ? { y: 0, opacity: 1 }
-                        : { y: wordIndex > index ? -50 : 50, opacity: 0 }
-                    }
-                    transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-                  >
-                    {word}
-                  </motion.span>
-                ))}
-              </div>
-            </h1>
-
-            <p className="text-lg text-white/50 leading-relaxed max-w-2xl mx-auto mt-10">
-              Autonomous AI agents designed for Marketing, HR, and Sales.
-              Choose the perfect level of automation — from specialized tools
-              to full-suite intelligent platforms.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ─── Orbital Interactive Display ─── */}
-      <section className="relative z-10 py-24 px-6" data-products-section>
-        <div className="max-w-6xl mx-auto">
-
-          {/* SIMPLIFIED & CLASSY Category Pills */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex justify-center mb-16 relative"
-          >
-            <div
-              className="relative inline-flex items-center gap-3 p-2 rounded-full"
-              style={{
-                background: 'linear-gradient(135deg, rgba(20,15,30,0.95), rgba(30,20,40,0.95))',
-                border: '2px solid rgba(255,255,255,0.15)',
-                backdropFilter: 'blur(24px)',
-                boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 60px ${activeCategory.color}20`,
-              }}
-            >
-              {categories.map((cat) => {
-                const isActive = selectedCategory === cat.id;
-                return (
-                  <motion.button
-                    key={cat.id}
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className="relative px-10 py-4 rounded-full text-base font-bold transition-all z-10"
-                    style={{
-                      color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.6)',
-                      textShadow: isActive ? `0 0 20px ${cat.color}80` : 'none',
-                    }}
-                    whileHover={!isActive ? { 
-                      color: 'rgba(255,255,255,0.9)',
-                      scale: 1.02,
-                    } : {}}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    {/* Active state - solid gradient background (COMPLETELY STATIC) */}
-                    {isActive && (
-                      <motion.div
-                        layoutId="activePill"
-                        className="absolute inset-0 rounded-full -z-10"
-                        style={{
-                          background: cat.gradient,
-                          boxShadow: `0 0 30px ${cat.color}60, inset 0 1px 0 rgba(255,255,255,0.2)`,
-                        }}
-                        transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                      />
-                    )}
-
-                    {/* Hover glow for inactive buttons */}
-                    {!isActive && (
-                      <motion.div
-                        className="absolute inset-0 rounded-full -z-10"
-                        initial={{ opacity: 0 }}
-                        whileHover={{ opacity: 1 }}
-                        style={{
-                          background: `${cat.color}15`,
-                          border: `1px solid ${cat.color}30`,
-                        }}
-                      />
-                    )}
-
-                    <span className="relative z-10 tracking-wide">{cat.label}</span>
-                  </motion.button>
-                );
-              })}
-            </div>
-
-            {/* Floating indicator dots */}
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex gap-2">
-              {categories.map((cat, idx) => (
-                <motion.div
-                  key={cat.id}
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{
-                    background: selectedCategory === cat.id ? cat.color : 'rgba(255,255,255,0.2)',
-                  }}
-                  animate={selectedCategory === cat.id ? {
-                    scale: [1, 1.5, 1],
-                    opacity: [0.5, 1, 0.5],
-                  } : {}}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    delay: idx * 0.2,
-                  }}
-                />
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-5xl font-light text-white mb-4">
-              Explore our{' '}
-              <span 
-                className="font-semibold"
-                style={{ color: activeCategory.color }}
-              >
-                ecosystem
-              </span>
-            </h2>
-            
-            <p className="text-lg text-white/60 max-w-2xl mx-auto">
-              Interactive view of how our AI agents work together
-            </p>
-          </motion.div>
-
-          {/* TWO-COLUMN LAYOUT: Pilot Left, Orbital Right */}
-          <div className="grid grid-cols-2 gap-12 items-center">
-
-            {/* LEFT SIDE - Agentic & Classy Pilot CTA */}
+        {/* ─── Hero Section ─── */}
+        <section className="relative z-10 min-h-screen flex items-center justify-center px-6 text-center pt-24">
+          <div className="max-w-4xl mx-auto relative z-10">
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="relative group"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, ease: 'easeOut' }}
             >
-              {/* Premium glass card with sophisticated backdrop */}
-              <div className="relative">
-                {/* Floating aura effect */}
-                <motion.div
-                  className="absolute -inset-4 rounded-3xl opacity-40"
+              <h1 className="text-6xl font-light text-white leading-tight mb-6 relative">
+                <motion.span
+                  aria-hidden="true"
+                  className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
                   style={{
-                    background: `radial-gradient(circle at 30% 50%, ${activeCategory.color}30, transparent 70%)`,
-                    filter: 'blur(40px)',
+                    top: '-20%',
+                    width: '900px',
+                    height: '140%',
+                    borderRadius: '50%',
+                    background: 'radial-gradient(ellipse 70% 60% at 50% 50%, rgba(232,184,74,0.42) 0%, rgba(232,140,50,0.16) 45%, transparent 72%)',
+                    filter: 'blur(48px)',
+                    zIndex: 0,
                   }}
                   animate={{
-                    opacity: [0.3, 0.5, 0.3],
-                    scale: [1, 1.05, 1],
+                    opacity: [0.5, 1, 0.5],
+                    scaleX: [0.92, 1.06, 0.92],
+                    scaleY: [0.9, 1.05, 0.9],
                   }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
+                  transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
                 />
-
-                {/* Main card */}
-                <div
-                  className="relative p-10 rounded-3xl overflow-hidden backdrop-blur-xl"
+                <motion.span
+                  aria-hidden="true"
+                  className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(20,15,30,0.6), rgba(30,20,40,0.8))',
-                    border: '1px solid rgba(232,184,74,0.25)',
-                    boxShadow: '0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+                    top: '0%',
+                    width: '600px',
+                    height: '100%',
+                    borderRadius: '50%',
+                    background: 'radial-gradient(ellipse 65% 55% at 50% 50%, rgba(255,210,100,0.28) 0%, transparent 68%)',
+                    filter: 'blur(28px)',
+                    zIndex: 0,
                   }}
-                >
-                  {/* Elegant gradient overlay */}
-                  <div
-                    className="absolute inset-0 opacity-20"
-                    style={{
-                      background: `linear-gradient(135deg, transparent 0%, ${activeCategory.color}15 50%, transparent 100%)`,
-                    }}
-                  />
-
-                  {/* Animated grid pattern */}
-                  <svg className="absolute inset-0 w-full h-full opacity-5" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
-                        <path d="M 30 0 L 0 0 0 30" fill="none" stroke="white" strokeWidth="0.5"/>
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#grid)" />
-                  </svg>
-
-                  <div className="relative z-10">
-                    {/* Premium header with AI badge */}
-                    <div className="flex items-center justify-between mb-8">
-                      <div className="flex items-center gap-4">
-                        {/* Sophisticated icon */}
-                        <motion.div
-                          className="w-16 h-16 rounded-2xl flex items-center justify-center relative"
-                          style={{
-                            background: 'linear-gradient(135deg, rgba(232,184,74,0.15), rgba(232,184,74,0.05))',
-                            border: '1px solid rgba(232,184,74,0.3)',
-                            boxShadow: '0 8px 24px rgba(232,184,74,0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
-                          }}
-                          whileHover={{ scale: 1.05, rotate: [0, -5, 5, 0] }}
-                          transition={{ duration: 0.4 }}
-                        >
-                          {/* Orbiting particles */}
-                          {[0, 120, 240].map((angle, i) => (
-                            <motion.div
-                              key={i}
-                              className="absolute w-1.5 h-1.5 rounded-full"
-                              style={{
-                                background: '#E8B84A',
-                                top: '50%',
-                                left: '50%',
-                              }}
-                              animate={{
-                                x: [
-                                  Math.cos((angle * Math.PI) / 180) * 28,
-                                  Math.cos(((angle + 360) * Math.PI) / 180) * 28,
-                                ],
-                                y: [
-                                  Math.sin((angle * Math.PI) / 180) * 28,
-                                  Math.sin(((angle + 360) * Math.PI) / 180) * 28,
-                                ],
-                              }}
-                              transition={{
-                                duration: 3,
-                                repeat: Infinity,
-                                ease: 'linear',
-                                delay: i * 0.33,
-                              }}
-                            />
-                          ))}
-                          <Sparkles className="w-8 h-8 relative z-10" style={{ color: '#E8B84A' }} />
-                        </motion.div>
-
-                        <div>
-                          <motion.div
-                            className="px-3 py-1 rounded-full text-xs font-semibold mb-1 inline-flex items-center gap-1.5"
-                            style={{
-                              background: 'rgba(232,184,74,0.15)',
-                              border: '1px solid rgba(232,184,74,0.3)',
-                              color: '#E8B84A',
-                            }}
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                          >
-                            <motion.div
-                              className="w-1.5 h-1.5 rounded-full bg-green-400"
-                              animate={{
-                                boxShadow: [
-                                  '0 0 0 0 rgba(74,222,128,0.7)',
-                                  '0 0 0 4px rgba(74,222,128,0)',
-                                ],
-                              }}
-                              transition={{ duration: 1.5, repeat: Infinity }}
-                            />
-                            ELITE ACCESS • PILOT PROGRAM
-                          </motion.div>
-                          <div className="text-xs text-white/40 font-medium">Limited to 20 Organizations</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Elegant title */}
-                    <motion.h3
-                      className="text-3xl font-light mb-3 tracking-tight"
+                  animate={{
+                    opacity: [0.3, 0.8, 0.3],
+                    scaleX: [0.88, 1.1, 0.88],
+                  }}
+                  transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+                />
+                <span className="relative z-10">Intelligent solutions</span>
+                <div className="text-white/60 text-5xl mt-3">for your</div>
+                <div className="relative h-[1.4em] mt-4 overflow-hidden flex justify-center">
+                  {dynamicWords.map((word, index) => (
+                    <motion.span
+                      key={word}
+                      className="absolute inset-0 flex justify-center text-6xl font-semibold"
                       style={{
-                        background: 'linear-gradient(135deg, #FFFFFF 0%, #E8B84A 50%, #FFFFFF 100%)',
-                        backgroundClip: 'text',
+                        background: 'linear-gradient(135deg, #E8B84A, #E8A87C)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
-                        backgroundSize: '200% auto',
                       }}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 }}
+                      initial={{ opacity: 0, y: 50 }}
+                      animate={
+                        wordIndex === index
+                          ? { y: 0, opacity: 1 }
+                          : { y: wordIndex > index ? -50 : 50, opacity: 0 }
+                      }
+                      transition={{ type: 'spring', stiffness: 100, damping: 20 }}
                     >
-                      Join our Pilot Program
-                    </motion.h3>
-
-                    {/* Refined description */}
-                    <p className="text-white/70 leading-relaxed mb-2">
-                      Experience autonomous AI agents working in harmony.{' '}
-                      <span className="text-white font-medium">First 20 companies</span> receive exclusive access.
-                    </p>
-
-                    {/* Premium features list */}
-                    <div className="flex flex-wrap gap-3 mb-8">
-                      {[
-                        'Exclusive Access',
-                        'Premium Support',
-                        'Early Advantage'
-                      ].map((feature, idx) => (
-                        <motion.div
-                          key={feature}
-                          className="flex items-center gap-1.5 text-xs text-white/60"
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.4 + idx * 0.1 }}
-                        >
-                          <Check className="w-3 h-3" style={{ color: '#E8B84A' }} />
-                          {feature}
-                        </motion.div>
-                      ))}
-                    </div>
-
-                    {/* Sophisticated stats grid */}
-                    <div className="grid grid-cols-3 gap-4 mb-8">
-                      {[
-                        { icon: Users, value: '20', label: 'Companies Only', sublabel: 'Spots Remaining' },
-                        { icon: Zap, value: '67%', label: 'Special Pricing', sublabel: 'Early Adopter' },
-                        { icon: Target, value: 'Mar', label: 'Launch Date', sublabel: '2026' },
-                      ].map((stat, idx) => (
-                        <motion.div
-                          key={idx}
-                          className="relative group/stat"
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.5 + idx * 0.1 }}
-                        >
-                          {/* Card background */}
-                          <div
-                            className="p-4 rounded-xl relative overflow-hidden"
-                            style={{
-                              background: 'linear-gradient(135deg, rgba(232,184,74,0.05), rgba(232,184,74,0.02))',
-                              border: '1px solid rgba(232,184,74,0.15)',
-                            }}
-                          >
-                            {/* Hover glow */}
-                            <motion.div
-                              className="absolute inset-0 opacity-0 group-hover/stat:opacity-100 transition-opacity"
-                              style={{
-                                background: `radial-gradient(circle at center, ${activeCategory.color}10, transparent)`,
-                              }}
-                            />
-
-                            <stat.icon 
-                              className="w-5 h-5 mb-3 relative z-10" 
-                              style={{ color: '#E8B84A', opacity: 0.8 }} 
-                            />
-                            <div className="text-2xl font-light text-white mb-1 relative z-10">{stat.value}</div>
-                            <div className="text-xs font-medium text-white/70 relative z-10">{stat.label}</div>
-                            <div className="text-xs text-white/40 relative z-10">{stat.sublabel}</div>
-
-                            {/* Corner accent */}
-                            <div
-                              className="absolute top-0 right-0 w-12 h-12 opacity-20"
-                              style={{
-                                background: `linear-gradient(135deg, ${activeCategory.color}40, transparent)`,
-                                borderRadius: '0 12px 0 0',
-                              }}
-                            />
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-
-                    {/* Premium CTA button */}
-                    <motion.button
-                      onClick={() => setShowPilotOverlay(true)}
-                      className="w-full relative group/btn overflow-hidden"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.8 }}
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                    >
-                      {/* Button glow */}
-                      <motion.div
-                        className="absolute inset-0 rounded-xl blur-lg"
-                        style={{
-                          background: 'linear-gradient(135deg, #E8B84A, #E8A87C)',
-                          opacity: 0.3,
-                        }}
-                        animate={{
-                          opacity: [0.2, 0.4, 0.2],
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                        }}
-                      />
-
-                      {/* Button surface */}
-                      <div
-                        className="relative px-8 py-4 rounded-xl flex items-center justify-between overflow-hidden"
-                        style={{
-                          background: 'linear-gradient(135deg, #E8B84A 0%, #E8A87C 100%)',
-                          boxShadow: '0 4px 20px rgba(232,184,74,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
-                        }}
-                      >
-                        {/* Animated shine */}
-                        <motion.div
-                          className="absolute inset-0"
-                          style={{
-                            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
-                          }}
-                          animate={{
-                            x: ['-100%', '200%'],
-                          }}
-                          transition={{
-                            duration: 3,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                          }}
-                        />
-
-                        <span className="relative z-10 font-semibold text-black flex items-center gap-2">
-                          <span>Secure Your Position</span>
-                          <motion.span
-                            className="px-2 py-0.5 rounded-full text-xs bg-black/15 font-bold"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 1, type: 'spring' }}
-                          >
-                            6 MONTHS
-                          </motion.span>
-                        </span>
-
-                        <motion.div
-                          className="relative z-10"
-                          animate={{ x: [0, 4, 0] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                        >
-                          <MoveRight className="w-5 h-5 text-black" />
-                        </motion.div>
-                      </div>
-                    </motion.button>
-
-                    {/* Elegant footer */}
-                    <motion.div
-                      className="mt-6 pt-5 border-t border-white/5 flex items-center justify-between"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 1 }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                        <span className="text-xs text-white/50">No long-term commitment</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {/* Avatar stack */}
-                        <div className="flex -space-x-2">
-                          {[...Array(4)].map((_, i) => (
-                            <motion.div
-                              key={i}
-                              className="w-6 h-6 rounded-full border-2"
-                              style={{
-                                borderColor: '#1a1525',
-                                background: `linear-gradient(135deg, ${activeCategory.color}${60 + i * 10}, ${activeCategory.color}40)`,
-                              }}
-                              initial={{ scale: 0, x: -20 }}
-                              animate={{ scale: 1, x: 0 }}
-                              transition={{ delay: 1.1 + i * 0.1, type: 'spring' }}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-xs text-white/50">15+ applied</span>
-                      </div>
-                    </motion.div>
-                  </div>
+                      {word}
+                    </motion.span>
+                  ))}
                 </div>
+              </h1>
+              <p className="text-lg text-white/50 leading-relaxed max-w-2xl mx-auto mt-10">
+                Autonomous AI agents designed for Marketing, HR, and Sales.
+                Choose the perfect level of automation — from specialized tools
+                to full-suite intelligent platforms.
+              </p>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ─── Orbital Interactive Display ─── */}
+        <section className="relative z-10 py-24 px-6" data-products-section>
+          <div className="max-w-6xl mx-auto">
+
+            {/* ─── Category Pills ─── */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="flex justify-center mb-16 relative"
+            >
+              <div
+                className="relative inline-flex items-center gap-2 p-2 rounded-full flex-wrap justify-center"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(20,15,30,0.95), rgba(30,20,40,0.95))',
+                  border: '2px solid rgba(255,255,255,0.15)',
+                  backdropFilter: 'blur(24px)',
+                  boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 60px ${activeCategory.color}20`,
+                }}
+              >
+                {categories.map((cat) => {
+                  const isActive = selectedCategory === cat.id;
+                  const isTooltipVisible = hoveredComingSoon === cat.id;
+
+                  return (
+                    <div
+                      key={cat.id}
+                      className="relative"
+                      onMouseEnter={() => cat.comingSoon && setHoveredComingSoon(cat.id)}
+                      onMouseLeave={() => setHoveredComingSoon(null)}
+                    >
+                      <motion.button
+                        onClick={() => !cat.comingSoon && setSelectedCategory(cat.id)}
+                        className="relative px-6 py-3 rounded-full text-sm font-bold transition-all z-10"
+                        style={{
+                          color: cat.comingSoon
+                            ? 'rgba(255,255,255,0.35)'
+                            : isActive
+                            ? '#FFFFFF'
+                            : 'rgba(255,255,255,0.6)',
+                          cursor: 'pointer',
+                          textShadow: isActive ? `0 0 20px ${cat.color}80` : 'none',
+                        }}
+                        whileHover={!isActive ? { color: cat.comingSoon ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.9)', scale: 1.02 } : {}}
+                        whileTap={{ scale: 0.97 }}
+                      >
+                        {/* Active background */}
+                        {isActive && !cat.comingSoon && (
+                          <motion.div
+                            layoutId="activePill"
+                            className="absolute inset-0 rounded-full -z-10"
+                            style={{
+                              background: cat.gradient,
+                              boxShadow: `0 0 30px ${cat.color}60, inset 0 1px 0 rgba(255,255,255,0.2)`,
+                            }}
+                            transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                          />
+                        )}
+
+                        {/* Hover glow for inactive non-coming-soon */}
+                        {!isActive && !cat.comingSoon && (
+                          <motion.div
+                            className="absolute inset-0 rounded-full -z-10"
+                            initial={{ opacity: 0 }}
+                            whileHover={{ opacity: 1 }}
+                            style={{ background: `${cat.color}15`, border: `1px solid ${cat.color}30` }}
+                          />
+                        )}
+
+                        {/* Coming soon dashed bg */}
+                        {cat.comingSoon && (
+                          <div
+                            className="absolute inset-0 rounded-full -z-10"
+                            style={{
+                              background: 'rgba(255,255,255,0.03)',
+                              border: '1px dashed rgba(255,255,255,0.12)',
+                            }}
+                          />
+                        )}
+
+                        <span className="relative z-10 tracking-wide">{cat.label}</span>
+
+                        {/* Lock icon for coming soon */}
+                        {cat.comingSoon && (
+                          <span className="ml-1.5 text-[10px] opacity-40">🔒</span>
+                        )}
+                      </motion.button>
+
+                      {/* ── State-driven Coming Soon Tooltip ── */}
+                      <AnimatePresence>
+                        {isTooltipVisible && (
+                          <motion.div
+                            className="absolute z-[100] pointer-events-none"
+                            style={{
+                              bottom: 'calc(100% + 16px)',
+                              left: '50%',
+                              x: '-50%',
+                            }}
+                            initial={{ opacity: 0, y: 8, scale: 0.92 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 6, scale: 0.94 }}
+                            transition={{ duration: 0.2, ease: 'easeOut' }}
+                          >
+                            <div
+                              className="relative overflow-hidden rounded-2xl"
+                              style={{
+                                background: 'linear-gradient(135deg, rgba(6,4,16,0.99), rgba(14,8,28,0.99))',
+                                border: `1px solid ${cat.color}50`,
+                                boxShadow: `0 20px 60px rgba(0,0,0,0.8), 0 0 40px ${cat.color}25`,
+                                minWidth: '220px',
+                                padding: '16px 18px',
+                              }}
+                            >
+                              {/* Arrow pointing down to pill */}
+                              <div
+                                className="absolute -bottom-[7px] left-1/2 -translate-x-1/2"
+                                style={{
+                                  width: 0, height: 0,
+                                  borderLeft: '7px solid transparent',
+                                  borderRight: '7px solid transparent',
+                                  borderTop: `7px solid ${cat.color}50`,
+                                }}
+                              />
+
+                              {/* Scanning line */}
+                              <motion.div
+                                className="absolute inset-0 pointer-events-none"
+                                style={{
+                                  background: `linear-gradient(180deg, transparent 0%, ${cat.color}10 50%, transparent 100%)`,
+                                }}
+                                animate={{ y: ['-100%', '200%'] }}
+                                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                              />
+
+                              {/* Corner brackets */}
+                              {[
+                                'top-2 left-2 border-t border-l',
+                                'top-2 right-2 border-t border-r',
+                                'bottom-4 left-2 border-b border-l',
+                                'bottom-4 right-2 border-b border-r',
+                              ].map((cls, i) => (
+                                <div key={i} className={`absolute w-2.5 h-2.5 ${cls}`} style={{ borderColor: `${cat.color}70` }} />
+                              ))}
+
+                              {/* Header row */}
+                              <div className="flex items-center justify-between mb-3 relative z-10">
+                                <div className="flex items-center gap-2">
+                                  <motion.div
+                                    className="w-1.5 h-1.5 rounded-full"
+                                    style={{ background: cat.color, boxShadow: `0 0 6px ${cat.color}` }}
+                                    animate={{ opacity: [0.3, 1, 0.3], scale: [1, 1.6, 1] }}
+                                    transition={{ duration: 1.2, repeat: Infinity }}
+                                  />
+                                  <span className="text-[10px] font-bold tracking-[0.18em] uppercase" style={{ color: cat.color }}>
+                                    In Development
+                                  </span>
+                                </div>
+                                <motion.div
+                                  animate={{ rotate: 360 }}
+                                  transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={cat.color} strokeWidth="2">
+                                    <path d="M12 2a10 10 0 1 0 10 10" strokeLinecap="round" />
+                                    <path d="M12 6v6l4 2" strokeLinecap="round" />
+                                  </svg>
+                                </motion.div>
+                              </div>
+
+                              {/* Agent label */}
+                              <div className="relative z-10 mb-3">
+                                <div className="text-white font-semibold text-sm mb-0.5">{cat.label} Agent</div>
+                                <div className="text-white/40 text-[11px]">Currently being trained &amp; tested</div>
+                              </div>
+
+                              {/* Progress bar */}
+                              <div className="relative z-10 mb-3">
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="text-[9px] text-white/30 tracking-wider uppercase">Build Progress</span>
+                                  <motion.span
+                                    className="text-[9px] font-mono font-bold"
+                                    style={{ color: cat.color }}
+                                    animate={{ opacity: [0.5, 1, 0.5] }}
+                                    transition={{ duration: 1.5, repeat: Infinity }}
+                                  >
+                                    ~Q3 2025
+                                  </motion.span>
+                                </div>
+                                <div className="h-[3px] rounded-full w-full" style={{ background: 'rgba(255,255,255,0.07)' }}>
+                                  <motion.div
+                                    className="h-full rounded-full"
+                                    style={{ background: `linear-gradient(90deg, ${cat.color}70, ${cat.color})` }}
+                                    initial={{ width: '0%' }}
+                                    animate={{ width: ['60%', '75%', '68%', '72%'] }}
+                                    transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Activity dots */}
+                              <div className="flex items-center gap-1.5 relative z-10">
+                                {[0, 1, 2, 3, 4, 5].map((i) => (
+                                  <motion.div
+                                    key={i}
+                                    className="rounded-full"
+                                    style={{
+                                      background: cat.color,
+                                      width: i % 3 === 0 ? 4 : 3,
+                                      height: i % 3 === 0 ? 4 : 3,
+                                    }}
+                                    animate={{ opacity: [0.15, 1, 0.15], scale: [0.8, 1.4, 0.8] }}
+                                    transition={{ duration: 1, repeat: Infinity, delay: i * 0.12 }}
+                                  />
+                                ))}
+                                <span className="text-[10px] text-white/30 ml-1 tracking-wide">initializing agents</span>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Floating indicator dots — only active categories */}
+              <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex gap-2">
+                {categories.filter(c => !c.comingSoon).map((cat, idx) => (
+                  <motion.div
+                    key={cat.id}
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ background: selectedCategory === cat.id ? cat.color : 'rgba(255,255,255,0.2)' }}
+                    animate={selectedCategory === cat.id ? { scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] } : {}}
+                    transition={{ duration: 2, repeat: Infinity, delay: idx * 0.2 }}
+                  />
+                ))}
               </div>
             </motion.div>
 
-
-            {/* RIGHT SIDE - ORBITAL VISUALIZATION */}
-            <div className="relative">
-              <div className="flex items-center justify-center" style={{ minHeight: '520px' }}>
-                <div className="relative" style={{ width: '520px', height: '520px' }}>
-
-                  {/* Empty Central Circle */}
-                  <motion.div
-                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 80, damping: 12 }}
-                  >
-                    <div className="relative w-24 h-24">
-                      <motion.div
-                        className="absolute inset-0 rounded-full"
-                        style={{
-                          border: `2px solid ${activeCategory.color}40`,
-                          boxShadow: `0 0 30px ${activeCategory.color}30, inset 0 0 30px ${activeCategory.color}20`,
-                        }}
-                        animate={{
-                          scale: [1, 1.1, 1],
-                          opacity: [0.5, 1, 0.5],
-                        }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                      />
-                      <motion.div
-                        className="absolute inset-3 rounded-full"
-                        style={{
-                          background: `radial-gradient(circle, ${activeCategory.color}20, transparent)`,
-                          border: `1px solid ${activeCategory.color}60`,
-                        }}
-                        animate={{ scale: [1, 1.05, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      />
-                    </div>
-                  </motion.div>
-
-                  {/* Orbital rings */}
-                  {[0, 1].map((ringIndex) => {
-                    const radius = 135 + ringIndex * 45;
-                    return (
-                      <motion.div
-                        key={ringIndex}
-                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
-                        style={{
-                          width: radius * 2,
-                          height: radius * 2,
-                          border: `1px solid ${activeCategory.color}15`,
-                        }}
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{
-                          scale: 1,
-                          opacity: 1,
-                          rotate: ringIndex % 2 === 0 ? 360 : -360
-                        }}
-                        transition={{
-                          scale: { duration: 0.8, delay: ringIndex * 0.1 },
-                          opacity: { duration: 0.8, delay: ringIndex * 0.1 },
-                          rotate: { duration: 50 + ringIndex * 10, repeat: Infinity, ease: 'linear' }
-                        }}
-                      />
-                    );
-                  })}
-
-                  {/* Agent Nodes */}
-                  {filteredProducts.map((product, index) => {
-                    const totalProducts = filteredProducts.length;
-                    const angleOffset = (index / totalProducts) * Math.PI * 2 - Math.PI / 2;
-                    const radius = 185;
-                    const x = Math.cos(angleOffset) * radius;
-                    const y = Math.sin(angleOffset) * radius;
-                    const isHovered = hoveredProduct === product.id;
-                    const isDimmed = hoveredProduct !== null && hoveredProduct !== product.id;
-
-                    return (
-                      <motion.div
-                        key={product.id}
-                        className="absolute left-1/2 top-1/2"
-                        style={{
-                          x: x - 68,
-                          y: y - 68,
-                        }}
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: isDimmed ? 0.3 : 1, scale: 1 }}
-                        transition={{
-                          delay: index * 0.15,
-                          type: 'spring',
-                          stiffness: 100,
-                          opacity: { duration: 0.3 },
-                          scale: { duration: 0.3 },
-                        }}
-                        onMouseEnter={() => {
-                          if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-                          setHoveredProduct(product.id);
-                        }}
-                        onMouseLeave={() => {
-                          hoverTimeoutRef.current = setTimeout(() => setHoveredProduct(null), 180);
-                        }}
-                        onClick={() => {
-                          setSelectedProduct(product);
-                          setShouldScrollToDetails(true);
-                        }}
-                      >
-                        <AgenticNode
-                          product={product}
-                          isActive={isHovered}
-                          index={index}
-                          size={136}
-                        />
-                      </motion.div>
-                    );
-                  })}
-
-                  {/* Communication Lines */}
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                    <defs>
-                      <linearGradient id={`commGrad-${selectedCategory}`}>
-                        <stop offset="0%" stopColor={activeCategory.color} stopOpacity="0" />
-                        <stop offset="50%" stopColor={activeCategory.color} stopOpacity="0.8" />
-                        <stop offset="100%" stopColor={activeCategory.color} stopOpacity="0" />
-                      </linearGradient>
-                    </defs>
-
-                    {filteredProducts.map((product, index) => {
-                      const totalProducts = filteredProducts.length;
-                      const angleOffset = (index / totalProducts) * Math.PI * 2 - Math.PI / 2;
-                      const radius = 185;
-                      const cx = 260;
-                      const x1 = Math.cos(angleOffset) * radius + cx;
-                      const y1 = Math.sin(angleOffset) * radius + cx;
-
-                      const nextIndex = (index + 1) % totalProducts;
-                      const nextAngle = (nextIndex / totalProducts) * Math.PI * 2 - Math.PI / 2;
-                      const x2 = Math.cos(nextAngle) * radius + cx;
-                      const y2 = Math.sin(nextAngle) * radius + cx;
-
-                      const isDimmed = hoveredProduct !== null &&
-                        hoveredProduct !== product.id &&
-                        hoveredProduct !== filteredProducts[nextIndex].id;
-
-                      return (
-                        <motion.g key={`line-${index}`}>
-                          <motion.line
-                            x1={x1} y1={y1} x2={x2} y2={y2}
-                            stroke={`${activeCategory.color}${isDimmed ? '10' : '20'}`}
-                            strokeWidth="1"
-                            initial={{ pathLength: 0 }}
-                            animate={{ pathLength: 1, opacity: isDimmed ? 0.3 : 1 }}
-                            transition={{ duration: 1, delay: index * 0.2 }}
-                          />
-                          <motion.circle
-                            r="3"
-                            fill={activeCategory.color}
-                            filter="blur(2px)"
-                            animate={{
-                              cx: [x1, x2, x1],
-                              cy: [y1, y2, y1],
-                              opacity: isDimmed ? [0, 0.3, 0.3, 0] : [0, 1, 1, 0],
-                            }}
-                            transition={{ duration: 3, delay: index * 0.5, repeat: Infinity, ease: 'linear' }}
-                          />
-                        </motion.g>
-                      );
-                    })}
-
-                    {filteredProducts.map((product, index) => {
-                      const totalProducts = filteredProducts.length;
-                      const angleOffset = (index / totalProducts) * Math.PI * 2 - Math.PI / 2;
-                      const radius = 185;
-                      const cx = 260;
-                      const x = Math.cos(angleOffset) * radius + cx;
-                      const y = Math.sin(angleOffset) * radius + cx;
-                      const isHighlighted = hoveredProduct === product.id;
-                      const isDimmed = hoveredProduct !== null && hoveredProduct !== product.id;
-
-                      return (
-                        <motion.line
-                          key={`center-${index}`}
-                          x1={cx} y1={cx} x2={x} y2={y}
-                          stroke={isHighlighted ? `${activeCategory.color}60` : `${activeCategory.color}${isDimmed ? '08' : '15'}`}
-                          strokeWidth={isHighlighted ? "2" : "1"}
-                          strokeDasharray="4,4"
-                          initial={{ pathLength: 0, opacity: 0 }}
-                          animate={{ pathLength: 1, opacity: isDimmed ? 0.3 : 1 }}
-                          transition={{ duration: 0.8, delay: index * 0.1 }}
-                        />
-                      );
-                    })}
-                  </svg>
-
-                  {/* Hover Info Box */}
-                  <AnimatePresence>
-                    {hoveredProduct !== null && (
-                      <motion.div
-                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 rounded-2xl overflow-hidden z-50"
-                        style={{
-                          background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(10, 5, 15, 0.98))',
-                          border: `1px solid ${products.find(p => p.id === hoveredProduct)?.color}60`,
-                          backdropFilter: 'blur(20px)',
-                          boxShadow: `0 20px 80px ${products.find(p => p.id === hoveredProduct)?.color}40`,
-                        }}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.2 }}
-                        onMouseEnter={() => {
-                          if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-                        }}
-                        onMouseLeave={() => {
-                          hoverTimeoutRef.current = setTimeout(() => setHoveredProduct(null), 100);
-                        }}
-                      >
-                        {(() => {
-                          const product = products.find(p => p.id === hoveredProduct);
-                          if (!product) return null;
-                          return (
-                            <>
-                              <div className="h-1" style={{ background: `linear-gradient(90deg, ${product.color}, transparent)` }} />
-                              <div className="p-5">
-                                <h4 className="text-white font-bold text-base mb-1">{product.name}</h4>
-                                <p className="text-white/60 text-xs mb-3">{product.tagline}</p>
-                                <motion.button
-                                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer"
-                                  style={{ background: `${product.color}20`, border: `1px solid ${product.color}40` }}
-                                  whileHover={{
-                                    background: `${product.color}35`,
-                                    scale: 1.02,
-                                  }}
-                                  whileTap={{ scale: 0.97 }}
-                                  onClick={() => {
-                                    setSelectedProduct(product);
-                                    setShouldScrollToDetails(true);
-                                    setHoveredProduct(null);
-                                  }}
-                                >
-                                  <span className="text-white text-xs font-semibold">Click to learn more</span>
-                                  <MoveRight className="w-3.5 h-3.5" style={{ color: product.color }} />
-                                </motion.button>
-                              </div>
-                            </>
-                          );
-                        })()}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ─── ENHANCED Pilot Project Overlay Modal ─── */}
-      <AnimatePresence>
-        {showPilotOverlay && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center px-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={closePilotOverlay}
-          >
-            {/* Enhanced backdrop */}
             <motion.div
-              className="absolute inset-0 bg-black/80 backdrop-blur-xl"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            />
-
-            <motion.div
-              className="relative max-w-2xl w-full rounded-2xl overflow-hidden shadow-2xl"
-              style={{
-                background: 'linear-gradient(135deg, rgba(10, 0, 20, 0.98), rgba(30, 10, 40, 0.98))',
-                border: '1px solid rgba(232,184,74,0.5)',
-                boxShadow: '0 25px 80px rgba(232,184,74,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
-              }}
-              initial={{ scale: 0.9, y: 30, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 30, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="text-center mb-16"
             >
-              {/* Enhanced close button */}
-              <button
-                onClick={closePilotOverlay}
-                className="absolute top-5 right-5 w-11 h-11 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/15 transition-all z-20 group"
-                style={{
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  backdropFilter: 'blur(10px)',
-                }}
+              <h2 className="text-5xl font-light text-white mb-4">
+                Explore our{' '}
+                <span className="font-semibold" style={{ color: activeCategory.color }}>
+                  ecosystem
+                </span>
+              </h2>
+              <p className="text-lg text-white/60 max-w-2xl mx-auto">
+                Interactive view of how our AI agents work together
+              </p>
+            </motion.div>
+
+            {/* TWO-COLUMN LAYOUT: Pilot Left, Orbital Right */}
+            <div className="grid grid-cols-2 gap-12 items-center">
+
+              {/* LEFT SIDE - Pilot CTA */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="relative group"
               >
-                <X className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-              </button>
-
-              {/* Ambient glow layers */}
-              <div
-                className="absolute -top-20 -right-20 w-96 h-96 rounded-full blur-3xl opacity-20 pointer-events-none"
-                style={{ background: 'radial-gradient(circle, #E8B84A, transparent)' }}
-              />
-              <div
-                className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full blur-3xl opacity-15 pointer-events-none"
-                style={{ background: 'radial-gradient(circle, #E8A87C, transparent)' }}
-              />
-
-              {/* Inner step switcher */}
-              <AnimatePresence mode="wait">
-
-                {/* ── AGENTIC INFO STEP ── */}
-                {pilotStep === 'info' && (
+                <div className="relative">
                   <motion.div
-                    key="info"
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 30 }}
-                    transition={{ duration: 0.3 }}
+                    className="absolute -inset-4 rounded-3xl opacity-40"
+                    style={{
+                      background: `radial-gradient(circle at 30% 50%, ${activeCategory.color}30, transparent 70%)`,
+                      filter: 'blur(40px)',
+                    }}
+                    animate={{ opacity: [0.3, 0.5, 0.3], scale: [1, 1.05, 1] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                  <div
+                    className="relative p-10 rounded-3xl overflow-hidden backdrop-blur-xl"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(20,15,30,0.6), rgba(30,20,40,0.8))',
+                      border: '1px solid rgba(232,184,74,0.25)',
+                      boxShadow: '0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+                    }}
                   >
-                    {/* AI Neural Network Background */}
-                    <svg className="absolute inset-0 w-full h-full opacity-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+                    <div
+                      className="absolute inset-0 opacity-20"
+                      style={{ background: `linear-gradient(135deg, transparent 0%, ${activeCategory.color}15 50%, transparent 100%)` }}
+                    />
+                    <svg className="absolute inset-0 w-full h-full opacity-5" xmlns="http://www.w3.org/2000/svg">
                       <defs>
-                        <pattern id="neural-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                          <circle cx="20" cy="20" r="1" fill="#E8B84A" opacity="0.3" />
-                          <line x1="20" y1="20" x2="40" y2="20" stroke="#E8B84A" strokeWidth="0.5" opacity="0.2" />
-                          <line x1="20" y1="20" x2="20" y2="40" stroke="#E8B84A" strokeWidth="0.5" opacity="0.2" />
+                        <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+                          <path d="M 30 0 L 0 0 0 30" fill="none" stroke="white" strokeWidth="0.5"/>
                         </pattern>
                       </defs>
-                      <rect width="100%" height="100%" fill="url(#neural-grid)" />
+                      <rect width="100%" height="100%" fill="url(#grid)" />
                     </svg>
 
-                    <div className="relative px-8 pt-8 pb-4">
-                      <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 0.1 }}
-                      >
-                        {/* AI Badge */}
-                        <motion.div
-                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-3"
-                          style={{
-                            background: 'linear-gradient(135deg, rgba(232,184,74,0.2), rgba(232,184,74,0.1))',
-                            border: '1px solid rgba(232,184,74,0.3)',
-                          }}
-                          initial={{ y: -20, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          transition={{ delay: 0.2, type: 'spring' }}
-                        >
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center gap-4">
                           <motion.div
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ background: '#E8B84A' }}
-                            animate={{
-                              scale: [1, 1.4, 1],
-                              opacity: [0.5, 1, 0.5],
+                            className="w-16 h-16 rounded-2xl flex items-center justify-center relative"
+                            style={{
+                              background: 'linear-gradient(135deg, rgba(232,184,74,0.15), rgba(232,184,74,0.05))',
+                              border: '1px solid rgba(232,184,74,0.3)',
+                              boxShadow: '0 8px 24px rgba(232,184,74,0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
                             }}
-                            transition={{
-                              duration: 2,
-                              repeat: Infinity,
-                            }}
-                          />
-                          <span className="text-xs font-bold tracking-wider" style={{ color: '#E8B84A' }}>
-                            AI-POWERED PILOT PROGRAM
-                          </span>
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                            whileHover={{ scale: 1.05, rotate: [0, -5, 5, 0] }}
+                            transition={{ duration: 0.4 }}
                           >
-                            <Bot className="w-3.5 h-3.5" style={{ color: '#E8B84A' }} />
+                            {[0, 120, 240].map((angle, i) => (
+                              <motion.div
+                                key={i}
+                                className="absolute w-1.5 h-1.5 rounded-full"
+                                style={{ background: '#E8B84A', top: '50%', left: '50%' }}
+                                animate={{
+                                  x: [Math.cos((angle * Math.PI) / 180) * 28, Math.cos(((angle + 360) * Math.PI) / 180) * 28],
+                                  y: [Math.sin((angle * Math.PI) / 180) * 28, Math.sin(((angle + 360) * Math.PI) / 180) * 28],
+                                }}
+                                transition={{ duration: 3, repeat: Infinity, ease: 'linear', delay: i * 0.33 }}
+                              />
+                            ))}
+                            <Sparkles className="w-8 h-8 relative z-10" style={{ color: '#E8B84A' }} />
                           </motion.div>
-                        </motion.div>
+                          <div>
+                            <motion.div
+                              className="px-3 py-1 rounded-full text-xs font-semibold mb-1 inline-flex items-center gap-1.5"
+                              style={{ background: 'rgba(232,184,74,0.15)', border: '1px solid rgba(232,184,74,0.3)', color: '#E8B84A' }}
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.2 }}
+                            >
+                              <motion.div
+                                className="w-1.5 h-1.5 rounded-full bg-green-400"
+                                animate={{ boxShadow: ['0 0 0 0 rgba(74,222,128,0.7)', '0 0 0 4px rgba(74,222,128,0)'] }}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                              />
+                              ELITE ACCESS • PILOT PROGRAM
+                            </motion.div>
+                            <div className="text-xs text-white/40 font-medium">Limited to 20 Organizations</div>
+                          </div>
+                        </div>
+                      </div>
 
-                        <h2 className="text-3xl font-bold mb-2 relative z-10">
-                          <span
-                            className="bg-clip-text text-transparent"
-                            style={{
-                              backgroundImage: 'linear-gradient(135deg, #FFFFFF 0%, #E8B84A 50%, #FFFFFF 100%)',
-                              backgroundSize: '200% auto',
-                            }}
-                          >
-                            Join Our Pilot Project
-                          </span>
-                        </h2>
-                        <p className="text-white/70 text-base relative z-10 flex items-center gap-2">
-                          Lock in your competitive advantage with exclusive early access
-                          <motion.span
-                            animate={{ x: [0, 4, 0] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
-                          >
-                            →
-                          </motion.span>
-                        </p>
-                      </motion.div>
-                    </div>
+                      <motion.h3
+                        className="text-3xl font-light mb-3 tracking-tight"
+                        style={{
+                          background: 'linear-gradient(135deg, #FFFFFF 0%, #E8B84A 50%, #FFFFFF 100%)',
+                          backgroundClip: 'text',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          backgroundSize: '200% auto',
+                        }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        Join our Pilot Program
+                      </motion.h3>
 
-                    <div className="px-8 pb-8">
-                      <div className="grid grid-cols-3 gap-4 mb-6">
-                        {[
-                          {
-                            val: '2 Years',
-                            label: 'Early Access Head Start',
-                            desc: 'Get first-mover advantage while competitors are still figuring out where to start',
-                            icon: TrendingUp,
-                          },
-                          {
-                            val: '67% Off',
-                            label: 'Brand Presence Discount',
-                            desc: 'Marketing & digital presence bundled at a fraction of standard rates',
-                            icon: Zap,
-                          },
-                          {
-                            val: '€4,200',
-                            label: 'Complete Package',
-                            desc: 'Enterprise-grade AI infrastructure at SME pricing—10x less than competitors',
-                            icon: Target,
-                          },
-                        ].map((item, idx) => (
+                      <p className="text-white/70 leading-relaxed mb-2">
+                        Experience autonomous AI agents working in harmony.{' '}
+                        <span className="text-white font-medium">First 20 companies</span> receive exclusive access.
+                      </p>
+
+                      <div className="flex flex-wrap gap-3 mb-8">
+                        {['Exclusive Access', 'Premium Support', 'Early Advantage'].map((feature, idx) => (
                           <motion.div
-                            key={item.val}
-                            className="p-4 rounded-xl relative overflow-hidden group/card cursor-pointer"
-                            style={{
-                              background: 'linear-gradient(135deg, rgba(232,184,74,0.08), rgba(232,184,74,0.03))',
-                              border: '1px solid rgba(232,184,74,0.2)',
-                              boxShadow: '0 4px 20px rgba(232,184,74,0.05)',
-                            }}
+                            key={feature}
+                            className="flex items-center gap-1.5 text-xs text-white/60"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.4 + idx * 0.1 }}
+                          >
+                            <Check className="w-3 h-3" style={{ color: '#E8B84A' }} />
+                            {feature}
+                          </motion.div>
+                        ))}
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4 mb-8">
+                        {[
+                          { icon: Users, value: '20', label: 'Companies Only', sublabel: 'Spots Remaining' },
+                          { icon: Zap, value: '67%', label: 'Special Pricing', sublabel: 'Early Adopter' },
+                          { icon: Target, value: 'Mar', label: 'Launch Date', sublabel: '2026' },
+                        ].map((stat, idx) => (
+                          <motion.div
+                            key={idx}
+                            className="relative group/stat"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.1 }}
-                            whileHover={{
-                              scale: 1.02,
-                              borderColor: 'rgba(232,184,74,0.4)',
-                              boxShadow: '0 8px 32px rgba(232,184,74,0.15)',
-                            }}
+                            transition={{ delay: 0.5 + idx * 0.1 }}
                           >
-                            {/* Animated corner brackets */}
-                            <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
-                            <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
-                            <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
-                            <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
-
-                            {/* Scanning line effect */}
-                            <motion.div
-                              className="absolute inset-0 opacity-0 group-hover/card:opacity-100"
+                            <div
+                              className="p-4 rounded-xl relative overflow-hidden"
                               style={{
-                                background: 'linear-gradient(180deg, transparent, rgba(232,184,74,0.1), transparent)',
-                              }}
-                              animate={{
-                                y: ['-100%', '200%'],
-                              }}
-                              transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: 'linear',
-                              }}
-                            />
-
-                            {/* Icon with pulse */}
-                            <motion.div
-                              className="mb-2"
-                              animate={{
-                                scale: [1, 1.05, 1],
-                              }}
-                              transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                delay: idx * 0.3,
+                                background: 'linear-gradient(135deg, rgba(232,184,74,0.05), rgba(232,184,74,0.02))',
+                                border: '1px solid rgba(232,184,74,0.15)',
                               }}
                             >
-                              <item.icon className="w-5 h-5" style={{ color: '#E8B84A' }} />
-                            </motion.div>
-
-                            <div className="text-2xl font-bold mb-1.5" style={{ color: '#E8B84A' }}>
-                              {item.val}
-                            </div>
-                            <div className="text-xs font-semibold text-white mb-1.5">{item.label}</div>
-                            <p className="text-xs text-white/60 leading-snug">{item.desc}</p>
-
-                            {/* Data stream indicator */}
-                            <div className="absolute top-4 right-4 flex gap-1">
-                              {[...Array(3)].map((_, i) => (
-                                <motion.div
-                                  key={i}
-                                  className="w-0.5 h-3 rounded-full"
-                                  style={{ background: '#E8B84A' }}
-                                  animate={{
-                                    height: ['12px', '6px', '12px'],
-                                    opacity: [0.3, 1, 0.3],
-                                  }}
-                                  transition={{
-                                    duration: 1,
-                                    repeat: Infinity,
-                                    delay: i * 0.2,
-                                  }}
-                                />
-                              ))}
+                              <motion.div
+                                className="absolute inset-0 opacity-0 group-hover/stat:opacity-100 transition-opacity"
+                                style={{ background: `radial-gradient(circle at center, ${activeCategory.color}10, transparent)` }}
+                              />
+                              <stat.icon className="w-5 h-5 mb-3 relative z-10" style={{ color: '#E8B84A', opacity: 0.8 }} />
+                              <div className="text-2xl font-light text-white mb-1 relative z-10">{stat.value}</div>
+                              <div className="text-xs font-medium text-white/70 relative z-10">{stat.label}</div>
+                              <div className="text-xs text-white/40 relative z-10">{stat.sublabel}</div>
+                              <div
+                                className="absolute top-0 right-0 w-12 h-12 opacity-20"
+                                style={{ background: `linear-gradient(135deg, ${activeCategory.color}40, transparent)`, borderRadius: '0 12px 0 0' }}
+                              />
                             </div>
                           </motion.div>
                         ))}
                       </div>
 
-                      {/* Enhanced info grid with tech styling */}
+                      <motion.button
+                        onClick={() => setShowPilotOverlay(true)}
+                        className="w-full relative group/btn overflow-hidden"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8 }}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                      >
+                        <motion.div
+                          className="absolute inset-0 rounded-xl blur-lg"
+                          style={{ background: 'linear-gradient(135deg, #E8B84A, #E8A87C)', opacity: 0.3 }}
+                          animate={{ opacity: [0.2, 0.4, 0.2] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                        <div
+                          className="relative px-8 py-4 rounded-xl flex items-center justify-between overflow-hidden"
+                          style={{
+                            background: 'linear-gradient(135deg, #E8B84A 0%, #E8A87C 100%)',
+                            boxShadow: '0 4px 20px rgba(232,184,74,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                          }}
+                        >
+                          <motion.div
+                            className="absolute inset-0"
+                            style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)' }}
+                            animate={{ x: ['-100%', '200%'] }}
+                            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                          />
+                          <span className="relative z-10 font-semibold text-black flex items-center gap-2">
+                            <span>Secure Your Position</span>
+                            <motion.span
+                              className="px-2 py-0.5 rounded-full text-xs bg-black/15 font-bold"
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ delay: 1, type: 'spring' }}
+                            >
+                              6 MONTHS
+                            </motion.span>
+                          </span>
+                          <motion.div
+                            className="relative z-10"
+                            animate={{ x: [0, 4, 0] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          >
+                            <MoveRight className="w-5 h-5 text-black" />
+                          </motion.div>
+                        </div>
+                      </motion.button>
+
                       <motion.div
-                        className="p-4 rounded-xl mb-6 relative overflow-hidden"
-                        style={{
-                          background: 'rgba(255,255,255,0.03)',
-                          border: '1px solid rgba(255,255,255,0.08)',
-                        }}
+                        className="mt-6 pt-5 border-t border-white/5 flex items-center justify-between"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: 0.4 }}
+                        transition={{ delay: 1 }}
                       >
-                        {/* Tech grid overlay */}
-                        <div className="absolute inset-0 opacity-30" style={{
-                          backgroundImage: 'linear-gradient(rgba(232,184,74,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(232,184,74,0.1) 1px, transparent 1px)',
-                          backgroundSize: '20px 20px',
-                        }} />
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                          <span className="text-xs text-white/50">No long-term commitment</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex -space-x-2">
+                            {[...Array(4)].map((_, i) => (
+                              <motion.div
+                                key={i}
+                                className="w-6 h-6 rounded-full border-2"
+                                style={{
+                                  borderColor: '#1a1525',
+                                  background: `linear-gradient(135deg, ${activeCategory.color}${60 + i * 10}, ${activeCategory.color}40)`,
+                                }}
+                                initial={{ scale: 0, x: -20 }}
+                                animate={{ scale: 1, x: 0 }}
+                                transition={{ delay: 1.1 + i * 0.1, type: 'spring' }}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-xs text-white/50">15+ applied</span>
+                        </div>
+                      </motion.div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
 
-                        <div className="grid grid-cols-4 gap-4 text-sm relative z-10">
-                          {[
-                            ['Duration', '6 months', '⏱'],
-                            ['Start Date', 'March 2026', '📅'],
-                            ['Spots Left', '20 companies', '🎯'],
-                            ['Commitment', 'Active feedback', '💬'],
-                          ].map(([label, val, emoji], idx) => (
+              {/* RIGHT SIDE - ORBITAL VISUALIZATION */}
+              <div className="relative">
+                <div className="flex items-center justify-center" style={{ minHeight: '520px' }}>
+                  <div className="relative" style={{ width: '520px', height: '520px' }}>
+
+                    {/* Central Circle */}
+                    <motion.div
+                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 80, damping: 12 }}
+                    >
+                      <div className="relative w-24 h-24">
+                        <motion.div
+                          className="absolute inset-0 rounded-full"
+                          style={{
+                            border: `2px solid ${activeCategory.color}40`,
+                            boxShadow: `0 0 30px ${activeCategory.color}30, inset 0 0 30px ${activeCategory.color}20`,
+                          }}
+                          animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                        />
+                        <motion.div
+                          className="absolute inset-3 rounded-full"
+                          style={{
+                            background: `radial-gradient(circle, ${activeCategory.color}20, transparent)`,
+                            border: `1px solid ${activeCategory.color}60`,
+                          }}
+                          animate={{ scale: [1, 1.05, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                      </div>
+                    </motion.div>
+
+                    {/* Orbital rings */}
+                    {[0, 1].map((ringIndex) => {
+                      const radius = 135 + ringIndex * 45;
+                      return (
+                        <motion.div
+                          key={ringIndex}
+                          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
+                          style={{
+                            width: radius * 2,
+                            height: radius * 2,
+                            border: `1px solid ${activeCategory.color}15`,
+                          }}
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1, rotate: ringIndex % 2 === 0 ? 360 : -360 }}
+                          transition={{
+                            scale: { duration: 0.8, delay: ringIndex * 0.1 },
+                            opacity: { duration: 0.8, delay: ringIndex * 0.1 },
+                            rotate: { duration: 50 + ringIndex * 10, repeat: Infinity, ease: 'linear' },
+                          }}
+                        />
+                      );
+                    })}
+
+                    {/* Agent Nodes */}
+                    {filteredProducts.map((product, index) => {
+                      const totalProducts = filteredProducts.length;
+                      const angleOffset = (index / totalProducts) * Math.PI * 2 - Math.PI / 2;
+                      const radius = 185;
+                      const x = Math.cos(angleOffset) * radius;
+                      const y = Math.sin(angleOffset) * radius;
+                      const isHovered = hoveredProduct === product.id;
+                      const isDimmed = hoveredProduct !== null && hoveredProduct !== product.id;
+
+                      return (
+                        <motion.div
+                          key={product.id}
+                          className="absolute left-1/2 top-1/2"
+                          style={{ x: x - 68, y: y - 68 }}
+                          initial={{ opacity: 0, scale: 0 }}
+                          animate={{ opacity: isDimmed ? 0.3 : 1, scale: 1 }}
+                          transition={{
+                            delay: index * 0.15,
+                            type: 'spring',
+                            stiffness: 100,
+                            opacity: { duration: 0.3 },
+                            scale: { duration: 0.3 },
+                          }}
+                          onMouseEnter={() => {
+                            if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+                            setHoveredProduct(product.id);
+                          }}
+                          onMouseLeave={() => {
+                            hoverTimeoutRef.current = setTimeout(() => setHoveredProduct(null), 180);
+                          }}
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            setShouldScrollToDetails(true);
+                          }}
+                        >
+                          <AgenticNode product={product} isActive={isHovered} index={index} size={136} />
+                        </motion.div>
+                      );
+                    })}
+
+                    {/* Communication Lines */}
+                    <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                      <defs>
+                        <linearGradient id={`commGrad-${selectedCategory}`}>
+                          <stop offset="0%" stopColor={activeCategory.color} stopOpacity="0" />
+                          <stop offset="50%" stopColor={activeCategory.color} stopOpacity="0.8" />
+                          <stop offset="100%" stopColor={activeCategory.color} stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+
+                      {filteredProducts.map((product, index) => {
+                        const totalProducts = filteredProducts.length;
+                        const angleOffset = (index / totalProducts) * Math.PI * 2 - Math.PI / 2;
+                        const radius = 185;
+                        const cx = 260;
+                        const x1 = Math.cos(angleOffset) * radius + cx;
+                        const y1 = Math.sin(angleOffset) * radius + cx;
+                        const nextIndex = (index + 1) % totalProducts;
+                        const nextAngle = (nextIndex / totalProducts) * Math.PI * 2 - Math.PI / 2;
+                        const x2 = Math.cos(nextAngle) * radius + cx;
+                        const y2 = Math.sin(nextAngle) * radius + cx;
+                        const isDimmed = hoveredProduct !== null &&
+                          hoveredProduct !== product.id &&
+                          hoveredProduct !== filteredProducts[nextIndex].id;
+
+                        return (
+                          <motion.g key={`line-${index}`}>
+                            <motion.line
+                              x1={x1} y1={y1} x2={x2} y2={y2}
+                              stroke={`${activeCategory.color}${isDimmed ? '10' : '20'}`}
+                              strokeWidth="1"
+                              initial={{ pathLength: 0 }}
+                              animate={{ pathLength: 1, opacity: isDimmed ? 0.3 : 1 }}
+                              transition={{ duration: 1, delay: index * 0.2 }}
+                            />
+                            <motion.circle
+                              r="3"
+                              fill={activeCategory.color}
+                              filter="blur(2px)"
+                              animate={{
+                                cx: [x1, x2, x1],
+                                cy: [y1, y2, y1],
+                                opacity: isDimmed ? [0, 0.3, 0.3, 0] : [0, 1, 1, 0],
+                              }}
+                              transition={{ duration: 3, delay: index * 0.5, repeat: Infinity, ease: 'linear' }}
+                            />
+                          </motion.g>
+                        );
+                      })}
+
+                      {filteredProducts.map((product, index) => {
+                        const totalProducts = filteredProducts.length;
+                        const angleOffset = (index / totalProducts) * Math.PI * 2 - Math.PI / 2;
+                        const radius = 185;
+                        const cx = 260;
+                        const x = Math.cos(angleOffset) * radius + cx;
+                        const y = Math.sin(angleOffset) * radius + cx;
+                        const isHighlighted = hoveredProduct === product.id;
+                        const isDimmed = hoveredProduct !== null && hoveredProduct !== product.id;
+
+                        return (
+                          <motion.line
+                            key={`center-${index}`}
+                            x1={cx} y1={cx} x2={x} y2={y}
+                            stroke={isHighlighted ? `${activeCategory.color}60` : `${activeCategory.color}${isDimmed ? '08' : '15'}`}
+                            strokeWidth={isHighlighted ? "2" : "1"}
+                            strokeDasharray="4,4"
+                            initial={{ pathLength: 0, opacity: 0 }}
+                            animate={{ pathLength: 1, opacity: isDimmed ? 0.3 : 1 }}
+                            transition={{ duration: 0.8, delay: index * 0.1 }}
+                          />
+                        );
+                      })}
+                    </svg>
+
+                    {/* Hover Info Box */}
+                    <AnimatePresence>
+                      {hoveredProduct !== null && (
+                        <motion.div
+                          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 rounded-2xl overflow-hidden z-50"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(0,0,0,0.95), rgba(10,5,15,0.98))',
+                            border: `1px solid ${products.find(p => p.id === hoveredProduct)?.color}60`,
+                            backdropFilter: 'blur(20px)',
+                            boxShadow: `0 20px 80px ${products.find(p => p.id === hoveredProduct)?.color}40`,
+                          }}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          transition={{ duration: 0.2 }}
+                          onMouseEnter={() => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); }}
+                          onMouseLeave={() => { hoverTimeoutRef.current = setTimeout(() => setHoveredProduct(null), 100); }}
+                        >
+                          {(() => {
+                            const product = products.find(p => p.id === hoveredProduct);
+                            if (!product) return null;
+                            return (
+                              <>
+                                <div className="h-1" style={{ background: `linear-gradient(90deg, ${product.color}, transparent)` }} />
+                                <div className="p-5">
+                                  <h4 className="text-white font-bold text-base mb-1">{product.name}</h4>
+                                  <p className="text-white/60 text-xs mb-3">{product.tagline}</p>
+                                  <motion.button
+                                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer"
+                                    style={{ background: `${product.color}20`, border: `1px solid ${product.color}40` }}
+                                    whileHover={{ background: `${product.color}35`, scale: 1.02 }}
+                                    whileTap={{ scale: 0.97 }}
+                                    onClick={() => {
+                                      setSelectedProduct(product);
+                                      setShouldScrollToDetails(true);
+                                      setHoveredProduct(null);
+                                    }}
+                                  >
+                                    <span className="text-white text-xs font-semibold">Click to learn more</span>
+                                    <MoveRight className="w-3.5 h-3.5" style={{ color: product.color }} />
+                                  </motion.button>
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* ─── Pilot Project Overlay Modal ─── */}
+        <AnimatePresence>
+          {showPilotOverlay && (
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center px-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closePilotOverlay}
+            >
+              <motion.div
+                className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              />
+
+              <motion.div
+                className="relative max-w-2xl w-full rounded-2xl overflow-hidden shadow-2xl"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(10,0,20,0.98), rgba(30,10,40,0.98))',
+                  border: '1px solid rgba(232,184,74,0.5)',
+                  boxShadow: '0 25px 80px rgba(232,184,74,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
+                }}
+                initial={{ scale: 0.9, y: 30, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                exit={{ scale: 0.9, y: 30, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={closePilotOverlay}
+                  className="absolute top-5 right-5 w-11 h-11 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/15 transition-all z-20 group"
+                  style={{ border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}
+                >
+                  <X className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
+                </button>
+
+                <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full blur-3xl opacity-20 pointer-events-none"
+                  style={{ background: 'radial-gradient(circle, #E8B84A, transparent)' }} />
+                <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full blur-3xl opacity-15 pointer-events-none"
+                  style={{ background: 'radial-gradient(circle, #E8A87C, transparent)' }} />
+
+                <AnimatePresence mode="wait">
+
+                  {/* INFO STEP */}
+                  {pilotStep === 'info' && (
+                    <motion.div
+                      key="info"
+                      initial={{ opacity: 0, x: -30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 30 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <svg className="absolute inset-0 w-full h-full opacity-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <pattern id="neural-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <circle cx="20" cy="20" r="1" fill="#E8B84A" opacity="0.3" />
+                            <line x1="20" y1="20" x2="40" y2="20" stroke="#E8B84A" strokeWidth="0.5" opacity="0.2" />
+                            <line x1="20" y1="20" x2="20" y2="40" stroke="#E8B84A" strokeWidth="0.5" opacity="0.2" />
+                          </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#neural-grid)" />
+                      </svg>
+
+                      <div className="relative px-8 pt-8 pb-4">
+                        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1 }}>
+                          <motion.div
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-3"
+                            style={{ background: 'linear-gradient(135deg, rgba(232,184,74,0.2), rgba(232,184,74,0.1))', border: '1px solid rgba(232,184,74,0.3)' }}
+                            initial={{ y: -20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.2, type: 'spring' }}
+                          >
                             <motion.div
-                              key={label}
-                              initial={{ opacity: 0, y: 10 }}
+                              className="w-1.5 h-1.5 rounded-full"
+                              style={{ background: '#E8B84A' }}
+                              animate={{ scale: [1, 1.4, 1], opacity: [0.5, 1, 0.5] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                            />
+                            <span className="text-xs font-bold tracking-wider" style={{ color: '#E8B84A' }}>AI-POWERED PILOT PROGRAM</span>
+                            <motion.div animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}>
+                              <Bot className="w-3.5 h-3.5" style={{ color: '#E8B84A' }} />
+                            </motion.div>
+                          </motion.div>
+                          <h2 className="text-3xl font-bold mb-2 relative z-10">
+                            <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(135deg, #FFFFFF 0%, #E8B84A 50%, #FFFFFF 100%)', backgroundSize: '200% auto' }}>
+                              Join Our Pilot Project
+                            </span>
+                          </h2>
+                          <p className="text-white/70 text-base relative z-10 flex items-center gap-2">
+                            Lock in your competitive advantage with exclusive early access
+                            <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>→</motion.span>
+                          </p>
+                        </motion.div>
+                      </div>
+
+                      <div className="px-8 pb-8">
+                        <div className="grid grid-cols-3 gap-4 mb-6">
+                          {[
+                            { val: '2 Years', label: 'Early Access Head Start', desc: 'Get first-mover advantage while competitors are still figuring out where to start', icon: TrendingUp },
+                            { val: '67% Off', label: 'Brand Presence Discount', desc: 'Marketing & digital presence bundled at a fraction of standard rates', icon: Zap },
+                            { val: '€4,200', label: 'Complete Package', desc: 'Enterprise-grade AI infrastructure at SME pricing—10x less than competitors', icon: Target },
+                          ].map((item, idx) => (
+                            <motion.div
+                              key={item.val}
+                              className="p-4 rounded-xl relative overflow-hidden group/card cursor-pointer"
+                              style={{ background: 'linear-gradient(135deg, rgba(232,184,74,0.08), rgba(232,184,74,0.03))', border: '1px solid rgba(232,184,74,0.2)', boxShadow: '0 4px 20px rgba(232,184,74,0.05)' }}
+                              initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.5 + idx * 0.1 }}
+                              transition={{ delay: idx * 0.1 }}
+                              whileHover={{ scale: 1.02, borderColor: 'rgba(232,184,74,0.4)', boxShadow: '0 8px 32px rgba(232,184,74,0.15)' }}
                             >
-                              <div className="text-white/50 text-xs mb-1.5 flex items-center gap-1">
-                                <span>{emoji}</span>
-                                {label}
+                              <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
+                              <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
+                              <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
+                              <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 opacity-0 group-hover/card:opacity-100 transition-opacity" style={{ borderColor: '#E8B84A' }} />
+                              <motion.div
+                                className="absolute inset-0 opacity-0 group-hover/card:opacity-100"
+                                style={{ background: 'linear-gradient(180deg, transparent, rgba(232,184,74,0.1), transparent)' }}
+                                animate={{ y: ['-100%', '200%'] }}
+                                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                              />
+                              <motion.div className="mb-2" animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity, delay: idx * 0.3 }}>
+                                <item.icon className="w-5 h-5" style={{ color: '#E8B84A' }} />
+                              </motion.div>
+                              <div className="text-2xl font-bold mb-1.5" style={{ color: '#E8B84A' }}>{item.val}</div>
+                              <div className="text-xs font-semibold text-white mb-1.5">{item.label}</div>
+                              <p className="text-xs text-white/60 leading-snug">{item.desc}</p>
+                              <div className="absolute top-4 right-4 flex gap-1">
+                                {[...Array(3)].map((_, i) => (
+                                  <motion.div key={i} className="w-0.5 h-3 rounded-full" style={{ background: '#E8B84A' }}
+                                    animate={{ height: ['12px', '6px', '12px'], opacity: [0.3, 1, 0.3] }}
+                                    transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                                  />
+                                ))}
                               </div>
-                              <div className="text-white font-semibold text-sm">{val}</div>
                             </motion.div>
                           ))}
                         </div>
-                      </motion.div>
 
-                      <div className="flex gap-3">
-                        <motion.button
-                          onClick={() => setPilotStep('email')}
-                          className="flex-1 relative group/btn overflow-hidden"
-                          whileHover={{ scale: 1.01 }}
-                          whileTap={{ scale: 0.99 }}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.7 }}
-                        >
-                          {/* Animated glow */}
-                          <motion.div
-                            className="absolute inset-0 rounded-xl blur-xl"
-                            style={{ background: 'linear-gradient(135deg, #E8B84A, #E8A87C)', opacity: 0.4 }}
-                            animate={{
-                              opacity: [0.3, 0.5, 0.3],
-                            }}
-                            transition={{
-                              duration: 2,
-                              repeat: Infinity,
-                            }}
-                          />
-
-                          <div
-                            className="relative px-6 py-3 rounded-xl font-bold text-black text-sm flex items-center justify-center gap-2 overflow-hidden"
-                            style={{
-                              background: 'linear-gradient(135deg, #E8B84A, #E8A87C)',
-                              boxShadow: '0 4px 20px rgba(232,184,74,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
-                            }}
-                          >
-                            {/* Shine effect */}
-                            <motion.div
-                              className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20"
-                              animate={{ x: ['-200%', '200%'] }}
-                              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                            />
-                            <span className="relative z-10">Apply for Pilot Access</span>
-                            <motion.div
-                              className="relative z-10"
-                              animate={{ x: [0, 4, 0] }}
-                              transition={{ duration: 1.5, repeat: Infinity }}
-                            >
-                              <MoveRight className="w-5 h-5" />
-                            </motion.div>
-                          </div>
-                        </motion.button>
-
-                        <motion.button
-                          onClick={closePilotOverlay}
-                          className="px-6 py-3 rounded-xl font-semibold text-white text-sm border hover:bg-white/10 transition-all"
-                          style={{ borderColor: 'rgba(255,255,255,0.2)' }}
-                          whileHover={{ scale: 1.01, borderColor: 'rgba(255,255,255,0.4)' }}
-                          whileTap={{ scale: 0.99 }}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.8 }}
-                        >
-                          Maybe Later
-                        </motion.button>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-
-                {/* ── EMAIL STEP ── */}
-                {pilotStep === 'email' && (
-                  <motion.div
-                    key="email"
-                    initial={{ opacity: 0, x: 30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -30 }}
-                    transition={{ duration: 0.3 }}
-                    className="px-10 py-12"
-                  >
-                    {/* Back button */}
-                    <button
-                      onClick={() => { setPilotStep('info'); setPilotError(''); }}
-                      className="flex items-center gap-2 text-white/50 hover:text-white text-sm mb-10 transition-colors group"
-                    >
-                      <MoveRight className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
-                      Back
-                    </button>
-
-                    <div className="max-w-md mx-auto">
-                      {/* Enhanced icon badge */}
-                      <motion.div
-                        className="w-16 h-16 rounded-2xl flex items-center justify-center mb-8 mx-auto relative"
-                        style={{
-                          background: 'rgba(232,184,74,0.15)',
-                          border: '1px solid rgba(232,184,74,0.4)',
-                          boxShadow: '0 8px 32px rgba(232,184,74,0.3)',
-                        }}
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                      >
-                        {/* Animated glow */}
                         <motion.div
-                          className="absolute inset-0 rounded-2xl"
-                          style={{
-                            background: 'radial-gradient(circle, rgba(232,184,74,0.4), transparent)',
-                          }}
-                          animate={{
-                            scale: [1, 1.3, 1],
-                            opacity: [0.5, 0.8, 0.5],
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                          }}
-                        />
-                        
-                        <svg
-                          className="w-8 h-8 relative z-10"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="#E8B84A"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                          className="p-4 rounded-xl mb-6 relative overflow-hidden"
+                          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.4 }}
                         >
-                          <rect x="2" y="4" width="20" height="16" rx="3" />
-                          <path d="M2 7l10 7 10-7" />
-                        </svg>
-                      </motion.div>
+                          <div className="absolute inset-0 opacity-30" style={{
+                            backgroundImage: 'linear-gradient(rgba(232,184,74,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(232,184,74,0.1) 1px, transparent 1px)',
+                            backgroundSize: '20px 20px',
+                          }} />
+                          <div className="grid grid-cols-4 gap-4 text-sm relative z-10">
+                            {[['Duration','6 months','⏱'],['Start Date','March 2026','📅'],['Spots Left','20 companies','🎯'],['Commitment','Active feedback','💬']].map(([label, val, emoji], idx) => (
+                              <motion.div key={label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + idx * 0.1 }}>
+                                <div className="text-white/50 text-xs mb-1.5 flex items-center gap-1"><span>{emoji}</span>{label}</div>
+                                <div className="text-white font-semibold text-sm">{val}</div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </motion.div>
 
-                      <motion.h2
-                        className="text-3xl font-bold text-white mb-3 text-center"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                      >
-                        Reserve your spot
-                      </motion.h2>
-                      <motion.p
-                        className="text-white/60 text-sm mb-10 leading-relaxed text-center"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                      >
-                        Drop your work email below. We'll reach out personally before
-                        the pilot kicks off in March 2026 — no spam, ever.
-                      </motion.p>
-
-                      {/* Enhanced email input */}
-                      <motion.div
-                        className="relative mb-4"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                      >
-                        <input
-                          type="email"
-                          value={pilotEmail}
-                          onChange={(e) => {
-                            setPilotEmail(e.target.value);
-                            if (pilotError) setPilotError('');
-                          }}
-                          onKeyDown={(e) => e.key === 'Enter' && handlePilotSubmit()}
-                          placeholder="you@company.com"
-                          className="w-full px-6 py-4 rounded-xl text-white text-base placeholder-white/30 outline-none transition-all"
-                          style={{
-                            background: 'rgba(255,255,255,0.08)',
-                            border: `2px solid ${pilotError ? 'rgba(239,68,68,0.6)' : pilotEmail ? 'rgba(232,184,74,0.5)' : 'rgba(255,255,255,0.15)'}`,
-                            boxShadow: pilotError
-                              ? '0 0 0 4px rgba(239,68,68,0.15)'
-                              : pilotEmail
-                              ? '0 0 0 4px rgba(232,184,74,0.15), 0 4px 20px rgba(232,184,74,0.1)'
-                              : 'none',
-                          }}
-                          autoFocus
-                        />
-                        
-                        {/* Enhanced live typing indicator */}
-                        {pilotEmail && !pilotError && (
-                          <motion.div
-                            className="absolute right-5 top-1/2 -translate-y-1/2"
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ type: 'spring', stiffness: 400 }}
+                        <div className="flex gap-3">
+                          <motion.button
+                            onClick={() => setPilotStep('email')}
+                            className="flex-1 relative group/btn overflow-hidden"
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.99 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.7 }}
                           >
                             <motion.div
-                              className="w-2.5 h-2.5 rounded-full"
-                              style={{ background: '#E8B84A' }}
-                              animate={{
-                                scale: [1, 1.3, 1],
-                                boxShadow: [
-                                  '0 0 0 0 rgba(232,184,74,0.7)',
-                                  '0 0 0 6px rgba(232,184,74,0)',
-                                  '0 0 0 0 rgba(232,184,74,0)',
-                                ],
-                              }}
-                              transition={{
-                                duration: 1.5,
-                                repeat: Infinity,
-                                ease: 'easeInOut',
-                              }}
+                              className="absolute inset-0 rounded-xl blur-xl"
+                              style={{ background: 'linear-gradient(135deg, #E8B84A, #E8A87C)', opacity: 0.4 }}
+                              animate={{ opacity: [0.3, 0.5, 0.3] }}
+                              transition={{ duration: 2, repeat: Infinity }}
                             />
-                          </motion.div>
-                        )}
-                      </motion.div>
-
-                      {/* Enhanced validation error */}
-                      <AnimatePresence>
-                        {pilotError && (
-                          <motion.div
-                            className="mb-4 p-3 rounded-lg flex items-start gap-2"
-                            style={{
-                              background: 'rgba(239,68,68,0.1)',
-                              border: '1px solid rgba(239,68,68,0.3)',
-                            }}
-                            initial={{ opacity: 0, y: -10, height: 0 }}
-                            animate={{ opacity: 1, y: 0, height: 'auto' }}
-                            exit={{ opacity: 0, y: -10, height: 0 }}
-                          >
-                            <div className="w-5 h-5 rounded-full bg-red-400/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <X className="w-3 h-3 text-red-400" />
+                            <div
+                              className="relative px-6 py-3 rounded-xl font-bold text-black text-sm flex items-center justify-center gap-2 overflow-hidden"
+                              style={{ background: 'linear-gradient(135deg, #E8B84A, #E8A87C)', boxShadow: '0 4px 20px rgba(232,184,74,0.4), inset 0 1px 0 rgba(255,255,255,0.3)' }}
+                            >
+                              <motion.div
+                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20"
+                                animate={{ x: ['-200%', '200%'] }}
+                                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                              />
+                              <span className="relative z-10">Apply for Pilot Access</span>
+                              <motion.div className="relative z-10" animate={{ x: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
+                                <MoveRight className="w-5 h-5" />
+                              </motion.div>
                             </div>
-                            <p className="text-red-400 text-xs leading-relaxed">{pilotError}</p>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                          </motion.button>
 
-                      {/* Enhanced submit button */}
-                      <motion.button
-                        onClick={handlePilotSubmit}
-                        disabled={pilotSubmitting}
-                        className="w-full py-4 rounded-xl font-bold text-black text-base relative overflow-hidden"
-                        style={{
-                          background: 'linear-gradient(135deg, #E8B84A, #E8A87C)',
-                          opacity: pilotSubmitting ? 0.7 : 1,
-                          boxShadow: pilotSubmitting ? 'none' : '0 4px 20px rgba(232,184,74,0.4)',
-                        }}
-                        whileHover={!pilotSubmitting ? { 
-                          scale: 1.02, 
-                          boxShadow: '0 6px 30px rgba(232,184,74,0.5)' 
-                        } : {}}
-                        whileTap={!pilotSubmitting ? { scale: 0.98 } : {}}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
+                          <motion.button
+                            onClick={closePilotOverlay}
+                            className="px-6 py-3 rounded-xl font-semibold text-white text-sm border hover:bg-white/10 transition-all"
+                            style={{ borderColor: 'rgba(255,255,255,0.2)' }}
+                            whileHover={{ scale: 1.01, borderColor: 'rgba(255,255,255,0.4)' }}
+                            whileTap={{ scale: 0.99 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.8 }}
+                          >
+                            Maybe Later
+                          </motion.button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* EMAIL STEP */}
+                  {pilotStep === 'email' && (
+                    <motion.div
+                      key="email"
+                      initial={{ opacity: 0, x: 30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -30 }}
+                      transition={{ duration: 0.3 }}
+                      className="px-10 py-12"
+                    >
+                      <button
+                        onClick={() => { setPilotStep('info'); setPilotError(''); }}
+                        className="flex items-center gap-2 text-white/50 hover:text-white text-sm mb-10 transition-colors group"
                       >
-                        <AnimatePresence mode="wait">
-                          {pilotSubmitting ? (
-                            <motion.span
-                              key="loading"
-                              className="flex items-center justify-center gap-2"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
+                        <MoveRight className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
+                        Back
+                      </button>
+
+                      <div className="max-w-md mx-auto">
+                        <motion.div
+                          className="w-16 h-16 rounded-2xl flex items-center justify-center mb-8 mx-auto relative"
+                          style={{ background: 'rgba(232,184,74,0.15)', border: '1px solid rgba(232,184,74,0.4)', boxShadow: '0 8px 32px rgba(232,184,74,0.3)' }}
+                          initial={{ scale: 0, rotate: -180 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                        >
+                          <motion.div
+                            className="absolute inset-0 rounded-2xl"
+                            style={{ background: 'radial-gradient(circle, rgba(232,184,74,0.4), transparent)' }}
+                            animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.8, 0.5] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                          />
+                          <svg className="w-8 h-8 relative z-10" viewBox="0 0 24 24" fill="none" stroke="#E8B84A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="2" y="4" width="20" height="16" rx="3" />
+                            <path d="M2 7l10 7 10-7" />
+                          </svg>
+                        </motion.div>
+
+                        <motion.h2 className="text-3xl font-bold text-white mb-3 text-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                          Reserve your spot
+                        </motion.h2>
+                        <motion.p className="text-white/60 text-sm mb-10 leading-relaxed text-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                          Drop your work email below. We'll reach out personally before the pilot kicks off in March 2026 — no spam, ever.
+                        </motion.p>
+
+                        <motion.div className="relative mb-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                          <input
+                            type="email"
+                            value={pilotEmail}
+                            onChange={(e) => { setPilotEmail(e.target.value); if (pilotError) setPilotError(''); }}
+                            onKeyDown={(e) => e.key === 'Enter' && handlePilotSubmit()}
+                            placeholder="you@company.com"
+                            className="w-full px-6 py-4 rounded-xl text-white text-base placeholder-white/30 outline-none transition-all"
+                            style={{
+                              background: 'rgba(255,255,255,0.08)',
+                              border: `2px solid ${pilotError ? 'rgba(239,68,68,0.6)' : pilotEmail ? 'rgba(232,184,74,0.5)' : 'rgba(255,255,255,0.15)'}`,
+                              boxShadow: pilotError ? '0 0 0 4px rgba(239,68,68,0.15)' : pilotEmail ? '0 0 0 4px rgba(232,184,74,0.15), 0 4px 20px rgba(232,184,74,0.1)' : 'none',
+                            }}
+                            autoFocus
+                          />
+                          {pilotEmail && !pilotError && (
+                            <motion.div className="absolute right-5 top-1/2 -translate-y-1/2" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 400 }}>
+                              <motion.div
+                                className="w-2.5 h-2.5 rounded-full"
+                                style={{ background: '#E8B84A' }}
+                                animate={{ scale: [1, 1.3, 1], boxShadow: ['0 0 0 0 rgba(232,184,74,0.7)', '0 0 0 6px rgba(232,184,74,0)', '0 0 0 0 rgba(232,184,74,0)'] }}
+                                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                              />
+                            </motion.div>
+                          )}
+                        </motion.div>
+
+                        <AnimatePresence>
+                          {pilotError && (
+                            <motion.div
+                              className="mb-4 p-3 rounded-lg flex items-start gap-2"
+                              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}
+                              initial={{ opacity: 0, y: -10, height: 0 }}
+                              animate={{ opacity: 1, y: 0, height: 'auto' }}
+                              exit={{ opacity: 0, y: -10, height: 0 }}
                             >
-                              <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z" />
-                              </svg>
-                              Saving your spot…
-                            </motion.span>
-                          ) : (
-                            <motion.span
-                              key="idle"
-                              className="flex items-center justify-center gap-2 group"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
-                            >
-                              Apply for Pilot Access
-                              <MoveRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </motion.span>
+                              <div className="w-5 h-5 rounded-full bg-red-400/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <X className="w-3 h-3 text-red-400" />
+                              </div>
+                              <p className="text-red-400 text-xs leading-relaxed">{pilotError}</p>
+                            </motion.div>
                           )}
                         </AnimatePresence>
-                      </motion.button>
 
-                      <p className="text-white/30 text-xs text-center mt-5">
-                        By applying you agree to be contacted about our pilot program.
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* ── SUCCESS STEP ── */}
-                {pilotStep === 'success' && (
-                  <motion.div
-                    key="success"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="px-10 py-20 flex flex-col items-center text-center"
-                  >
-                    {/* Enhanced pulsing check mark */}
-                    <div className="relative mb-10">
-                      {/* Outer pulse rings */}
-                      {[0, 1, 2].map((i) => (
-                        <motion.div
-                          key={i}
-                          className="absolute inset-0 rounded-full"
-                          style={{ 
-                            border: '2px solid rgba(232,184,74,0.3)',
-                          }}
-                          animate={{ 
-                            scale: [1, 2 + i * 0.3],
-                            opacity: [0.8, 0] 
-                          }}
-                          transition={{ 
-                            duration: 2,
-                            repeat: Infinity,
-                            delay: i * 0.4,
-                            ease: 'easeOut',
-                          }}
-                        />
-                      ))}
-
-                      {/* Main icon container */}
-                      <motion.div
-                        className="relative w-24 h-24 rounded-full flex items-center justify-center"
-                        style={{
-                          background: 'linear-gradient(135deg, rgba(232,184,74,0.2), rgba(232,184,74,0.1))',
-                          border: '3px solid rgba(232,184,74,0.6)',
-                          boxShadow: '0 0 40px rgba(232,184,74,0.4), inset 0 0 20px rgba(232,184,74,0.2)',
-                        }}
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ 
-                          type: 'spring',
-                          stiffness: 200,
-                          damping: 15,
-                          delay: 0.2,
-                        }}
-                      >
-                        <motion.svg
-                          className="w-12 h-12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="#E8B84A"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                        <motion.button
+                          onClick={handlePilotSubmit}
+                          disabled={pilotSubmitting}
+                          className="w-full py-4 rounded-xl font-bold text-black text-base relative overflow-hidden"
+                          style={{ background: 'linear-gradient(135deg, #E8B84A, #E8A87C)', opacity: pilotSubmitting ? 0.7 : 1, boxShadow: pilotSubmitting ? 'none' : '0 4px 20px rgba(232,184,74,0.4)' }}
+                          whileHover={!pilotSubmitting ? { scale: 1.02, boxShadow: '0 6px 30px rgba(232,184,74,0.5)' } : {}}
+                          whileTap={!pilotSubmitting ? { scale: 0.98 } : {}}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.4 }}
                         >
-                          <motion.path
-                            d="M5 13l4 4L19 7"
-                            initial={{ pathLength: 0 }}
-                            animate={{ pathLength: 1 }}
-                            transition={{ 
-                              duration: 0.6,
-                              delay: 0.4,
-                              ease: 'easeInOut',
-                            }}
+                          <AnimatePresence mode="wait">
+                            {pilotSubmitting ? (
+                              <motion.span key="loading" className="flex items-center justify-center gap-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z" />
+                                </svg>
+                                Saving your spot…
+                              </motion.span>
+                            ) : (
+                              <motion.span key="idle" className="flex items-center justify-center gap-2 group" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                Apply for Pilot Access
+                                <MoveRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                              </motion.span>
+                            )}
+                          </AnimatePresence>
+                        </motion.button>
+
+                        <p className="text-white/30 text-xs text-center mt-5">
+                          By applying you agree to be contacted about our pilot program.
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* SUCCESS STEP */}
+                  {pilotStep === 'success' && (
+                    <motion.div
+                      key="success"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="px-10 py-20 flex flex-col items-center text-center"
+                    >
+                      <div className="relative mb-10">
+                        {[0, 1, 2].map((i) => (
+                          <motion.div
+                            key={i}
+                            className="absolute inset-0 rounded-full"
+                            style={{ border: '2px solid rgba(232,184,74,0.3)' }}
+                            animate={{ scale: [1, 2 + i * 0.3], opacity: [0.8, 0] }}
+                            transition={{ duration: 2, repeat: Infinity, delay: i * 0.4, ease: 'easeOut' }}
                           />
-                        </motion.svg>
-                      </motion.div>
-                    </div>
+                        ))}
+                        <motion.div
+                          className="relative w-24 h-24 rounded-full flex items-center justify-center"
+                          style={{ background: 'linear-gradient(135deg, rgba(232,184,74,0.2), rgba(232,184,74,0.1))', border: '3px solid rgba(232,184,74,0.6)', boxShadow: '0 0 40px rgba(232,184,74,0.4), inset 0 0 20px rgba(232,184,74,0.2)' }}
+                          initial={{ scale: 0, rotate: -180 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
+                        >
+                          <motion.svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="#E8B84A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <motion.path d="M5 13l4 4L19 7" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.6, delay: 0.4, ease: 'easeInOut' }} />
+                          </motion.svg>
+                        </motion.div>
+                      </div>
 
-                    <motion.h2
-                      className="text-4xl font-bold text-white mb-4"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.6 }}
-                    >
-                      You're on the list!
-                    </motion.h2>
-                    
-                    <motion.p
-                      className="text-white/60 text-base max-w-md leading-relaxed mb-2"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.7 }}
-                    >
-                      We've saved{' '}
-                      <span style={{ color: '#E8B84A' }} className="font-semibold">
-                        {pilotEmail}
-                      </span>
-                    </motion.p>
-                    
-                    <motion.p
-                      className="text-white/45 text-sm max-w-md leading-relaxed mb-12"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.8 }}
-                    >
-                      Expect a personal message from our team before March 2026. Only
-                      20 spots are available — we'll be in touch soon.
-                    </motion.p>
+                      <motion.h2 className="text-4xl font-bold text-white mb-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+                        You're on the list!
+                      </motion.h2>
+                      <motion.p className="text-white/60 text-base max-w-md leading-relaxed mb-2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+                        We've saved <span style={{ color: '#E8B84A' }} className="font-semibold">{pilotEmail}</span>
+                      </motion.p>
+                      <motion.p className="text-white/45 text-sm max-w-md leading-relaxed mb-12" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
+                        Expect a personal message from our team before March 2026. Only 20 spots are available — we'll be in touch soon.
+                      </motion.p>
 
-                    <motion.button
-                      onClick={closePilotOverlay}
-                      className="px-10 py-4 rounded-xl font-bold text-black text-base relative overflow-hidden"
-                      style={{ 
-                        background: 'linear-gradient(135deg, #E8B84A, #E8A87C)',
-                        boxShadow: '0 4px 20px rgba(232,184,74,0.4)',
-                      }}
-                      whileHover={{ 
-                        scale: 1.02,
-                        boxShadow: '0 6px 30px rgba(232,184,74,0.5)',
-                      }}
-                      whileTap={{ scale: 0.98 }}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.9 }}
-                    >
-                      <motion.div
-                        className="absolute inset-0 bg-white"
-                        initial={{ x: '-100%', opacity: 0.3 }}
-                        whileHover={{ x: '100%' }}
-                        transition={{ duration: 0.6 }}
-                      />
-                      <span className="relative z-10">Back to the site</span>
-                    </motion.button>
-                  </motion.div>
-                )}
+                      <motion.button
+                        onClick={closePilotOverlay}
+                        className="px-10 py-4 rounded-xl font-bold text-black text-base relative overflow-hidden"
+                        style={{ background: 'linear-gradient(135deg, #E8B84A, #E8A87C)', boxShadow: '0 4px 20px rgba(232,184,74,0.4)' }}
+                        whileHover={{ scale: 1.02, boxShadow: '0 6px 30px rgba(232,184,74,0.5)' }}
+                        whileTap={{ scale: 0.98 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.9 }}
+                      >
+                        <motion.div
+                          className="absolute inset-0 bg-white"
+                          initial={{ x: '-100%', opacity: 0.3 }}
+                          whileHover={{ x: '100%' }}
+                          transition={{ duration: 0.6 }}
+                        />
+                        <span className="relative z-10">Back to the site</span>
+                      </motion.button>
+                    </motion.div>
+                  )}
 
-              </AnimatePresence>
+                </AnimatePresence>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
 
-      {/* ─── Product Detail Section ─── */}
-      <AnimatePresence mode="wait">
+        {/* ─── Product Detail Section ─── */}
+        <AnimatePresence mode="wait">
+          {selectedProduct && (
+            <ProductDetailsSection
+              key={`product-${selectedProduct.id}`}
+              product={selectedProduct}
+              products={filteredProducts}
+              onSelectProduct={(prod) => {
+                setSelectedProduct(prod);
+                setShouldScrollToDetails(true);
+                setTimeout(() => {
+                  document.querySelector('[data-products-section]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+              }}
+              ref={productDetailsRef}
+            />
+          )}
+        </AnimatePresence>
+
         {selectedProduct && (
-          <ProductDetailsSection
-            key={`product-${selectedProduct.id}`}
-            product={selectedProduct}
-            products={filteredProducts}
-            onSelectProduct={(prod) => {
-              setSelectedProduct(prod);
-              setShouldScrollToDetails(true);
-              setTimeout(() => {
-                document.querySelector('[data-products-section]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }, 100);
-            }}
-            ref={productDetailsRef}
-          />
+          <div className="relative z-10 w-full">
+            {selectedCategory === 'category3' ? <WaitlistSection /> : <BookADemo />}
+          </div>
         )}
-      </AnimatePresence>
-
-      {selectedProduct && (
-        <div className="relative z-10 w-full">
-          {selectedCategory === 'category3' ? <WaitlistSection /> : <BookADemo />}
-        </div>
-      )}
 
       </div>{/* end dots wrapper */}
 
@@ -2020,20 +1726,14 @@ function AgenticNode({ product, isActive, index, size = 144 }: {
             transition={{ duration: 2, repeat: Infinity }}
           />
         )}
-
-        {/* Corner brackets */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100">
-          {[
-            "M5,5 L20,5 M5,5 L5,20", "M95,5 L80,5 M95,5 L95,20",
-            "M5,95 L20,95 M5,95 L5,80", "M95,95 L80,95 M95,95 L95,80"
-          ].map((d, i) => (
+          {["M5,5 L20,5 M5,5 L5,20","M95,5 L80,5 M95,5 L95,20","M5,95 L20,95 M5,95 L5,80","M95,95 L80,95 M95,95 L95,80"].map((d, i) => (
             <motion.path key={i} d={d} stroke={product.color} strokeWidth="1.5"
               strokeOpacity={isActive ? "1" : "0.5"} strokeLinecap="square"
               initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
               transition={{ delay: index * 0.1 + i * 0.1, duration: 0.5 }} />
           ))}
         </svg>
-
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-center">
           <div className="relative mb-2">
             <motion.div className="absolute inset-0 blur-xl"
@@ -2043,11 +1743,9 @@ function AgenticNode({ product, isActive, index, size = 144 }: {
             />
             <AgenticIcon style={{ width: iconSize, height: iconSize, color: product.color, filter: `drop-shadow(0 0 6px ${product.color})` }} className="relative z-10" />
           </div>
-
           <div className={`text-white ${fontSize} font-bold leading-tight px-1`}>
             {product.name.split(' ').slice(0, 6).join(' ')}
           </div>
-
           <div className="flex gap-1 mt-1.5">
             {[0, 1, 2].map((i) => (
               <motion.div key={i} className="w-1 h-1 rounded-full"
@@ -2058,7 +1756,6 @@ function AgenticNode({ product, isActive, index, size = 144 }: {
             ))}
           </div>
         </div>
-
         {isActive && (
           <>
             <motion.div className="absolute inset-0 rounded-2xl" style={{ border: `2px solid ${product.color}` }}
@@ -2085,6 +1782,7 @@ const ProductDetailsSection = forwardRef<
     <motion.div ref={ref} className="relative z-10 py-24 px-6 w-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <div className="max-w-7xl mx-auto mb-24" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }} />
       <div className="max-w-7xl mx-auto">
+
         <motion.div className="mb-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
           <div className="grid grid-cols-3 gap-14 items-center">
             <div className="col-span-1">
@@ -2096,11 +1794,19 @@ const ProductDetailsSection = forwardRef<
               </div>
             </div>
             <div className="col-span-2">
-              <div className="w-full h-[380px] rounded-2xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${product.color}14, ${product.color}06)`, border: `1px solid ${product.color}20` }}>
-                <div className="text-center opacity-40">
-                  {getCategoryRobot(product.category, 120)}
-                  <p className="text-white text-sm mt-4">Illustration coming soon</p>
-                </div>
+              <div
+                className="w-full h-[380px] rounded-2xl overflow-hidden flex items-center justify-center"
+                style={{ background: `linear-gradient(135deg, ${product.color}14, ${product.color}06)`, border: `1px solid ${product.color}20` }}
+              >
+                <img
+                  src={
+                    product.category === 'category1' ? '/Mark.png'
+                    : product.category === 'category2' ? '/Consuelo.png'
+                    : '/Argo.png'
+                  }
+                  alt={getBrandName(product.category)}
+                  className="w-full h-full object-contain"
+                />
               </div>
             </div>
           </div>
@@ -2109,7 +1815,10 @@ const ProductDetailsSection = forwardRef<
         <motion.div id="how-it-works" className="mb-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
           <div className="grid grid-cols-3 gap-14 items-start">
             <div className="col-span-1">
-              <h3 className="text-4xl font-light text-white mb-4">How does<div className="text-4xl font-semibold mt-1" style={{ color: product.color }}>{getBrandName(product.category)} work?</div></h3>
+              <h3 className="text-4xl font-light text-white mb-4">
+                How does
+                <div className="text-4xl font-semibold mt-1" style={{ color: product.color }}>{getBrandName(product.category)} work?</div>
+              </h3>
               <p className="text-base text-white/50 leading-relaxed">A breakdown of the core capabilities — each function is designed to save time, reduce manual effort, and deliver measurable results.</p>
             </div>
             <div className="col-span-2">
@@ -2117,7 +1826,15 @@ const ProductDetailsSection = forwardRef<
                 {product.features.map((feat, idx) => {
                   const FeatureIcon = featureIcons[idx % featureIcons.length];
                   return (
-                    <motion.div key={idx} className="py-6 flex gap-6 items-start" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ delay: idx * 0.07 }}>
+                    <motion.div
+                      key={idx}
+                      className="py-6 flex gap-6 items-start"
+                      style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+                      initial={{ opacity: 0, x: 20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: false, amount: 0.2 }}
+                      transition={{ delay: idx * 0.07 }}
+                    >
                       <div className="w-11 h-11 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ background: `${product.color}18`, border: `1px solid ${product.color}30` }}>
                         <FeatureIcon className="w-5 h-5" style={{ color: product.color }} />
                       </div>
@@ -2134,7 +1851,9 @@ const ProductDetailsSection = forwardRef<
         </motion.div>
 
         <motion.div className="mb-28" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.6 }}>
-          <h3 className="text-4xl font-light text-white text-center mb-10">See <span style={{ color: product.color }}>{product.name}</span> in action</h3>
+          <h3 className="text-4xl font-light text-white text-center mb-10">
+            See <span style={{ color: product.color }}>{product.name}</span> in action
+          </h3>
           {product.id === 1 ? (
             <div style={{ position: 'relative', boxSizing: 'content-box', maxHeight: '80svh', width: '100%', aspectRatio: '2.21', padding: '40px 0' }}>
               <iframe
@@ -2179,7 +1898,11 @@ const ProductDetailsSection = forwardRef<
             </div>
             <div className="col-span-2 flex gap-5">
               {otherProducts.map((prod) => (
-                <motion.button key={prod.id} onClick={() => onSelectProduct(prod)} whileHover={{ scale: 1.02, y: -3 }} whileTap={{ scale: 0.98 }}
+                <motion.button
+                  key={prod.id}
+                  onClick={() => onSelectProduct(prod)}
+                  whileHover={{ scale: 1.02, y: -3 }}
+                  whileTap={{ scale: 0.98 }}
                   className="flex-1 px-6 py-5 rounded-xl text-left group"
                   style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', transition: 'border-color 0.2s, background 0.2s' }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = prod.color + '60'; (e.currentTarget as HTMLElement).style.background = `${prod.color}0D`; }}
@@ -2196,9 +1919,7 @@ const ProductDetailsSection = forwardRef<
           </div>
         </motion.div>
 
-
-
-         <CreateBundleSection product={product} />
+        <CreateBundleSection product={product} />
 
       </div>
     </motion.div>
