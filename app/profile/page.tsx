@@ -197,6 +197,58 @@ export default function ProfilePage() {
           transition:all 0.15s;
         }
         .pr-ghost:hover { border-color:rgba(240,184,73,0.3);color:${T.textSec}; }
+        
+        /* RESPONSIVE DESIGN */
+        .pr-container { max-width: 860px; padding: 100px 24px 80px; }
+        .pr-hero { display: flex; align-items: flex-start; gap: 28px; }
+        .pr-avatar { width: 88px; height: 88px; flex-shrink: 0; }
+        .pr-info { flex: 1; }
+        .pr-agents-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .pr-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        
+        /* Tablet: 640px - 1024px */
+        @media (max-width: 1024px) {
+          .pr-container { padding: 80px 20px 60px; }
+          .pr-hero { gap: 20px; }
+          .pr-avatar { width: 80px; height: 80px; }
+        }
+        
+        /* Mobile: < 640px */
+        @media (max-width: 639px) {
+          .pr-container { 
+            max-width: 100%; 
+            padding: 80px 16px 60px; 
+            margin: 0 auto;
+          }
+          .pr-hero { 
+            flex-direction: column; 
+            align-items: center;
+            text-align: center;
+            gap: 16px; 
+          }
+          .pr-avatar { 
+            width: 72px; 
+            height: 72px; 
+            flex-shrink: 0; 
+          }
+          .pr-info { 
+            flex: 1; 
+            width: 100%;
+          }
+          .pr-agents-grid { 
+            grid-template-columns: 1fr;
+            gap: 12px; 
+          }
+          .pr-actions { 
+            flex-direction: column;
+            gap: 8px;
+          }
+          .pr-actions > * {
+            width: 100% !important;
+            text-align: center;
+            display: block;
+          }
+        }
       `}</style>
 
       <div style={{ minHeight: '100vh', background: T.bg, fontFamily: T.mono }}>
@@ -209,7 +261,7 @@ export default function ProfilePage() {
           backgroundSize: '60px 60px', animation: 'pr-grid 6s ease-in-out infinite',
         }} />
 
-        <div style={{ maxWidth: 860, margin: '0 auto', padding: '100px 24px 80px', position: 'relative', zIndex: 1 }}>
+        <div className="pr-container" style={{ margin: '0 auto', position: 'relative', zIndex: 1 }}>
 
           {loading && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '40px 0', justifyContent: 'center', color: T.textMut }}>
@@ -243,9 +295,9 @@ export default function ProfilePage() {
                   WebkitMaskComposite: 'xor', maskComposite: 'exclude', padding: 1,
                 }} />
 
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 28 }}>
+                <div className="pr-hero" style={{ display: 'flex', alignItems: 'flex-start', gap: 28 }}>
                   {/* Avatar */}
-                  <div style={{
+                  <div className="pr-avatar" style={{
                     width: 88, height: 88, borderRadius: 16, flexShrink: 0,
                     background: 'linear-gradient(135deg,rgba(240,184,73,0.16),rgba(240,184,73,0.06))',
                     border: '1px solid rgba(240,184,73,0.35)',
@@ -261,7 +313,7 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Info */}
-                  <div style={{ flex: 1 }}>
+                  <div className="pr-info" style={{ flex: 1 }}>
                     {editMode ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         <input
@@ -336,7 +388,7 @@ export default function ProfilePage() {
                   <span style={M({ fontSize: 8.5, color: T.textMut, letterSpacing: '0.18em', textTransform: 'uppercase' })}>Your Agents</span>
                   <div style={{ height: 1, flex: 1, background: T.border }} />
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div className="pr-agents-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <AgentCard
                     name="Marketing Agent (MARK)"
                     desc="AI-powered marketing automation, content generation, and campaign intelligence."
@@ -382,7 +434,7 @@ export default function ProfilePage() {
               )}
 
               {/* Quick links + Logout */}
-              <div style={{ marginTop: 24, display: 'flex', gap: 10, flexWrap: 'wrap', animation: 'pr-fadeUp 0.4s ease 0.3s both' }}>
+              <div className="pr-actions" style={{ marginTop: 24, display: 'flex', gap: 10, flexWrap: 'wrap', animation: 'pr-fadeUp 0.4s ease 0.3s both' }}>
                 <Link href="/platform" style={{
                   padding: '10px 20px', borderRadius: 9,
                   border: '1px solid rgba(139,92,246,0.2)',

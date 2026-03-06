@@ -9,7 +9,7 @@ import {
   FolderOpen, Check, Sparkles, Brain, Cpu, ArrowRight,
   Shield, Star, Briefcase, ChevronDown, AlertCircle,
   Loader, CircleCheck, ScanSearch, Wand2,
-  Mail, CreditCard,
+  Mail, CreditCard, Menu,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -220,7 +220,46 @@ const KEYFRAMES = `
     border-color: rgba(236,72,153,0.7) !important;
     background: rgba(236,72,153,0.1) !important;
   }
+
+  /* ── RESPONSIVE BREAKPOINTS ── */
+  /* Mobile: < 640px */
+  @media (max-width: 639px) {
+    .sia-dash { height: 100%; min-height: 100vh; }
+    .sia-sidebar-mobile-toggle { display: flex !important; }
+    .sia-sidebar-desktop { display: none !important; }
+    .sia-stat-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+    .sia-agent-right-grid { grid-template-columns: 1fr !important; }
+    .sia-header-search { display: none !important; }
+    .sia-welcome-banner { padding: 10px 12px !important; font-size: 13px !important; }
+    .sia-main-body { padding: 10px 12px !important; }
+    .sia-stat-card { padding: 9px 10px !important; }
+    .sia-agent-card { padding: 10px 12px !important; }
+  }
+
+  /* Tablet: 640px - 1024px */
+  @media (min-width: 640px) and (max-width: 1024px) {
+    .sia-stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .sia-agent-right-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+    .sia-header-search { min-width: 120px !important; }
+  }
+
+  /* Small Tablet: 1024px - 1280px */
+  @media (max-width: 1279px) {
+    .sia-agent-right-grid { grid-template-columns: 1fr !important; }
+  }
+
+  /* Desktop: 1280px+ */
+  @media (min-width: 1280px) {
+    .sia-stat-grid { grid-template-columns: repeat(4, 1fr) !important; }
+    .sia-agent-right-grid { grid-template-columns: 1.1fr 0.9fr !important; }
+  }
+
+  /* Hide scrollbar for mobile if needed */
+  @media (max-width: 639px) {
+    .sia-dash *::-webkit-scrollbar { width: 4px; }
+  }
 `;
+
 
 // ======================== HOOKS ========================
 function useCounter(target: number, dur = 1600, dec = 0) {
@@ -423,9 +462,9 @@ function HRAgentUploadModal({ onClose }: { onClose: () => void }) {
   ];
 
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.8)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(8px)', animation:'overlayIn 0.2s ease' }}
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.8)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(8px)', animation:'overlayIn 0.2s ease', padding:'12px' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ width:580, maxHeight:'90vh', overflow:'hidden', display:'flex', flexDirection:'column', background:'#0D0B1E', border:`1px solid rgba(236,72,153,0.25)`, borderRadius:18, boxShadow:'0 40px 100px rgba(0,0,0,0.9), 0 0 60px rgba(236,72,153,0.08)', animation:'modalIn 0.28s cubic-bezier(0.16,1,0.3,1)' }}>
+      <div style={{ width:'100%', maxWidth:580, maxHeight:'90vh', overflow:'hidden', display:'flex', flexDirection:'column', background:'#0D0B1E', border:`1px solid rgba(236,72,153,0.25)`, borderRadius:18, boxShadow:'0 40px 100px rgba(0,0,0,0.9), 0 0 60px rgba(236,72,153,0.08)', animation:'modalIn 0.28s cubic-bezier(0.16,1,0.3,1)' }}>
         <div style={{ padding:'16px 20px', borderBottom:`1px solid rgba(236,72,153,0.15)`, display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(236,72,153,0.04)' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
             <div style={{ position:'relative' }}>
@@ -733,6 +772,7 @@ export default function SIADashboard() {
   const [activeAgentModal, setActiveAgentModal] = useState<string | null>(null);
   const [activeNav, setActiveNav] = useState('Dashboard');
   const [navHovered, setNavHovered] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const uploadBtnRef = useRef<HTMLDivElement>(null);
   const sidebarAgentBtnRef = useRef<HTMLDivElement>(null);
 
@@ -780,7 +820,7 @@ export default function SIADashboard() {
       {/* Modals */}
       {activeAgentModal === 'hr' && <HRAgentUploadModal onClose={() => setActiveAgentModal(null)} />}
       {activeAgentModal === 'marketing' && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.8)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(8px)' }}
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.8)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(8px)', padding:'12px' }}
           onClick={() => setActiveAgentModal(null)}>
           <div style={{ padding:'30px 40px', borderRadius:16, background:'#0E0C1D', border:`1px solid ${C.goldDim}`, textAlign:'center', animation:'modalIn 0.25s ease' }}>
             <Target size={32} color={C.gold} style={{ marginBottom:12 }} />
@@ -793,8 +833,8 @@ export default function SIADashboard() {
       {/* Agentic Background */}
       <AgenticBackground />
 
-      {/* SIDEBAR */}
-      <div style={{ width:52, background:C.bgSidebar, borderRight:`1px solid ${C.border}`, display:'flex', flexDirection:'column', alignItems:'center', padding:'12px 0', flexShrink:0, zIndex:10, animation:'sidebarIn 0.45s cubic-bezier(0.22,1,0.36,1) both' }}>
+      {/* SIDEBAR - DESKTOP */}
+      <div className="sia-sidebar-desktop" style={{ width:52, background:C.bgSidebar, borderRight:`1px solid ${C.border}`, display:'flex', flexDirection:'column', alignItems:'center', padding:'12px 0', flexShrink:0, zIndex:10, animation:'sidebarIn 0.45s cubic-bezier(0.22,1,0.36,1) both' }}>
         {/* Logo with subtle spin ring */}
         <div style={{ position:'relative', marginBottom:20 }}>
           <div style={{ position:'absolute', inset:-4, borderRadius:'50%', border:`1px dashed ${C.purple}30`, animation:'dashRotate 20s linear infinite', pointerEvents:'none' }} />
@@ -890,11 +930,22 @@ export default function SIADashboard() {
         {/* Header */}
         <div style={{ padding:'10px 16px', borderBottom:`1px solid ${C.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, backdropFilter:'blur(10px)', animation:'dashFadeIn 0.4s ease 0.1s both' }}>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            {/* Mobile Menu Button */}
+            <button
+              className="sia-sidebar-mobile-toggle"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              style={{
+                display:'none', background:'none', border:'none', cursor:'pointer',
+                padding:'6px 8px', borderRadius:8, color:C.textMut,
+                marginRight:'4px',
+              }}>
+              {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
             <span style={{ fontSize:13, fontWeight:800, animation:'dashFadeIn 0.4s ease 0.15s both' }}>{activeNav}</span>
             <span style={{ fontSize:8, fontWeight:700, color:C.purpleLight, background:C.purpleDim, padding:'2px 6px', borderRadius:5, letterSpacing:0.5, textTransform:'uppercase', animation:'badgePop 0.4s ease 0.3s both' }}>Beta</span>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 10px', borderRadius:8, background:C.bgCard, border:`1px solid ${C.border}`, fontSize:10, color:C.textMut, cursor:'text', minWidth:140, animation:'dashFadeIn 0.4s ease 0.2s both' }}>
+            <div className="sia-header-search" style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 10px', borderRadius:8, background:C.bgCard, border:`1px solid ${C.border}`, fontSize:10, color:C.textMut, cursor:'text', minWidth:140, animation:'dashFadeIn 0.4s ease 0.2s both' }}>
               <Search size={11} /><span>Search agents...</span>
               <span style={{ marginLeft:'auto', width:1, height:10, background:C.textMut, animation:'cursorBlink 1.2s ease-in-out infinite' }} />
             </div>
@@ -906,14 +957,14 @@ export default function SIADashboard() {
         </div>
 
         {/* Body */}
-        <div style={{ flex:1, overflow: activeNav === 'Settings' ? 'hidden' : 'auto', padding: activeNav === 'Settings' ? '0' : '12px 16px' }}>
+        <div className="sia-main-body" style={{ flex:1, overflow: activeNav === 'Settings' ? 'hidden' : 'auto', padding: activeNav === 'Settings' ? '0' : '12px 16px' }}>
 
           {activeNav === 'Settings' && <SettingsPage onBack={() => setActiveNav('Dashboard')} />}
 
           {activeNav !== 'Settings' && (
             <>
               {/* WELCOME BANNER */}
-              <div style={{
+              <div className="sia-welcome-banner" style={{
                 padding:'12px 16px', borderRadius:12, marginBottom:12,
                 background:'linear-gradient(270deg, rgba(139,92,246,0.12), rgba(245,166,35,0.06), rgba(139,92,246,0.10))',
                 backgroundSize:'400% 400%',
@@ -963,7 +1014,7 @@ export default function SIADashboard() {
               </div>
 
               {/* STAT CARDS */}
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:10, marginBottom:14 }}>
+              <div className="sia-stat-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:10, marginBottom:14 }}>
                 {[
                   { label:'Agents Accessible', val: [canMark, canHR].filter(Boolean).length, suf:'/2', color:C.purple, Icon:Bot, tag:'Now', delay:'0.05' },
                   { label:'Subscription', val: userProfile?.tenant?.subscription_type?.toUpperCase() ?? 'NONE', suf:'', color:C.gold, Icon:Star, tag:'', delay:'0.12' },
@@ -975,7 +1026,7 @@ export default function SIADashboard() {
               </div>
 
               {/* AGENT CARDS + RIGHT PANEL */}
-              <div style={{ display:'grid', gridTemplateColumns:'1.1fr 0.9fr', gap:10, marginBottom:12 }}>
+              <div className="sia-agent-right-grid" style={{ display:'grid', gridTemplateColumns:'1.1fr 0.9fr', gap:10, marginBottom:12 }}>
 
                 {/* LEFT */}
                 <div style={{ display:'flex', flexDirection:'column', gap:10 }}>

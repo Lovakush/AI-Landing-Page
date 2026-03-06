@@ -66,7 +66,7 @@ function StatCard({
   label: string; value: string; sub?: string; badge?: string; color?: string; loading?: boolean;
 }) {
   return (
-    <div style={{ padding: '14px 16px', borderRadius: 12, border: `1px solid ${T.border}`, background: T.card }}>
+    <div className="s-stat-card" style={{ padding: '14px 16px', borderRadius: 12, border: `1px solid ${T.border}`, background: T.card }}>
       <div style={Mono({ fontSize: 9, color: T.textMut, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 6 })}>{label}</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <span style={Mono({ fontSize: 18, fontWeight: 700, color: loading ? T.textMut : (color ?? T.text) })}>
@@ -107,7 +107,7 @@ function Row({
   title: string; desc?: string; children?: React.ReactNode; noBorder?: boolean;
 }) {
   return (
-    <div style={{
+    <div className="s-row" style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '13px 16px', borderBottom: noBorder ? 'none' : `1px solid ${T.border}`,
       gap: 16,
@@ -336,10 +336,10 @@ function ProfileSection({
           WebkitMaskComposite: 'xor', maskComposite: 'exclude', padding: 1, pointerEvents: 'none',
         }} />
 
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 22 }}>
+        <div className="s-user-hero" style={{ display: 'flex', alignItems: 'flex-start', gap: 22, flexWrap: 'wrap' }}>
 
           {/* ── Avatar picker ── */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+          <div className="s-user-avatar" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, flexShrink: 0 }}>
             <div style={{ position: 'relative' }}>
               {/* Main avatar tile */}
               <div
@@ -443,7 +443,7 @@ function ProfileSection({
           </div>
 
           {/* Info / edit fields */}
-          <div style={{ flex: 1 }}>
+          <div className="s-user-info" style={{ flex: 1, minWidth: 200 }}>
             {editMode ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <input
@@ -491,7 +491,7 @@ function ProfileSection({
           </div>
 
           {/* Edit / Save / Cancel */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className="s-user-actions" style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
             <button
               onClick={() => { if (editMode) { saveProfile(); } else { setEditMode(true); } }}
               disabled={saving}
@@ -804,7 +804,7 @@ function BillingSection({ profile, loading }: { profile: BackendUserProfile | nu
 
   return (
     <div style={{ animation: 's-fadeUp 0.35s ease both' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 22 }}>
+      <div className="s-billing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 22 }}>
         <StatCard
           label="Subscription"
           value={tenant?.subscription_type?.toUpperCase() ?? 'NONE'}
@@ -1033,6 +1033,7 @@ const S_NAV: { id: SettingsSection; label: string; sub: string; Icon: typeof Use
 export default function SettingsPage({ onBack }: { onBack?: () => void }) {
   const router = useRouter();
   const [active, setActive] = useState<SettingsSection>('profile');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [profile, setProfile]         = useState<BackendUserProfile | null>(null);
   const [agentStatus, setAgentStatus] = useState<AgentStatus | null>(null);
@@ -1085,7 +1086,7 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
   };
 
   return (
-    <div style={{ display: 'flex', height: '100%', overflow: 'hidden', fontFamily: T.mono, background: T.bg, ...(onBack ? {} : { minHeight: '100vh' }) }}>
+    <div style={{ display: 'flex', height: '100%', overflow: 'hidden', fontFamily: T.mono, background: T.bg, ...(onBack ? {} : { minHeight: '100vh' }), position: 'relative' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;600&display=swap');
         @keyframes s-fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
@@ -1097,10 +1098,88 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
         .s-plan-card:hover { box-shadow: 0 0 20px rgba(240,184,73,0.08); }
         .s-nav-item { transition: all 0.15s; }
         .s-nav-item:hover { background: rgba(240,184,73,0.06) !important; }
+        
+        /* RESPONSIVE DESIGN */
+        .s-nav-toggle { display: none; }
+        .s-sidebar { width: 200px; }
+        .s-main-content { flex: 1; padding: 24px 28px; }
+        
+        /* Tablet: 640px - 1024px */
+        @media (max-width: 1024px) {
+          .s-sidebar { width: 180px; }
+          .s-main-content { padding: 20px 24px; }
+          .s-billing-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .s-api-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        
+        /* Mobile: < 640px */
+        @media (max-width: 639px) {
+          .s-nav-toggle { display: flex !important; align-items: center !important; justify-content: center !important; }
+          .s-sidebar { 
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+          }
+          .s-sidebar.open { transform: translateX(0); }
+          .s-sidebar-overlay { position: fixed; inset: 0; z-index: 99; }
+          .s-main-content { padding: 18px 16px; }
+          .s-nav-item { padding: 10px 12px !important; gap: 8px !important; }
+          .s-nav-item > div { flex: 1; min-width: 0; }
+          .s-nav-item span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+          .s-stat-card { padding: 12px 14px !important; }
+          .s-user-hero { gap: 16px !important; }
+          .s-user-avatar { width: 66px !important; height: 66px !important; flex-shrink: 0; }
+          .s-user-info { flex: 1; min-width: 0; }
+          .s-user-actions { gap: 4px !important; }
+          .s-row-content { flex-direction: column; gap: 12px !important; align-items: flex-start !important; }
+          .s-row { flex-direction: column; align-items: flex-start !important; gap: 8px !important; }
+          .s-billing-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
+          .s-api-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
+          .s-plan-card { padding: 16px !important; }
+        }
       `}</style>
 
+      {/* Mobile Menu Toggle */}
+      <button 
+        className="s-nav-toggle"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        style={Mono({
+          position: 'absolute', top: 0, left: 0, width: 44, height: 44, zIndex: 110,
+          background: 'none', border: 'none', cursor: 'pointer', color: T.gold,
+          alignItems: 'center', justifyContent: 'center', fontSize: 20,
+        })}
+      >
+        {sidebarOpen ? '✕' : '☰'}
+      </button>
+
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="s-sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div style={{ width: 200, flexShrink: 0, background: T.sidebar, borderRight: `1px solid ${T.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div 
+        className={`s-sidebar${sidebarOpen ? ' open' : ''}`}
+        style={{ 
+          width: 200, 
+          flexShrink: 0, 
+          background: T.sidebar, 
+          borderRight: `1px solid ${T.border}`, 
+          display: 'flex', 
+          flexDirection: 'column', 
+          overflow: 'hidden',
+          ...(typeof window !== 'undefined' && window.innerWidth < 640 ? { maxWidth: '70vw' } : {})
+        }}
+      >
         {onBack && (
           <button onClick={onBack} style={Mono({
             display: 'flex', alignItems: 'center', gap: 7, padding: '14px 16px',
@@ -1115,7 +1194,7 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
           {S_NAV.map(({ id, label, sub, Icon }) => {
             const isActive = active === id;
             return (
-              <div key={id} className="s-nav-item" onClick={() => setActive(id)} style={{
+              <div key={id} className="s-nav-item" onClick={() => { setActive(id); setSidebarOpen(false); }} style={{
                 display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px',
                 borderRadius: 10, cursor: 'pointer', marginBottom: 3,
                 background: isActive ? 'rgba(240,184,73,0.09)' : 'transparent',
@@ -1160,7 +1239,7 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
       </div>
 
       {/* Main content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
+      <div className="s-main-content" style={{ flex: 1, overflowY: 'auto', paddingTop: 'calc(44px + 24px)', position: 'relative', zIndex: 1 }}>
         <div style={{ maxWidth: 780 }}>
           {SECTIONS[active]}
         </div>

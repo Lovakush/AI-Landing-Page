@@ -728,7 +728,7 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center min-h-[400px] lg:min-h-[500px]">
 
             {/* LEFT: text panel */}
-            <div className="relative min-h-52 lg:min-h-72 text-center lg:text-left">
+            <div className="relative min-h-52 lg:min-h-72 text-center lg:text-left order-2 lg:order-1">
               <AnimatePresence mode="wait">
                 {!activePanel && (
                   <motion.div
@@ -765,7 +765,7 @@ export default function AboutPage() {
                       The future is arriving faster than businesses can react.
                     </h3>
                     <p className="text-base md:text-lg text-white/70 font-light leading-relaxed">
-                      We harness the power of tomorrow’s technologies to solve today’s problems, enabling businesses to take a giant leap forward.
+                      We harness the power of tomorrow's technologies to solve today's problems, enabling businesses to take a giant leap forward.
                     </p>
                     <button
                       onClick={resetPanel}
@@ -831,9 +831,12 @@ export default function AboutPage() {
             </div>
 
             {/* RIGHT: concentric circles — WHY innermost, WHAT outermost */}
-            <div className="relative flex justify-center">
+            <div className="relative flex justify-center order-1 lg:order-2">
+              <div className="relative flex justify-center items-start overflow-visible"
+                style={{ height: '260px', width: '100%' }}
+              >
               <div
-                className="relative w-[450px] h-64 pt-12 overflow-hidden scale-[0.65] sm:scale-[0.8] lg:scale-100 origin-center"
+                className="relative w-[450px] h-64 pt-12 scale-[0.55] xs:scale-[0.65] sm:scale-[0.8] lg:scale-100 origin-top"
                 style={{
                   maskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
@@ -939,6 +942,7 @@ export default function AboutPage() {
 
                 </div>
               </div>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -990,7 +994,7 @@ export default function AboutPage() {
               </AnimatePresence>
             </motion.div>
 
-            <div className="relative min-h-[350px] lg:min-h-[500px] flex items-center justify-center order-1 lg:order-2 scale-[0.75] sm:scale-[0.85] lg:scale-100 origin-center">
+            <div className="relative min-h-[300px] sm:min-h-[380px] lg:min-h-[500px] flex items-center justify-center order-1 lg:order-2 scale-[0.6] xs:scale-[0.7] sm:scale-[0.85] lg:scale-100 origin-center">
               <TetrisAnimation
                 onSubtitleTrigger={() => setShowSubtitle(true)}
                 onPieceChange={(index) => setCurrentPiece(index)}
@@ -1101,9 +1105,12 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center min-h-[400px] lg:min-h-[500px]">
 
             {/* LEFT: concentric circles for How It Works */}
-            <div className="relative flex justify-center">
+            <div className="relative flex justify-center order-1 lg:order-1">
+              <div className="relative flex justify-center items-start overflow-visible"
+                style={{ height: '260px', width: '100%' }}
+              >
               <div
-                className="relative w-[450px] h-64 pt-12 overflow-hidden scale-[0.65] sm:scale-[0.8] lg:scale-100 origin-center"
+                className="relative w-[450px] h-64 pt-12 scale-[0.55] xs:scale-[0.65] sm:scale-[0.8] lg:scale-100 origin-top"
                 style={{
                   maskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
@@ -1213,10 +1220,11 @@ export default function AboutPage() {
                   </motion.div>
                 </div>
               </div>
+              </div>
             </div>
 
             {/* RIGHT: text panel */}
-            <div className="relative min-h-52 lg:min-h-72 text-center lg:text-left">
+            <div className="relative min-h-52 lg:min-h-72 text-center lg:text-left order-2 lg:order-2">
               <AnimatePresence mode="wait">
                 {!activeWorkPanel && (
                   <motion.div
