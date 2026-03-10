@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 // ✅ Import SettingsPage from its own file
 import SettingsPage from "@/app/settings/page";
 import {
-  fetchProfile, fetchAgentStatus, isAuthenticated,
+  fetchProfile, fetchAgentStatus, isAuthenticated, requestAgentSSO,
   type UserProfile, type AgentStatus,
 } from "@/lib/api";
 
@@ -552,6 +552,9 @@ export default function SIADashboard() {
   const uploadBtnRef = useRef<HTMLDivElement>(null);
   const sidebarAgentBtnRef = useRef<HTMLDivElement>(null);
 
+  // SSO loading state (stores agent id while redirect is in progress)
+  const [ssoLoading, setSsoLoading] = useState<string | null>(null);
+
   // Real user data from backend
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [agentStatus, setAgentStatus] = useState<AgentStatus | null>(null);
@@ -586,6 +589,21 @@ export default function SIADashboard() {
   }, [sidebarDropdownOpen]);
 
   const font = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+
+  // Open Agent: SSO flow for HR Agent, direct link for MARK Agent
+  const openAgent = async (agentId: string, href: string) => {
+    if (agentId === 'hr') {
+      setSsoLoading('hr');
+      try {
+        await requestAgentSSO('hr');
+      } catch (err) {
+        setSsoLoading(null);
+        console.error('[SSO] HR Agent SSO failed:', err);
+      }
+    } else {
+      window.location.href = href;
+    }
+  };
 
   return (
     <div className="sia-dash" style={{ fontFamily: font, color: C.text, background: C.bg, borderRadius: 16, overflow: 'hidden', display: 'flex', height: '100%', minHeight: 500, position: 'relative', border: `1px solid ${C.border}` }}>
@@ -837,9 +855,10 @@ export default function SIADashboard() {
                             <span style={{ fontSize:8, color:C.textMut }}>{ag.infra}</span>
                             {ag.has ? (
                               <button
-                                onClick={() => window.location.href = ag.href}
-                                style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 12px', borderRadius:7, border:'none', cursor:'pointer', background:`linear-gradient(135deg, ${ag.color}, ${ag.color}cc)`, color:'#0a0a1a', fontSize:9, fontWeight:800, letterSpacing:'0.05em' }}>
-                                Open Agent <ArrowRight size={9} />
+                                onClick={() => openAgent(ag.id, ag.href)}
+                                disabled={ssoLoading === ag.id}
+                                style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 12px', borderRadius:7, border:'none', cursor: ssoLoading === ag.id ? 'wait' : 'pointer', background:`linear-gradient(135deg, ${ag.color}, ${ag.color}cc)`, color:'#0a0a1a', fontSize:9, fontWeight:800, letterSpacing:'0.05em', opacity: ssoLoading === ag.id ? 0.7 : 1 }}>
+                                {ssoLoading === ag.id ? 'Opening…' : 'Open Agent'} <ArrowRight size={9} />
                               </button>
                             ) : (
                               <span style={{ fontSize:8, color:C.textMut }}>Contact admin to activate</span>
@@ -902,14 +921,14 @@ export default function SIADashboard() {
                     </div>
                     <div style={{ padding:'10px 12px', display:'flex', flexDirection:'column', gap:6 }}>
                       {[
-                        { icon:'💬', label:'Chat with MARK', desc:'Run marketing tasks', ok: agentStatus?.can_access_mark ?? userProfile?.can_access_mark ?? false, href:'/agents/mark' },
-                        { icon:'📄', label:'Screen Candidates', desc:'Upload CVs to HR Agent', ok: agentStatus?.can_access_hr ?? userProfile?.can_access_hr ?? false, href:'/hr-agent' },
-                        { icon:'⚙️', label:'Account Settings', desc:'Profile & integration', ok: true, href:'', onCl: () => setActiveNav('Settings') },
+                        { icon:'💬', label:'Chat with MARK', desc:'Run marketing tasks', ok: agentStatus?.can_access_mark ?? userProfile?.can_access_mark ?? false, href:'/agents/mark', agentId: 'marketing' as string | undefined },
+                        { icon:'📄', label:'Screen Candidates', desc:'Upload CVs to HR Agent', ok: agentStatus?.can_access_hr ?? userProfile?.can_access_hr ?? false, href:'/hr-agent', agentId: 'hr' as string | undefined },
+                        { icon:'⚙️', label:'Account Settings', desc:'Profile & integration', ok: true, href:'', agentId: undefined, onCl: () => setActiveNav('Settings') },
                       ].map(item => (
                         <button
                           key={item.label}
-                          disabled={!item.ok}
-                          onClick={() => item.onCl ? item.onCl() : (item.href && (window.location.href = item.href))}
+                          disabled={!item.ok || ssoLoading === item.agentId}
+                          onClick={() => item.onCl ? item.onCl() : (item.agentId ? openAgent(item.agentId, item.href) : (item.href && (window.location.href = item.href)))}
                           style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 10px', borderRadius:8, background: item.ok ? 'rgba(255,255,255,0.03)' : 'transparent', border:`1px solid ${item.ok ? 'rgba(255,255,255,0.08)' : 'transparent'}`, cursor: item.ok ? 'pointer' : 'default', textAlign:'left', width:'100%', opacity: item.ok ? 1 : 0.45, transition:'all 0.15s' }}
                           onMouseEnter={e => item.ok && ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)')}
                           onMouseLeave={e => item.ok && ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)')}>

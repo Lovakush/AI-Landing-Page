@@ -191,6 +191,86 @@ export async function chatWithAgent(
   };
 }
 
+// ── SSO / OAuth helpers ────────────────────────────────────
+
+/**
+ * Initiate OAuth 2.0 Authorization Code flow for an agent.
+ * Stores a CSRF state in sessionStorage, calls /oauth/authorize/,
+ * then navigates the user to the agent's SSO callback URL.
+ */
+export async function requestAgentSSO(agentType: 'hr' | 'mark'): Promise<void> {
+  const clientId =
+    agentType === 'hr'
+      ? process.env.NEXT_PUBLIC_HR_AGENT_CLIENT_ID
+      : process.env.NEXT_PUBLIC_MARK_AGENT_CLIENT_ID;
+  const redirectUri =
+    agentType === 'hr'
+      ? process.env.NEXT_PUBLIC_HR_AGENT_REDIRECT_URI
+      : process.env.NEXT_PUBLIC_MARK_AGENT_REDIRECT_URI;
+
+  if (!clientId || !redirectUri) {
+    throw new Error(`SSO not configured for agent type: ${agentType}`);
+  }
+
+  // Generate CSRF state and persist for the callback page to verify
+  const state = crypto.randomUUID();
+  sessionStorage.setItem('oauth_state', state);
+
+  const res = await apiFetch('/oauth/authorize/', {
+    method: 'POST',
+    body: JSON.stringify({ client_id: clientId, redirect_uri: redirectUri, state }),
+  });
+
+  const redirectUrl = res?.data?.redirect_url;
+  if (!redirectUrl) throw new Error('No redirect_url returned from SSO authorize endpoint.');
+
+  window.location.href = redirectUrl;
+}
+
+/**
+ * Redirect to Mark Agent frontend with SSO token.
+ * This is called when user clicks Mark Agent card in SIA dashboard.
+ * It validates the user has Mark access and redirects with token.
+ */
+export async function redirectToMarkAgent(): Promise<void> {
+  // Check if user is authenticated
+  if (!isAuthenticated()) {
+    // Redirect to login with return URL
+    window.location.href = '/login?redirect=/agents/mark';
+    return;
+  }
+
+  // Check if user has Mark access
+  try {
+    const profile = await fetchProfile();
+    
+    if (!profile.can_access_mark) {
+      // User doesn't have access - show alert and redirect to subscription page
+      alert('You do not have access to Mark agent. Please contact your administrator to enable it.');
+      window.location.href = '/profile';
+      return;
+    }
+
+    // Get current token
+    const token = getToken();
+    if (!token) {
+      window.location.href = '/login?redirect=/agents/mark';
+      return;
+    }
+
+    // Build Mark Agent URL with SSO token
+    const markAgentBaseUrl = process.env.NEXT_PUBLIC_MARK_AGENT_URL || 'http://localhost:5173';
+    const ssoUrl = `${markAgentBaseUrl}/auth?token=${encodeURIComponent(token)}&redirect=${encodeURIComponent('/app/dashboard')}`;
+    
+    // Open in new tab
+    window.open(ssoUrl, '_blank');
+    
+  } catch (error) {
+    console.error('Failed to check Mark access:', error);
+    alert('Failed to access Mark agent. Please try again.');
+  }
+}
+
 // ── Admin API helpers ──────────────────────────────────────
 
 export async function fetchAdminStats() {

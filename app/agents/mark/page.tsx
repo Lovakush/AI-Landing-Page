@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
 import {
-  isAuthenticated, chatWithAgent, fetchProfile,
+  isAuthenticated, chatWithAgent, fetchProfile, redirectToMarkAgent,
   refreshAccessToken, type UserProfile,
 } from '@/lib/api';
 
@@ -124,22 +124,37 @@ export default function MarkAgentPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, typing]);
 
-  // Auth + access check
+  // Auth + access check + redirect to Mark frontend
   useEffect(() => {
-    if (!isAuthenticated()) { router.replace('/'); return; }
+    if (!isAuthenticated()) { 
+      router.replace('/login?redirect=/agents/mark'); 
+      return; 
+    }
+    
     fetchProfile()
       .then(p => {
         setProfile(p);
-        if (!p.can_access_mark) setNoAccess(true);
+        if (!p.can_access_mark) {
+          setNoAccess(true);
+          setLoading(false);
+        } else {
+          // User has access - redirect to standalone Mark frontend
+          redirectToMarkAgent();
+          // Stop loading spinner after opening new tab
+          setLoading(false);
+        }
       })
       .catch(async (e: any) => {
         if (e?.message?.includes('401')) {
           const t = await refreshAccessToken();
-          if (!t) { router.replace('/'); return; }
+          if (!t) { 
+            router.replace('/login?redirect=/agents/mark'); 
+            return; 
+          }
         }
         setNoAccess(true);
-      })
-      .finally(() => setLoading(false));
+        setLoading(false);
+      });
   }, [router]);
 
   const send = useCallback(async (text: string) => {
