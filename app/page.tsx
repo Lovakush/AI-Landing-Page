@@ -103,7 +103,7 @@ const aiAgentsData = [
     features: ['Lead Generation', 'Product Matching', 'Machine Learning', 'Next-Best-Action'],
     color: '#06B6D4',
     icon: Target,
-    dashboardImg: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
+    dashboardImg: '/Argo.png',
   },
   {
     id: 'mark',
@@ -114,7 +114,7 @@ const aiAgentsData = [
     features: ['Live-Trend Radar', 'AI Post Generator', 'Engagement Predictor', 'Smart Scheduler'],
     color: '#A855F7',
     icon: Zap,
-    dashboardImg: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
+    dashboardImg: '/Mark.png',
   },
   {
     id: 'consuelo',
@@ -125,7 +125,7 @@ const aiAgentsData = [
     features: ['Resume Parser', 'Smart Filter', 'AI Soft-Skills Test', 'Hiring Insights'],
     color: '#E8B84A',
     icon: Users,
-    dashboardImg: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
+    dashboardImg: '/Consuelo.png',
   },
 ];
 
@@ -293,7 +293,7 @@ export default function OpseraLanding() {
 
             {/* Subtitle */}
             <p className="text-base md:text-lg leading-relaxed tracking-tight text-white/60 max-w-xl font-light">
-              Domain-specific AI agents that deliver clarity and automation in 30 days — not 6 months.
+              Multi-Agent systems that deliver growth within 30 days.
             </p>
 
             {/* CTA Buttons */}
@@ -369,9 +369,12 @@ export default function OpseraLanding() {
             className="text-center mb-6 lg:mb-16"
           >
             <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light">
-              <span className="text-white">Built on reality, </span>
-              <span className="italic text-[#E8B84A]">not AI hype</span>
+              <span className="text-white">Tomorrow's technology, </span>
+              
             </h3>
+            <h4 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light mb-3 lg:mb-4">
+              <span className="italic text-[#E8B84A]">made accessible today.</span>
+            </h4>
           </motion.div>
 
           {/* Interactive Layout - Orbit on right, info on left (desktop) / stacked (mobile) */}
@@ -471,7 +474,7 @@ export default function OpseraLanding() {
           >
             <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light mb-3 md:mb-4">
               <span className="text-white">New </span>
-              <span className="italic text-[#E8B84A]">Launches</span>
+              <span className="italic text-[#E8B84A]">Release</span>
             </h3>
             <p className="text-base md:text-lg text-white/50 max-w-2xl mx-auto">
               Domain-specific AI agents for Sales, Marketing, and HR
@@ -941,11 +944,21 @@ export default function OpseraLanding() {
                   />
                 </svg>
 
-                {/* Axis Labels */}
-                <div className="absolute bottom-2 sm:bottom-4 left-8 sm:left-16 right-2 sm:right-0 text-white/40 text-[9px] sm:text-xs tracking-wider sm:tracking-widest font-mono flex justify-between uppercase">
-                  <span>Months to Value</span>
-                  <span>Days to Value</span>
+                {/* ── UPDATED X-AXIS LABEL ── */}
+                <div className="absolute bottom-2 sm:bottom-4 left-8 sm:left-16 right-2 sm:right-4 font-mono uppercase">
+                  <div className="flex items-center gap-2 w-full">
+                    <span className="text-white/40 text-[9px] sm:text-xs tracking-wider whitespace-nowrap">Slow</span>
+                    <div className="flex-1 flex flex-col items-center">
+                      <span className="text-white/55 text-[9px] sm:text-[11px] tracking-[3px] sm:tracking-[4px] font-semibold whitespace-nowrap">
+                        TIME TO VALUE
+                      </span>
+                      <div className="w-full h-px mt-0.5 bg-gradient-to-r from-white/10 via-white/35 to-white/10" />
+                    </div>
+                    <span className="text-white/40 text-[9px] sm:text-xs tracking-wider whitespace-nowrap">Fast</span>
+                  </div>
                 </div>
+
+                {/* Y-axis label */}
                 <div className="absolute left-5 sm:left-14 top-4 sm:top-8 text-white/40 text-[9px] sm:text-xs tracking-wider sm:tracking-widest font-mono uppercase pointer-events-none">
                   <span>High Capability</span>
                 </div>

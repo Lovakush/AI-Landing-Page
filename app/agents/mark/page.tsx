@@ -75,7 +75,7 @@ function Bubble({ msg }: { msg: Message }) {
         </div>
       )}
 
-      <div style={{ maxWidth: '74%' }}>
+      <div className="mark-message" style={{ maxWidth: '74%' }}>
         <div style={{
           padding: '11px 15px', borderRadius: isUser ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
           background: isUser
@@ -228,10 +228,12 @@ export default function MarkAgentPage() {
           color:#fff;font-family:${T.mono};font-size:12px;font-weight:700;
           letter-spacing:0.08em;text-transform:uppercase;
           transition:box-shadow 0.2s,transform 0.1s;align-self:flex-end;
-          white-space:nowrap;
+          white-space:nowrap;display:flex;align-items:center;justify-content:center;
         }
         .mark-send:hover { box-shadow:0 4px 18px rgba(139,92,246,0.4);transform:translateY(-1px); }
         .mark-send:disabled { opacity:0.45;cursor:not-allowed;transform:none;box-shadow:none; }
+        .mark-send-text { display: inline; }
+        .mark-send-icon { display: none; font-size: 16px; }
         .mark-chip {
           padding:7px 12px;border-radius:8px;border:1px solid rgba(167,139,250,0.2);
           background:rgba(167,139,250,0.06);color:${T.textSec};
@@ -242,6 +244,59 @@ export default function MarkAgentPage() {
         .chat-scroll::-webkit-scrollbar { width:4px; }
         .chat-scroll::-webkit-scrollbar-track { background:transparent; }
         .chat-scroll::-webkit-scrollbar-thumb { background:rgba(167,139,250,0.2);border-radius:2px; }
+        
+        /* RESPONSIVE DESIGN */
+        .mark-container { max-width: 900px; width: 100%; padding: 88px 24px 0; }
+        .mark-header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .mark-header-content { flex: 1; min-width: 200px; }
+        .mark-message { max-width: 74%; }
+        .mark-suggestions { display: flex; flex-wrap: wrap; gap: 7px; }
+        .mark-input-group { display: flex; gap: 10px; align-items: flex-end; }
+        
+        /* Tablet: 640px - 1024px */
+        @media (max-width: 1024px) {
+          .mark-container { padding: 80px 20px 0; }
+          .mark-header { gap: 12px; }
+        }
+        
+        /* Mobile: < 640px */
+        @media (max-width: 639px) {
+          .mark-container { 
+            max-width: 100%; 
+            padding: 76px 12px 0; 
+            margin: 0;
+          }
+          .mark-header { 
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+          }
+          .mark-header-content { width: 100%; }
+          .mark-header-info { flex-direction: column; gap: 6px !important; }
+          .mark-message { max-width: 100% !important; }
+          .mark-suggestions { gap: 5px; }
+          .mark-chip {
+            padding: 6px 10px !important;
+            font-size: 9px !important;
+            flex: 0 1 calc(50% - 3px);
+          }
+          .mark-input { width: 100% !important; }
+          .mark-input-group { 
+            flex-direction: row;
+            align-items: flex-end;
+            gap: 8px;
+          }
+          .mark-send { 
+            width: 44px !important;
+            padding: 12px !important;
+            align-self: flex-end !important;
+            flex-shrink: 0;
+          }
+          .mark-send-text { display: none !important; }
+          .mark-send-icon { display: inline !important; }
+          .mark-avatar { width: 40px !important; height: 40px !important; font-size: 18px !important; }
+          .mark-user-avatar { display: none !important; }
+        }
       `}</style>
 
       <div style={{ minHeight: '100vh', background: T.bg, display: 'flex', flexDirection: 'column' }}>
@@ -254,7 +309,7 @@ export default function MarkAgentPage() {
           backgroundSize: '60px 60px', animation: 'mark-grid 6s ease-in-out infinite',
         }} />
 
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: 900, width: '100%', margin: '0 auto', padding: '88px 24px 0', position: 'relative', zIndex: 1 }}>
+        <div className="mark-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', margin: '0 auto', position: 'relative', zIndex: 1 }}>
 
           {/* Loading */}
           {loading && (
@@ -289,19 +344,20 @@ export default function MarkAgentPage() {
           {!loading && !noAccess && (
             <>
               {/* Agent header */}
-              <div style={{
+              <div className="mark-header" style={{
                 display: 'flex', alignItems: 'center', gap: 16, padding: '20px 0 18px',
                 borderBottom: `1px solid ${T.border}`, marginBottom: 0,
               }}>
-                <div style={{
+                <div className="mark-avatar" style={{
                   width: 48, height: 48, borderRadius: 14, background: T.purpleDim,
                   border: '1px solid rgba(167,139,250,0.3)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
+                  flexShrink: 0,
                 }}>
                   🎯
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className="mark-header-content" style={{ flex: 1 }}>
+                  <div className="mark-header-info" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 16, fontWeight: 700, color: T.text }}>MARK</span>
                     <span style={M({ fontSize: 8, padding: '2px 6px', borderRadius: 4, background: T.purpleDim, color: T.purple, fontWeight: 700, letterSpacing: '0.1em' })}>MARKETING AGENT</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -350,7 +406,7 @@ export default function MarkAgentPage() {
                     {/* Suggestions */}
                     <div style={{ marginBottom: 20 }}>
                       <div style={M({ fontSize: 9, color: T.textMut, marginBottom: 10, letterSpacing: '0.1em', textTransform: 'uppercase' })}>Suggestions</div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                      <div className="mark-suggestions" style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
                         {SUGGESTIONS.map(s => (
                           <button key={s} className="mark-chip" onClick={() => send(s)}>{s}</button>
                         ))}
@@ -370,7 +426,7 @@ export default function MarkAgentPage() {
                       background: T.purpleDim, border: '1px solid rgba(167,139,250,0.3)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
                     }}>🎯</div>
-                    <div style={{
+                    <div className="mark-message" style={{
                       padding: '11px 15px', borderRadius: '14px 14px 14px 4px',
                       background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.18)',
                     }}>
@@ -391,9 +447,9 @@ export default function MarkAgentPage() {
 
               {/* Input area */}
               <div style={{ padding: '12px 0 24px', flexShrink: 0 }}>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+                <div className="mark-input-group" style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
                   {/* User avatar */}
-                  <div style={{
+                  <div className="mark-user-avatar" style={{
                     width: 34, height: 34, borderRadius: 10, flexShrink: 0,
                     background: 'rgba(240,184,73,0.1)', border: '1px solid rgba(240,184,73,0.2)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -421,7 +477,8 @@ export default function MarkAgentPage() {
                     onClick={() => send(input)}
                     disabled={!input.trim() || typing}
                   >
-                    {typing ? '···' : '→ Send'}
+                    <span className="mark-send-text">{typing ? '···' : '→ Send'}</span>
+                    <span className="mark-send-icon">{typing ? '···' : '↑'}</span>
                   </button>
                 </div>
                 <div style={M({ fontSize: 9, color: T.textMut, marginTop: 8, textAlign: 'center' })}>

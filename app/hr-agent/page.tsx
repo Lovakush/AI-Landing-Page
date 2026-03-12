@@ -70,7 +70,7 @@ function Bubble({ msg }: { msg: Message }) {
           👥
         </div>
       )}
-      <div style={{ maxWidth: '74%' }}>
+      <div className="hr-message" style={{ maxWidth: '74%' }}>
         <div style={{
           padding: '11px 15px',
           borderRadius: isUser ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
@@ -208,9 +208,12 @@ export default function HRAgentPage() {
           color:#0a0a1a;font-family:${T.mono};font-size:12px;font-weight:700;
           letter-spacing:0.08em;text-transform:uppercase;
           transition:box-shadow 0.2s,transform 0.1s;align-self:flex-end;white-space:nowrap;
+          display:flex;align-items:center;justify-content:center;
         }
         .hr-send:hover { box-shadow:0 4px 18px rgba(74,222,128,0.35);transform:translateY(-1px); }
         .hr-send:disabled { opacity:0.45;cursor:not-allowed;transform:none;box-shadow:none; }
+        .hr-send-text { display: inline; }
+        .hr-send-icon { display: none; font-size: 16px; }
         .hr-chip {
           padding:7px 12px;border-radius:8px;border:1px solid rgba(74,222,128,0.18);
           background:rgba(74,222,128,0.04);color:${T.textSec};
@@ -221,6 +224,59 @@ export default function HRAgentPage() {
         .chat-scroll::-webkit-scrollbar { width:4px; }
         .chat-scroll::-webkit-scrollbar-track { background:transparent; }
         .chat-scroll::-webkit-scrollbar-thumb { background:rgba(74,222,128,0.2);border-radius:2px; }
+        
+        /* RESPONSIVE DESIGN */
+        .hr-container { max-width: 900px; width: 100%; padding: 88px 24px 0; }
+        .hr-header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .hr-header-content { flex: 1; min-width: 200px; }
+        .hr-message { max-width: 74%; }
+        .hr-suggestions { display: flex; flex-wrap: wrap; gap: 7px; }
+        .hr-input-group { display: flex; gap: 10px; align-items: flex-end; }
+        
+        /* Tablet: 640px - 1024px */
+        @media (max-width: 1024px) {
+          .hr-container { padding: 80px 20px 0; }
+          .hr-header { gap: 12px; }
+        }
+        
+        /* Mobile: < 640px */
+        @media (max-width: 639px) {
+          .hr-container { 
+            max-width: 100%; 
+            padding: 76px 12px 0; 
+            margin: 0;
+          }
+          .hr-header { 
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+          }
+          .hr-header-content { width: 100%; }
+          .hr-header-info { flex-direction: column; gap: 6px !important; }
+          .hr-message { max-width: 100% !important; }
+          .hr-suggestions { gap: 5px; }
+          .hr-chip {
+            padding: 6px 10px !important;
+            font-size: 9px !important;
+            flex: 0 1 calc(50% - 3px);
+          }
+          .hr-input { width: 100% !important; }
+          .hr-input-group { 
+            flex-direction: row;
+            align-items: flex-end;
+            gap: 8px;
+          }
+          .hr-send { 
+            width: 44px !important;
+            padding: 12px !important;
+            align-self: flex-end !important;
+            flex-shrink: 0;
+          }
+          .hr-send-text { display: none !important; }
+          .hr-send-icon { display: inline !important; }
+          .hr-avatar { width: 40px !important; height: 40px !important; font-size: 18px !important; }
+          .hr-user-avatar { display: none !important; }
+        }
       `}</style>
 
       <div style={{ minHeight: '100vh', background: T.bg, display: 'flex', flexDirection: 'column' }}>
@@ -233,7 +289,7 @@ export default function HRAgentPage() {
           backgroundSize: '60px 60px', animation: 'hr-grid 6s ease-in-out infinite',
         }} />
 
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: 900, width: '100%', margin: '0 auto', padding: '88px 24px 0', position: 'relative', zIndex: 1 }}>
+        <div className="hr-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', margin: '0 auto', position: 'relative', zIndex: 1 }}>
 
           {/* Loading */}
           {loading && (
@@ -268,19 +324,20 @@ export default function HRAgentPage() {
           {!loading && !noAccess && (
             <>
               {/* Agent header */}
-              <div style={{
+              <div className="hr-header" style={{
                 display: 'flex', alignItems: 'center', gap: 16, padding: '20px 0 18px',
                 borderBottom: `1px solid ${T.border}`, marginBottom: 0,
               }}>
-                <div style={{
+                <div className="hr-avatar" style={{
                   width: 48, height: 48, borderRadius: 14, background: T.greenDim,
                   border: '1px solid rgba(74,222,128,0.3)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
+                  flexShrink: 0,
                 }}>
                   👥
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className="hr-header-content" style={{ flex: 1 }}>
+                  <div className="hr-header-info" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 16, fontWeight: 700, color: T.text }}>HR Agent</span>
                     <span style={M({ fontSize: 8, padding: '2px 6px', borderRadius: 4, background: T.greenDim, color: T.green, fontWeight: 700, letterSpacing: '0.1em' })}>PEOPLE OPS</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -292,20 +349,22 @@ export default function HRAgentPage() {
                     Recruitment automation, document analysis &amp; people intelligence
                   </div>
                 </div>
-                {sessionId && (
-                  <div style={M({ fontSize: 8, color: T.textMut, textAlign: 'right' })}>
-                    <div>Session</div>
-                    <div style={{ color: T.green }}>{sessionId.slice(0, 8)}…</div>
-                  </div>
-                )}
-                <Link href="/profile" style={{
-                  padding: '7px 12px', borderRadius: 8,
-                  border: '1px solid rgba(74,222,128,0.15)', background: 'transparent',
-                  color: T.textMut, textDecoration: 'none',
-                  ...M({ fontSize: 9, letterSpacing: '0.06em' }),
-                }}>
-                  ← Back
-                </Link>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  {sessionId && (
+                    <div style={M({ fontSize: 8, color: T.textMut, textAlign: 'right' })}>
+                      <div>Session</div>
+                      <div style={{ color: T.green }}>{sessionId.slice(0, 8)}…</div>
+                    </div>
+                  )}
+                  <Link href="/profile" style={{
+                    padding: '7px 12px', borderRadius: 8,
+                    border: '1px solid rgba(74,222,128,0.15)', background: 'transparent',
+                    color: T.textMut, textDecoration: 'none',
+                    ...M({ fontSize: 9, letterSpacing: '0.06em' }),
+                  }}>
+                    ← Back
+                  </Link>
+                </div>
               </div>
 
               {/* Messages area */}
@@ -327,7 +386,7 @@ export default function HRAgentPage() {
                     }} />
                     <div style={{ marginBottom: 20 }}>
                       <div style={M({ fontSize: 9, color: T.textMut, marginBottom: 10, letterSpacing: '0.1em', textTransform: 'uppercase' })}>Quick Starts</div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                      <div className="hr-suggestions" style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
                         {SUGGESTIONS.map(s => (
                           <button key={s} className="hr-chip" onClick={() => send(s)}>{s}</button>
                         ))}
@@ -345,7 +404,7 @@ export default function HRAgentPage() {
                       background: T.greenDim, border: '1px solid rgba(74,222,128,0.3)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
                     }}>👥</div>
-                    <div style={{
+                    <div className="hr-message" style={{
                       padding: '11px 15px', borderRadius: '14px 14px 14px 4px',
                       background: 'rgba(74,222,128,0.06)', border: '1px solid rgba(74,222,128,0.2)',
                     }}>
@@ -366,8 +425,8 @@ export default function HRAgentPage() {
 
               {/* Input */}
               <div style={{ padding: '12px 0 24px', flexShrink: 0 }}>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
-                  <div style={{
+                <div className="hr-input-group" style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+                  <div className="hr-user-avatar" style={{
                     width: 34, height: 34, borderRadius: 10, flexShrink: 0,
                     background: 'rgba(240,184,73,0.1)', border: '1px solid rgba(240,184,73,0.2)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -395,7 +454,8 @@ export default function HRAgentPage() {
                     onClick={() => send(input)}
                     disabled={!input.trim() || typing}
                   >
-                    {typing ? '···' : '→ Send'}
+                    <span className="hr-send-text">{typing ? '···' : '→ Send'}</span>
+                    <span className="hr-send-icon">{typing ? '···' : '↑'}</span>
                   </button>
                 </div>
                 <div style={M({ fontSize: 9, color: T.textMut, marginTop: 8, textAlign: 'center' })}>

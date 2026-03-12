@@ -205,7 +205,6 @@ function TetrisAnimation({ onSubtitleTrigger, onPieceChange }: { onSubtitleTrigg
             const boardRow = row + r;
             const boardCol = col + c;
             if (boardRow >= 0 && boardRow < GRID_ROWS && boardCol >= 0 && boardCol < GRID_COLS) {
-              // For SIA logo piece, mark all cells with the icon
               const shouldHaveIcon = pieceData.icon === '🏢' || (pieceData.iconPos[0] === r && pieceData.iconPos[1] === c);
               newBoard[boardRow][boardCol] = {
                 color: pieceData.color,
@@ -240,35 +239,28 @@ function TetrisAnimation({ onSubtitleTrigger, onPieceChange }: { onSubtitleTrigg
           currentRow = nextRow;
           setFallingPiece({ pieceId: piece.id, row: currentRow, col: startCol });
 
-          // Gradual deceleration as piece approaches target
           const distanceToTarget = targetRow - nextRow;
           const fallSpeed = distanceToTarget <= 1 ? 160 : distanceToTarget <= 2 ? 110 : 80;
 
           setTimeout(fall, fallSpeed);
         } else {
-          // Update falling piece to final position first
           setFallingPiece({ pieceId: piece.id, row: targetRow, col: startCol });
 
-          // Trigger text change immediately when piece lands
           onPieceChange(pieceIndex + 1);
 
-          // Wait for visual animation to complete before placing on board
           setTimeout(() => {
             placePiece(piece, targetRow, startCol);
             setFallingPiece(null);
             setCurrentPieceIndex(pieceIndex + 1);
             setIsAnimating(false);
 
-            // Trigger grid damping animation
             setJustLanded(true);
             setTimeout(() => setJustLanded(false), 400);
 
-            // Trigger subtitle when SIA piece lands
             if (pieceIndex === tetrisPieces.length - 1) {
               onSubtitleTrigger();
             }
 
-            // Unlock scroll after last piece lands with a delay
             if (pieceIndex + 1 >= tetrisPieces.length) {
               setAnimationComplete(true);
               setTimeout(() => {
@@ -299,12 +291,10 @@ function TetrisAnimation({ onSubtitleTrigger, onPieceChange }: { onSubtitleTrigg
     const handleWheel = (e: WheelEvent) => {
       if (!scrollLocked) return;
 
-      // Always prevent scroll when locked, even during animation
       if (currentPieceIndex < tetrisPieces.length) {
         e.preventDefault();
       }
 
-      // Only drop new piece if not animating and enough time has passed
       if (isAnimating) return;
 
       const now = Date.now();
@@ -354,7 +344,6 @@ function TetrisAnimation({ onSubtitleTrigger, onPieceChange }: { onSubtitleTrigg
           row.map((cell, colIndex) => {
             if (!cell) return null;
 
-            // Check if this is part of a 2x2 SIA logo block
             const isSiaLogo = cell.icon === '🏢';
             const isTopLeft = isSiaLogo &&
               board[rowIndex]?.[colIndex]?.icon === '🏢' &&
@@ -362,9 +351,7 @@ function TetrisAnimation({ onSubtitleTrigger, onPieceChange }: { onSubtitleTrigg
               board[rowIndex + 1]?.[colIndex]?.icon === '🏢' &&
               board[rowIndex + 1]?.[colIndex + 1]?.icon === '🏢';
 
-            // Skip rendering if it's part of SIA logo but not the top-left cell
             if (isSiaLogo && !isTopLeft) {
-              // Check if this cell is part of a 2x2 block where top-left exists
               const isPartOfBlock = (
                 (rowIndex > 0 && colIndex > 0 && board[rowIndex - 1]?.[colIndex - 1]?.icon === '🏢') ||
                 (rowIndex > 0 && board[rowIndex - 1]?.[colIndex]?.icon === '🏢' && board[rowIndex - 1]?.[colIndex + 1]?.icon === '🏢') ||
@@ -373,7 +360,6 @@ function TetrisAnimation({ onSubtitleTrigger, onPieceChange }: { onSubtitleTrigg
               if (isPartOfBlock) return null;
             }
 
-            // Calculate distance from SIA figure center (0.5, 0.5) for radial animation
             const siaCenter = { row: 0.5, col: 0.5 };
             const distance = Math.sqrt(
               Math.pow(rowIndex - siaCenter.row, 2) + Math.pow(colIndex - siaCenter.col, 2)
@@ -397,8 +383,8 @@ function TetrisAnimation({ onSubtitleTrigger, onPieceChange }: { onSubtitleTrigg
                 }}
                 initial={{
                   y: -2,
-                  backgroundColor: cell.icon === '🏢' && animationComplete ? `${cell.color}08` : cell.icon === '🏢' ? `${cell.color}08` : animationComplete ? `${cell.color}08` : `${cell.color}08`,
-                  borderColor: cell.icon === '🏢' && animationComplete ? `${cell.color}99` : cell.icon === '🏢' ? `${cell.color}99` : animationComplete ? `${cell.color}99` : `${cell.color}70`,
+                  backgroundColor: `${cell.color}08`,
+                  borderColor: cell.icon === '🏢' ? `${cell.color}99` : `${cell.color}70`,
                   boxShadow: cell.icon === '🏢' && animationComplete
                     ? `0 2px 12px ${displayColor}30, inset 0 1px 2px rgba(255,255,255,0.15), inset 0 -1px 2px ${displayColor}20, 0 0 15px ${displayColor}50, 0 0 30px ${displayColor}30`
                     : cell.icon === '🏢'
@@ -413,7 +399,6 @@ function TetrisAnimation({ onSubtitleTrigger, onPieceChange }: { onSubtitleTrigg
                         y: 0,
                         backgroundColor: [`${cell.color}08`, `${cell.color}04`, `#E8B84A08`],
                         borderColor: [`${cell.color}99`, `${cell.color}50`, `#E8B84A99`],
-                        // Strong pulsing glow for SIA figure after grid complete
                         boxShadow: [
                           `0 2px 12px ${displayColor}30, inset 0 1px 2px rgba(255,255,255,0.15), inset 0 -1px 2px ${displayColor}20, 0 0 15px ${displayColor}50, 0 0 30px ${displayColor}30`,
                           `0 2px 12px ${displayColor}30, inset 0 1px 2px rgba(255,255,255,0.15), inset 0 -1px 2px ${displayColor}20, 0 0 25px ${displayColor}70, 0 0 45px ${displayColor}40`,
@@ -425,7 +410,6 @@ function TetrisAnimation({ onSubtitleTrigger, onPieceChange }: { onSubtitleTrigg
                         y: 0,
                         backgroundColor: `${cell.color}08`,
                         borderColor: `${cell.color}99`,
-                        // SIA figure before grid completion - single pulse then settle
                         boxShadow: [
                           `0 2px 12px ${displayColor}15, inset 0 1px 2px rgba(255,255,255,0.08), inset 0 -1px 2px ${displayColor}10, 0 0 5px ${displayColor}20`,
                           `0 0 35px ${displayColor}85, 0 0 18px ${displayColor}65, inset 0 0 12px ${displayColor}35`,
@@ -437,7 +421,6 @@ function TetrisAnimation({ onSubtitleTrigger, onPieceChange }: { onSubtitleTrigg
                         y: 0,
                         backgroundColor: [`${cell.color}08`, `${cell.color}04`, `#E8B84A08`],
                         borderColor: [`${cell.color}99`, `${cell.color}50`, `#E8B84A99`],
-                        // Weak pulsing glow for other figures when grid is complete
                         boxShadow: [
                           `0 2px 12px ${displayColor}20, inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px ${displayColor}15, 0 0 6px ${displayColor}30`,
                           `0 2px 12px ${displayColor}20, inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px ${displayColor}15, 0 0 12px ${displayColor}45`,
@@ -448,7 +431,6 @@ function TetrisAnimation({ onSubtitleTrigger, onPieceChange }: { onSubtitleTrigg
                         y: 0,
                         backgroundColor: `${cell.color}08`,
                         borderColor: `${cell.color}70`,
-                        // Base shadow for regular figures
                         boxShadow: `0 2px 12px ${displayColor}20, inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px ${displayColor}15`,
                       }
                 }
@@ -709,7 +691,6 @@ export default function AboutPage() {
   const [currentPiece, setCurrentPiece] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Body background to prevent white flash
   useEffect(() => {
     document.body.style.background = '#0d0015';
     return () => { document.body.style.background = ''; };
@@ -735,6 +716,7 @@ export default function AboutPage() {
     <div ref={containerRef} className="bg-[#0d0015] min-h-screen">
       <Navbar/>
 
+      {/* ── HERO / WHY-HOW-WHAT SECTION ── */}
       <section className="pt-24 md:pt-32 pb-12 md:pb-20 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" style={{ background: 'linear-gradient(180deg, #0d0015 0%, #1a0a2e 50%, #2D1B4E 100%)' }}>
         <motion.div
           className="max-w-7xl mx-auto w-full"
@@ -744,7 +726,9 @@ export default function AboutPage() {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center min-h-[400px] lg:min-h-[500px]">
-            <div className="relative min-h-52 lg:min-h-72 text-center lg:text-left">
+
+            {/* LEFT: text panel */}
+            <div className="relative min-h-52 lg:min-h-72 text-center lg:text-left order-2 lg:order-1">
               <AnimatePresence mode="wait">
                 {!activePanel && (
                   <motion.div
@@ -781,7 +765,7 @@ export default function AboutPage() {
                       The future is arriving faster than businesses can react.
                     </h3>
                     <p className="text-base md:text-lg text-white/70 font-light leading-relaxed">
-                      We exist to turn this uncertainty into an advantage — putting our customers in a position to act decisively, rather than reactively.
+                      We harness the power of tomorrow's technologies to solve today's problems, enabling businesses to take a giant leap forward.
                     </p>
                     <button
                       onClick={resetPanel}
@@ -830,7 +814,7 @@ export default function AboutPage() {
                       <span className="text-xs font-semibold tracking-widest text-[#E8B84A] uppercase">What we build</span>
                     </div>
                     <h3 className="text-2xl md:text-3xl lg:text-4xl font-light text-white mb-9 leading-tight tracking-tight">
-                      Plug-and-play AI agents for the workflows that matter.
+                     Bespoke AI Agents tailored to your business needs.
                     </h3>
                     <p className="text-base md:text-lg text-white/70 font-light leading-relaxed">
                       Domain-specific AI agents that automate critical workflows for startups and SMEs — freeing teams to focus on high-value growth.
@@ -846,20 +830,26 @@ export default function AboutPage() {
               </AnimatePresence>
             </div>
 
-            <div className="relative flex justify-center">
+            {/* RIGHT: concentric circles — WHY innermost, WHAT outermost */}
+            <div className="relative flex justify-center order-1 lg:order-2">
+              <div className="relative flex justify-center items-start overflow-visible"
+                style={{ height: '260px', width: '100%' }}
+              >
               <div
-                className="relative w-[450px] h-64 pt-12 overflow-hidden scale-[0.65] sm:scale-[0.8] lg:scale-100 origin-center"
+                className="relative w-[450px] h-64 pt-12 scale-[0.55] xs:scale-[0.65] sm:scale-[0.8] lg:scale-100 origin-top"
                 style={{
                   maskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
                 }}
               >
                 <div className="relative w-[450px] h-[450px] -mt-4">
+
+                  {/* WHAT — outermost / largest (450px) */}
                   <motion.div
-                    onClick={() => showPanel('why')}
+                    onClick={() => showPanel('what')}
                     className={`absolute rounded-full border-2 cursor-pointer transition-all duration-500 ${
-                      activePanel === 'why'
-                        ? 'border-[#A855F7]/50'
+                      activePanel === 'what'
+                        ? 'border-[#E8B84A]/50'
                         : 'border-white/12 hover:border-white/35'
                     }`}
                     style={{
@@ -867,31 +857,26 @@ export default function AboutPage() {
                       height: '450px',
                       top: '0px',
                       left: '0px',
-                      background: activePanel === 'why'
-                        ? 'rgba(168, 85, 247, 0.05)'
+                      background: activePanel === 'what'
+                        ? 'rgba(232, 184, 74, 0.05)'
                         : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%)',
                     }}
-                    animate={{
-                      y: activePanel === 'why' ? -8 : 0,
-                    }}
+                    animate={{ y: activePanel === 'what' ? 8 : 0 }}
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                   >
                     <div
                       className={`absolute text-xs font-semibold tracking-widest uppercase transition-all duration-500 px-3 py-1 rounded-full z-20 ${
-                        activePanel === 'why'
-                          ? 'text-[#A855F7] bg-white/90'
+                        activePanel === 'what'
+                          ? 'text-[#E8B84A] bg-white/90'
                           : 'text-white/40 bg-white/10'
                       }`}
-                      style={{
-                        left: '50%',
-                        top: '0px',
-                        transform: 'translate(-50%, -50%)',
-                      }}
+                      style={{ left: '50%', top: '0px', transform: 'translate(-50%, -50%)' }}
                     >
-                      Why
+                      What
                     </div>
                   </motion.div>
 
+                  {/* HOW — middle (310px) */}
                   <motion.div
                     onClick={() => showPanel('how')}
                     className={`absolute rounded-full border-2 cursor-pointer transition-all duration-500 ${
@@ -908,9 +893,7 @@ export default function AboutPage() {
                         ? 'rgba(6, 182, 212, 0.05)'
                         : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%)',
                     }}
-                    animate={{
-                      y: activePanel === 'how' ? -8 : 0,
-                    }}
+                    animate={{ y: activePanel === 'how' ? 8 : 0 }}
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                   >
                     <div
@@ -919,21 +902,18 @@ export default function AboutPage() {
                           ? 'text-[#06B6D4] bg-white/90'
                           : 'text-white/40 bg-white/10'
                       }`}
-                      style={{
-                        left: '50%',
-                        top: '2px',
-                        transform: 'translate(-50%, -50%)',
-                      }}
+                      style={{ left: '50%', top: '2px', transform: 'translate(-50%, -50%)' }}
                     >
                       How
                     </div>
                   </motion.div>
 
+                  {/* WHY — innermost / smallest (170px) */}
                   <motion.div
-                    onClick={() => showPanel('what')}
+                    onClick={() => showPanel('why')}
                     className={`absolute rounded-full border-2 cursor-pointer transition-all duration-500 ${
-                      activePanel === 'what'
-                        ? 'border-[#E8B84A]/50'
+                      activePanel === 'why'
+                        ? 'border-[#A855F7]/50'
                         : 'border-white/12 hover:border-white/35'
                     }`}
                     style={{
@@ -941,37 +921,34 @@ export default function AboutPage() {
                       height: '170px',
                       top: '140px',
                       left: '140px',
-                      background: activePanel === 'what'
-                        ? 'rgba(232, 184, 74, 0.1)'
+                      background: activePanel === 'why'
+                        ? 'rgba(168, 85, 247, 0.1)'
                         : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)',
                     }}
-                    animate={{
-                      y: activePanel === 'what' ? -8 : 0,
-                    }}
+                    animate={{ y: activePanel === 'why' ? 8 : 0 }}
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                   >
                     <div
                       className={`absolute text-xs font-semibold tracking-widest uppercase transition-all duration-500 px-3 py-1 rounded-full z-10 ${
-                        activePanel === 'what'
-                          ? 'text-[#E8B84A] bg-white/90'
+                        activePanel === 'why'
+                          ? 'text-[#A855F7] bg-white/90'
                           : 'text-white/40 bg-white/10'
                       }`}
-                      style={{
-                        left: '48%',
-                        top: '2px',
-                        transform: 'translate(-50%, -50%)',
-                      }}
+                      style={{ left: '48%', top: '2px', transform: 'translate(-50%, -50%)' }}
                     >
-                      What
+                      Why
                     </div>
                   </motion.div>
+
                 </div>
+              </div>
               </div>
             </div>
           </div>
         </motion.div>
       </section>
 
+      {/* ── TETRIS SECTION ── */}
       <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 relative overflow-hidden min-h-screen flex items-center" style={{ background: 'linear-gradient(180deg, #2D1B4E 0%, #3d2a5f 50%, #2D1B4E 100%)' }}>
         <div className="max-w-7xl mx-auto relative z-10 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
@@ -983,7 +960,7 @@ export default function AboutPage() {
               transition={{ duration: 0.8, ease: "easeOut" }}
             >
               <h2 className="text-3xl md:text-5xl lg:text-6xl font-light text-white mb-8 leading-tight tracking-tight">
-                The giants are <em className="italic text-[#E8B84A]">pulling ahead.</em>
+                The future favors the prepared. <em className="italic text-[#E8B84A]">Are you?</em>
               </h2>
               <AnimatePresence mode="wait">
                 {showSubtitle ? (
@@ -995,57 +972,29 @@ export default function AboutPage() {
                     exit={{ opacity: 0, x: -30 }}
                     transition={{ duration: 0.8, ease: 'easeOut' }}
                   >
-                    We started SIA to close the gap between AI solutions and enterprises that need it the most.
+                   We equip growing firms with frontier grade AI capabilities, so they can compete at the level of the giants.
                   </motion.div>
                 ) : currentPiece >= 4 ? (
-                  <motion.p
-                    key="text-4"
-                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0"
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -30 }}
-                    transition={{ duration: 0.6, ease: 'easeOut' }}
-                  >
+                  <motion.p key="text-4" className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0" initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.6, ease: 'easeOut' }}>
                     Meanwhile, growing businesses are stuck choosing between expensive consultants, half-built tools, or doing everything manually.
                   </motion.p>
                 ) : currentPiece >= 3 ? (
-                  <motion.p
-                    key="text-3"
-                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0"
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -30 }}
-                    transition={{ duration: 0.6, ease: 'easeOut' }}
-                  >
+                  <motion.p key="text-3" className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0" initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.6, ease: 'easeOut' }}>
                     Widening the gap, every year.
                   </motion.p>
                 ) : currentPiece >= 2 ? (
-                  <motion.p
-                    key="text-2"
-                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0"
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -30 }}
-                    transition={{ duration: 0.6, ease: 'easeOut' }}
-                  >
+                  <motion.p key="text-2" className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0" initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.6, ease: 'easeOut' }}>
                     To decide smarter and outpace the market.
                   </motion.p>
                 ) : currentPiece >= 1 ? (
-                  <motion.p
-                    key="text-1"
-                    className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0"
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -30 }}
-                    transition={{ duration: 0.6, ease: 'easeOut' }}
-                  >
+                  <motion.p key="text-1" className="text-base md:text-lg text-white/70 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0" initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.6, ease: 'easeOut' }}>
                     The world's largest companies are using AI to move faster.
                   </motion.p>
                 ) : null}
               </AnimatePresence>
             </motion.div>
 
-            <div className="relative min-h-[350px] lg:min-h-[500px] flex items-center justify-center order-1 lg:order-2 scale-[0.75] sm:scale-[0.85] lg:scale-100 origin-center">
+            <div className="relative min-h-[300px] sm:min-h-[380px] lg:min-h-[500px] flex items-center justify-center order-1 lg:order-2 scale-[0.6] xs:scale-[0.7] sm:scale-[0.85] lg:scale-100 origin-center">
               <TetrisAnimation
                 onSubtitleTrigger={() => setShowSubtitle(true)}
                 onPieceChange={(index) => setCurrentPiece(index)}
@@ -1055,6 +1004,7 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* ── LEVEL THE FIELD SECTION ── */}
       <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" style={{ background: 'linear-gradient(180deg, #2D1B4E 0%, #1a0a2e 50%, #2D1B4E 100%)' }}>
         <div className="max-w-6xl mx-auto w-full">
           <motion.div
@@ -1065,10 +1015,11 @@ export default function AboutPage() {
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-light text-white mb-6 leading-tight tracking-tight">
-              We exist to <em className="italic text-[#E8B84A]">level the field.</em>
+              Built for those <em className="italic text-[#E8B84A]">who punch above their weight.</em>
+              
             </h2>
             <p className="text-base md:text-lg text-white/70 max-w-2xl mx-auto font-light leading-relaxed">
-              Plug-and-play AI agents that automate critical workflows, so your team stops drowning in operations and starts focusing on growth.
+              We specialize in building multi-agent solutions that automate important, repetitive, and critical workflows, freeing your business to focus on what matters most: <span className="italic text-[#E8B84A]">growth</span>.
             </p>
           </motion.div>
 
@@ -1108,9 +1059,7 @@ export default function AboutPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.6, delay: idx * 0.2 }}
-                whileHover={{
-                  background: 'rgba(255, 255, 255, 0.08)',
-                }}
+                whileHover={{ background: 'rgba(255, 255, 255, 0.08)' }}
               >
                 <div className={`w-14 h-14 rounded-2xl ${card.bg} ${card.color} flex items-center justify-center text-2xl mb-6`}>
                   {card.icon}
@@ -1123,6 +1072,7 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* ── HOW IT WORKS SECTION ── */}
       <section className="py-16 md:py-32 px-6 md:px-10 lg:px-16 min-h-screen flex items-center" style={{ background: 'linear-gradient(180deg, #2D1B4E 0%, #3d2a5f 50%, #2D1B4E 100%)' }}>
         <div className="max-w-7xl mx-auto w-full">
           <motion.div
@@ -1153,9 +1103,14 @@ export default function AboutPage() {
           </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center min-h-[400px] lg:min-h-[500px]">
-            <div className="relative flex justify-center">
+
+            {/* LEFT: concentric circles for How It Works */}
+            <div className="relative flex justify-center order-1 lg:order-1">
+              <div className="relative flex justify-center items-start overflow-visible"
+                style={{ height: '260px', width: '100%' }}
+              >
               <div
-                className="relative w-[450px] h-64 pt-12 overflow-hidden scale-[0.65] sm:scale-[0.8] lg:scale-100 origin-center"
+                className="relative w-[450px] h-64 pt-12 scale-[0.55] xs:scale-[0.65] sm:scale-[0.8] lg:scale-100 origin-top"
                 style={{
                   maskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
@@ -1178,9 +1133,7 @@ export default function AboutPage() {
                         ? 'rgba(6, 182, 212, 0.05)'
                         : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%)',
                     }}
-                    animate={{
-                      y: activeWorkPanel === 'live' ? -8 : 0,
-                    }}
+                    animate={{ y: activeWorkPanel === 'live' ? -8 : 0 }}
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                   >
                     <motion.div
@@ -1189,11 +1142,7 @@ export default function AboutPage() {
                           ? 'text-[#06B6D4] bg-white/90'
                           : 'text-white/40 bg-white/10'
                       }`}
-                      style={{
-                        left: '50%',
-                        top: '0px',
-                        transform: 'translate(-50%, -50%)',
-                      }}
+                      style={{ left: '50%', top: '0px', transform: 'translate(-50%, -50%)' }}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.6, delay: 0.2 }}
@@ -1218,9 +1167,7 @@ export default function AboutPage() {
                         ? 'rgba(168, 85, 247, 0.05)'
                         : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%)',
                     }}
-                    animate={{
-                      y: activeWorkPanel === 'solution' ? -8 : 0,
-                    }}
+                    animate={{ y: activeWorkPanel === 'solution' ? -8 : 0 }}
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                   >
                     <motion.div
@@ -1229,11 +1176,7 @@ export default function AboutPage() {
                           ? 'text-[#A855F7] bg-white/90'
                           : 'text-white/40 bg-white/10'
                       }`}
-                      style={{
-                        left: '50%',
-                        top: '2px',
-                        transform: 'translate(-50%, -50%)',
-                      }}
+                      style={{ left: '50%', top: '2px', transform: 'translate(-50%, -50%)' }}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.6, delay: 0.4 }}
@@ -1258,9 +1201,7 @@ export default function AboutPage() {
                         ? 'rgba(232, 184, 74, 0.1)'
                         : 'radial-gradient(circle at center, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)',
                     }}
-                    animate={{
-                      y: activeWorkPanel === 'pain' ? -8 : 0,
-                    }}
+                    animate={{ y: activeWorkPanel === 'pain' ? -8 : 0 }}
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                   >
                     <motion.div
@@ -1269,11 +1210,7 @@ export default function AboutPage() {
                           ? 'text-[#E8B84A] bg-white/90'
                           : 'text-white/40 bg-white/10'
                       }`}
-                      style={{
-                        left: '48%',
-                        top: '2px',
-                        transform: 'translate(-50%, -50%)',
-                      }}
+                      style={{ left: '48%', top: '2px', transform: 'translate(-50%, -50%)' }}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.6, delay: 0.6 }}
@@ -1283,9 +1220,11 @@ export default function AboutPage() {
                   </motion.div>
                 </div>
               </div>
+              </div>
             </div>
 
-            <div className="relative min-h-52 lg:min-h-72 text-center lg:text-left">
+            {/* RIGHT: text panel */}
+            <div className="relative min-h-52 lg:min-h-72 text-center lg:text-left order-2 lg:order-2">
               <AnimatePresence mode="wait">
                 {!activeWorkPanel && (
                   <motion.div
@@ -1324,10 +1263,7 @@ export default function AboutPage() {
                     <p className="text-base md:text-lg text-white/70 font-light leading-relaxed">
                       We dig into your workflows, team structure, and the bottlenecks quietly eating your time. No surface-level audits — we go deep.
                     </p>
-                    <button
-                      onClick={resetWorkPanel}
-                      className="mt-6 text-sm font-medium text-[#E8B84A] hover:opacity-70 transition-opacity"
-                    >
+                    <button onClick={resetWorkPanel} className="mt-6 text-sm font-medium text-[#E8B84A] hover:opacity-70 transition-opacity">
                       ← Back
                     </button>
                   </motion.div>
@@ -1350,10 +1286,7 @@ export default function AboutPage() {
                     <p className="text-base md:text-lg text-white/70 font-light leading-relaxed">
                       No off-the-shelf platform. We design and deploy an AI agent tailored to your real operations — not a generic tool you'll need to bend around.
                     </p>
-                    <button
-                      onClick={resetWorkPanel}
-                      className="mt-6 text-sm font-medium text-[#A855F7] hover:opacity-70 transition-opacity"
-                    >
+                    <button onClick={resetWorkPanel} className="mt-6 text-sm font-medium text-[#A855F7] hover:opacity-70 transition-opacity">
                       ← Back
                     </button>
                   </motion.div>
@@ -1376,10 +1309,7 @@ export default function AboutPage() {
                     <p className="text-base md:text-lg text-white/70 font-light leading-relaxed">
                       Your agent is running, your team is freed up, and we keep iterating as your business evolves. No six-month timelines — just results.
                     </p>
-                    <button
-                      onClick={resetWorkPanel}
-                      className="mt-6 text-sm font-medium text-[#06B6D4] hover:opacity-70 transition-opacity"
-                    >
+                    <button onClick={resetWorkPanel} className="mt-6 text-sm font-medium text-[#06B6D4] hover:opacity-70 transition-opacity">
                       ← Back
                     </button>
                   </motion.div>
@@ -1390,7 +1320,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-
+      {/* ── CTA SECTION ── */}
       <section id="cta" className="relative z-10 py-16 md:py-28 px-6 min-h-screen flex items-center" style={{ background: 'linear-gradient(180deg, #2D1B4E 0%, #1a0a2e 50%, #0d0015 100%)' }}>
         <div className="max-w-4xl mx-auto text-center w-full">
           <motion.div
